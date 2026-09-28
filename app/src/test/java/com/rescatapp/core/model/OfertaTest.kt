@@ -17,7 +17,7 @@ class OfertaTest {
         precioRescate = 25.0,
         cantidadDisponible = 5,
         horaRetiroDesde = "18:00",
-        horaRetiroHasta = "20:00",
+        horaRetiroHasta = "20:00"
     )
 
     @Test
@@ -26,7 +26,7 @@ class OfertaTest {
         assertEquals(20.0, oferta.ahorroPorUnidad, 0.0)
         assertEquals(
             51,
-            oferta.copy(precioNormal = 200.0, precioRescate = 99.0).porcentajeDescuento,
+            oferta.copy(precioNormal = 200.0, precioRescate = 99.0).porcentajeDescuento
         )
     }
 

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+mapfile -d '' -t files < <(git diff --cached --name-only --diff-filter=ACMR -z -- '*.kt' '*.kts')
+
+if ((${#files[@]} == 0)); then
+    exit 0
+fi
+
+root=$(git rev-parse --show-toplevel)
+paths=()
+for file in "${files[@]}"; do
+    if [[ "$file" == *,* ]]; then
+        printf 'Cannot format a path containing a comma: %s\n' "$file" >&2
+        exit 1
+    fi
+    if ! git diff --quiet -- "$file"; then
+        printf 'Unstaged changes in %s; stage them before committing.\n' "$file" >&2
+        exit 1
+    fi
+    paths+=("$root/$file")
+done
+
+joined=$(IFS=,; printf '%s' "${paths[*]}")
+sh ./gradlew :spotlessApply :app:spotlessApply "-PspotlessIdeHook=$joined" --console=plain
+git add -- "${files[@]}"
+git diff --cached --check

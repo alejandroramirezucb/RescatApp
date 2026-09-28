@@ -4,5 +4,5 @@ enum class Categoria(val etiqueta: String) {
     PANADERIA("Panadería"),
     COMIDA("Comida"),
     POSTRES("Postres"),
-    CAFETERIA("Cafetería"),
+    CAFETERIA("Cafetería")
 }

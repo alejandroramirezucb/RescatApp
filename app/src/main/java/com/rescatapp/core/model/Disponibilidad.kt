@@ -4,5 +4,5 @@ enum class Disponibilidad {
     ALTA,
     MEDIA,
     BAJA,
-    AGOTADA,
+    AGOTADA
 }

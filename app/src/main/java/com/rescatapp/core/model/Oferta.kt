@@ -17,7 +17,7 @@ data class Oferta(
     val precioRescate: Double,
     val cantidadDisponible: Int,
     val horaRetiroDesde: String,
-    val horaRetiroHasta: String,
+    val horaRetiroHasta: String
 ) {
     val porcentajeDescuento: Int
         get() = ((1 - precioRescate / precioNormal) * PORCENTAJE_TOTAL).roundToInt()
