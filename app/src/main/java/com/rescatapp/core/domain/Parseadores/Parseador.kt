@@ -1,7 +1,5 @@
 package com.rescatapp.core.domain.Parseadores
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -19,7 +17,6 @@ object  Parseador{
     fun aEntero(texto: String): Int? {
         return texto.trim().toIntOrNull()
     }
-
 
 
     fun aHora(texto: String): LocalTime? {
