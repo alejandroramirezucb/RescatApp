@@ -49,5 +49,14 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
+    
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+    
+    // Coil
+    implementation(libs.coil.compose)
+    
     testImplementation(libs.junit)
 }
