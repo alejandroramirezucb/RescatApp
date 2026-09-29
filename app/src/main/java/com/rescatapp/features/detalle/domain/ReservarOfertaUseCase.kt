@@ -11,7 +11,7 @@ class ReservarOfertaUseCase @Inject constructor(
     private val ofertas: RepositorioOfertas,
     private val pedidos: RepositorioPedidos
 ) {
-    operator fun invoke(ofertaId: Int): ResultadoOperacion {
+    operator fun invoke(ofertaId: Int): ResultadoOperacion<Pedido> {
         val oferta = ofertas.obtenerActualPorId(ofertaId)
             ?: return ResultadoOperacion.Error("Oferta no encontrada")
         if (oferta.estaAgotada) {

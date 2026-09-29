@@ -3,7 +3,6 @@ package com.rescatapp.features.detalle.domain
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.model.EstadoPedido
-import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -15,9 +14,6 @@ class ReservarOfertaUseCaseTest {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
-
-<<<<<<< HEAD
-        val resultado = reservar(13)
 
         assertTrue(resultado is ResultadoOperacion.Exito)
         val pedido = (resultado as ResultadoOperacion.Exito).valor
@@ -38,28 +34,16 @@ class ReservarOfertaUseCaseTest {
         val oferta = ofertas.obtenerActualPorId(13)!!
         ofertas.actualizar(oferta.copy(cantidadDisponible = 0))
 
-<<<<<<< HEAD
-        assertEquals(
-            ResultadoOperacion.Error("Esta oferta está agotada"),
-            reservar(13)
-        )
-=======
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
         assertTrue(resultado is ResultadoOperacion.Error)
         assertEquals("Esta oferta está agotada", (resultado as ResultadoOperacion.Error).mensaje)
         assertEquals(0, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
         assertTrue(pedidos.pedidos.value.isEmpty())
->>>>>>> 1bd7640 (feature: logica de ofertas+ una pequena base de perfil, solo la logica basica+ reactividad)
     }
 
     @Test
     fun informaSiLaOfertaNoExiste() {
-<<<<<<< HEAD
-        val reservar = ReservarOfertaUseCase(RepositorioOfertas(), RepositorioPedidos())
-
-        assertEquals(ResultadoOperacion.Error("Oferta no encontrada"), reservar(999))
-=======
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
 
@@ -82,6 +66,5 @@ class ReservarOfertaUseCaseTest {
         assertTrue(resultado is ResultadoOperacion.Exito)
         assertEquals(0, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
         assertEquals(1, pedidos.pedidos.value.size)
->>>>>>> 1bd7640 (feature: logica de ofertas+ una pequena base de perfil, solo la logica basica+ reactividad)
     }
 }

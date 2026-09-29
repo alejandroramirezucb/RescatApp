@@ -106,4 +106,32 @@ class RegistroViewModelTest {
         assertNull(state.errores.comercio)
         assertNotNull(state.errores.descripcion)
     }
+
+    @Test
+    fun sePublicoPackSaltenas_apareceEnPrimerLugarConDescuentoYDisponibilidad() {
+        val totalInicial = repositorio.ofertas.value.size
+        val campos = CamposRegistro(
+            nombre = "Pack Salteñas",
+            comercio = "Panadería La Central",
+            categoria = Categoria.PANADERIA,
+            descripcion = "Salteñas del día",
+            pesoKg = "1,5",
+            precioNormal = "40",
+            precioRescate = "20",
+            cantidadDisponible = "4",
+            horaRetiroDesde = "09:00",
+            horaRetiroHasta = "11:00"
+        )
+
+        viewModel.onCampoCambiado(campos)
+        viewModel.publicar()
+
+        val ofertas = repositorio.ofertas.value
+        assertEquals(totalInicial + 1, ofertas.size)
+
+        val primera = ofertas.first()
+        assertEquals("Pack Salteñas", primera.nombre)
+        assertEquals(50, primera.porcentajeDescuento)
+        assertEquals(4, primera.cantidadDisponible)
+    }
 }

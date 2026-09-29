@@ -23,9 +23,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -67,98 +69,111 @@ fun ExplorarScreen(
 ) {
     var mostrarFiltros by remember { mutableStateOf(false) }
 
-    Column(Modifier.fillMaxSize().background(FondoRescat)) {
-        Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Explorar",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.weight(1f))
-                TextButton(
-                    onClick = onInicio,
-                    contentPadding = PaddingValues(horizontal = 4.dp)
-                ) { Text("Inicio") }
-                TextButton(
-                    onClick = onPublicar,
-                    contentPadding = PaddingValues(horizontal = 4.dp)
-                ) { Text("Publicar") }
-                TextButton(
-                    onClick = onPerfil,
-                    contentPadding = PaddingValues(horizontal = 4.dp)
-                ) { Text("Perfil") }
-            }
-            OutlinedTextField(
-                value = estado.texto,
-                onValueChange = onBuscar,
-                label = { Text("Buscar ofertas") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        containerColor = FondoRescat,
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onPublicar,
+                containerColor = VerdeRescat,
+                contentColor = Color.White
             ) {
-                Box {
-                    FilterChip(
-                        selected = estado.categoria != null,
-                        onClick = { mostrarFiltros = true },
-                        label = { Text(estado.categoria?.etiqueta ?: "Filtros") }
+                Text("Publicar oferta")
+            }
+        }
+    ) { innerPadding ->
+        Column(Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(Modifier.fillMaxWidth().background(Color.White).padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Explorar",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
                     )
-                    DropdownMenu(
-                        expanded = mostrarFiltros,
-                        onDismissRequest = { mostrarFiltros = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Todas") },
-                            onClick = {
-                                onCategoria(null)
-                                mostrarFiltros = false
-                            }
+                    Spacer(Modifier.weight(1f))
+                    TextButton(
+                        onClick = onInicio,
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) { Text("Inicio") }
+                    TextButton(
+                        onClick = onPublicar,
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) { Text("Publicar") }
+                    TextButton(
+                        onClick = onPerfil,
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) { Text("Perfil") }
+                }
+                OutlinedTextField(
+                    value = estado.texto,
+                    onValueChange = onBuscar,
+                    label = { Text("Buscar ofertas") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box {
+                        FilterChip(
+                            selected = estado.categoria != null,
+                            onClick = { mostrarFiltros = true },
+                            label = { Text(estado.categoria?.etiqueta ?: "Filtros") }
                         )
-                        Categoria.entries.forEach { categoria ->
+                        DropdownMenu(
+                            expanded = mostrarFiltros,
+                            onDismissRequest = { mostrarFiltros = false }
+                        ) {
                             DropdownMenuItem(
-                                text = { Text(categoria.etiqueta) },
+                                text = { Text("Todas") },
                                 onClick = {
-                                    onCategoria(categoria)
+                                    onCategoria(null)
                                     mostrarFiltros = false
                                 }
                             )
+                            Categoria.entries.forEach { categoria ->
+                                DropdownMenuItem(
+                                    text = { Text(categoria.etiqueta) },
+                                    onClick = {
+                                        onCategoria(categoria)
+                                        mostrarFiltros = false
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-                OrdenOfertas.entries.forEach { orden ->
-                    FilterChip(
-                        selected = estado.orden == orden,
-                        onClick = { onOrden(orden) },
-                        label = { Text(orden.etiqueta) }
-                    )
+                    OrdenOfertas.entries.forEach { orden ->
+                        FilterChip(
+                            selected = estado.orden == orden,
+                            onClick = { onOrden(orden) },
+                            label = { Text(orden.etiqueta) }
+                        )
+                    }
                 }
             }
-        }
 
-        Text(
-            text = "${estado.cantidad} ofertas encontradas",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, top = 14.dp, bottom = 12.dp)
-        )
+            Text(
+                text = "${estado.cantidad} ofertas encontradas",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 16.dp, top = 14.dp, bottom = 12.dp)
+            )
 
-        if (estado.ofertas.isEmpty()) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No encontramos ofertas", style = MaterialTheme.typography.titleMedium)
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(estado.ofertas, key = { it.id }) { oferta ->
-                    TarjetaOferta(oferta = oferta, onClick = { onVerDetalle(oferta.id) })
+            if (estado.ofertas.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No encontramos ofertas", style = MaterialTheme.typography.titleMedium)
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(estado.ofertas, key = { it.id }) { oferta ->
+                        TarjetaOferta(oferta = oferta, onClick = { onVerDetalle(oferta.id) })
+                    }
                 }
             }
         }

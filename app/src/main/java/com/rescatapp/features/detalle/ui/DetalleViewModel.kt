@@ -46,7 +46,6 @@ class DetalleViewModel @Inject constructor(
                 "Reservaste ${resultado.valor.nombreOferta}. Puedes verlo en Pedidos."
             }
 
-
             is ResultadoOperacion.Error -> resultado.mensaje
         }
     }

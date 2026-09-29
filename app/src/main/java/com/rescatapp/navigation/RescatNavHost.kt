@@ -47,10 +47,14 @@ fun RescatNavHost() {
             )
         }
         composable("inicio") {
-            InicioScreen { categoria: Categoria? ->
-                val ruta = categoria?.let { "explorar?categoria=${it.name}" } ?: "explorar"
-                navController.navigate(ruta)
-            }
+            InicioScreen(
+                onExplorar = { categoria: Categoria? ->
+                    val ruta = categoria?.let { "explorar?categoria=${it.name}" } ?: "explorar"
+                    navController.navigate(ruta)
+                },
+                onPublicar = { navController.navigate("registro") },
+                onVerDetalle = { id -> navController.navigate("detalle/$id") }
+            )
         }
         composable(
             route = "detalle/{ofertaId}",
@@ -59,7 +63,10 @@ fun RescatNavHost() {
             DetalleScreen(onVolver = { navController.popBackStack() })
         }
         composable("registro") {
-            RegistroScreen(onVolver = { navController.popBackStack() })
+            RegistroScreen(
+                onVolver = { navController.popBackStack() },
+                onPublicado = { navController.popBackStack() }
+            )
         }
         composable("perfil") {
             PerfilScreen(onVolver = { navController.popBackStack() })
