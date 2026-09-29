@@ -3,8 +3,9 @@ package com.rescatapp.features.registro.domain
 import com.rescatapp.core.util.aDecimalOrNull
 import com.rescatapp.core.util.aEnteroPositivoOrNull
 import com.rescatapp.core.util.aHoraOrNull
+import javax.inject.Inject
 
-class ValidarOfertaUseCase {
+class ValidarOfertaUseCase @Inject constructor() {
     operator fun invoke(campos: CamposRegistro): ErroresRegistro {
         val peso = campos.pesoKg.aDecimalOrNull()?.takeIf { it > 0 }
         val precioNormal = campos.precioNormal.aDecimalOrNull()?.takeIf { it > 0 }

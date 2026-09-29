@@ -7,7 +7,7 @@ class RepositorioOfertasTest {
     @Test
     fun emiteOfertasActualizadas() {
         val repositorio = RepositorioOfertas()
-        val oferta = repositorio.obtenerPorId(13)!!
+        val oferta = repositorio.obtenerActualPorId(13)!!
 
         repositorio.actualizar(oferta.copy(cantidadDisponible = 2))
 
@@ -17,7 +17,7 @@ class RepositorioOfertasTest {
     @Test
     fun emiteOfertasPublicadas() {
         val repositorio = RepositorioOfertas()
-        val oferta = repositorio.obtenerPorId(14)!!
+        val oferta = repositorio.obtenerActualPorId(14)!!
 
         val publicada = repositorio.agregar(oferta.copy(id = 0, nombre = "Nueva oferta"))
 

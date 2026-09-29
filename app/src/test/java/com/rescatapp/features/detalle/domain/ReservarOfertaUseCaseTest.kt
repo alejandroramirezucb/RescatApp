@@ -17,7 +17,7 @@ class ReservarOfertaUseCaseTest {
         val pedido = reservar(13)
 
         assertEquals(EstadoPedido.RESERVADO, pedido?.estado)
-        assertEquals(2, ofertas.obtenerPorId(13)?.cantidadDisponible)
+        assertEquals(2, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
         assertEquals(1, pedidos.pedidos.value.size)
     }
 
@@ -25,7 +25,7 @@ class ReservarOfertaUseCaseTest {
     fun noReservaUnaOfertaAgotada() {
         val ofertas = RepositorioOfertas()
         val reservar = ReservarOfertaUseCase(ofertas, RepositorioPedidos())
-        val oferta = ofertas.obtenerPorId(13)!!
+        val oferta = ofertas.obtenerActualPorId(13)!!
         ofertas.actualizar(oferta.copy(cantidadDisponible = 0))
 
         assertNull(reservar(13))

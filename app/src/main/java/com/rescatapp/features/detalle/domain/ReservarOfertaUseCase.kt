@@ -4,13 +4,14 @@ import com.rescatapp.core.data.repository.RepositorioOfertas
 import com.rescatapp.core.data.repository.RepositorioPedidos
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
+import javax.inject.Inject
 
-class ReservarOfertaUseCase(
+class ReservarOfertaUseCase @Inject constructor(
     private val ofertas: RepositorioOfertas,
     private val pedidos: RepositorioPedidos
 ) {
     operator fun invoke(ofertaId: Int): Pedido? {
-        val oferta = ofertas.obtenerPorId(ofertaId) ?: return null
+        val oferta = ofertas.obtenerActualPorId(ofertaId) ?: return null
         if (oferta.estaAgotada) return null
 
         ofertas.actualizar(oferta.copy(cantidadDisponible = oferta.cantidadDisponible - 1))
