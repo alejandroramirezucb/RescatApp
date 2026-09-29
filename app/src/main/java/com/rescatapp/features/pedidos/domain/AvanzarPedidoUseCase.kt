@@ -5,9 +5,7 @@ import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
 import javax.inject.Inject
 
-class AvanzarPedidoUseCase @Inject constructor(
-    private val repositorioPedidos: RepositorioPedidos
-) {
+class AvanzarPedidoUseCase @Inject constructor(private val repositorioPedidos: RepositorioPedidos) {
     operator fun invoke(pedido: Pedido): ResultadoOperacion<Pedido> {
         val siguienteEstado = pedido.estado.siguiente()
             ?: return ResultadoOperacion.Error(
