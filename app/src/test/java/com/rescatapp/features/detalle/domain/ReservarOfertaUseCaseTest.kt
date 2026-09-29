@@ -14,7 +14,6 @@ class ReservarOfertaUseCaseTest {
     fun reservaCroissantsCopiaDatosYActualizaDisponibilidad() {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
-
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
         assertTrue(resultado is ResultadoOperacion.Exito<*>)

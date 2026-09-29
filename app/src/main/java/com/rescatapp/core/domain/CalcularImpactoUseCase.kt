@@ -10,7 +10,7 @@ class CalcularImpactoUseCase @Inject constructor() {
         return Impacto(
             rescates = validos.count(),
             ahorrado = validos.sumOf { it.ahorro },
-            aprovechado = validos.sumOf { it.pesoKg }
+            kgAprovechados = validos.sumOf { it.pesoKg }
         )
     }
 }

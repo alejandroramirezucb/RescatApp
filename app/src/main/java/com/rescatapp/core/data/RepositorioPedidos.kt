@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 @Singleton
-class RepositorioPedidos @Inject constructor() {
-    private val pedidosMutables = MutableStateFlow(pedidosDeEjemplo)
+class RepositorioPedidos(pedidosIniciales: List<Pedido> = pedidosDeEjemplo) {
+    @Inject
+    constructor() : this(pedidosDeEjemplo)
+
+    private val pedidosMutables = MutableStateFlow(pedidosIniciales)
     val pedidos = pedidosMutables.asStateFlow()
 
     fun obtenerActualPorId(id: Int): Pedido? = pedidos.value.find { it.id == id }

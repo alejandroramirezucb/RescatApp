@@ -1,3 +1,5 @@
 package com.rescatapp.core.model
 
-data class ImpactoSemanal(val reservas: Int, val ahorro: Double, val pesoKg: Double)
+import com.rescatapp.core.domain.Impacto
+
+typealias ImpactoSemanal = Impacto
