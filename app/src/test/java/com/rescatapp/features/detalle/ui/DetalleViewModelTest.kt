@@ -60,10 +60,11 @@ class DetalleViewModelTest {
         viewModel.reservar()
 
         val estado = viewModel.uiState.first {
-            it.oferta?.cantidadDisponible == 4 && it.mensaje == "Reservaste Pack Sorpresa"
+            it.oferta?.cantidadDisponible == 4 &&
+                it.mensaje == "Reservaste Pack Sorpresa. Puedes verlo en Pedidos."
         }
         assertEquals(4, estado.oferta?.cantidadDisponible)
-        assertEquals("Reservaste Pack Sorpresa", estado.mensaje)
+        assertEquals("Reservaste Pack Sorpresa. Puedes verlo en Pedidos.", estado.mensaje)
     }
 
     @Test
@@ -78,6 +79,21 @@ class DetalleViewModelTest {
 
         val estado = viewModel.uiState.first { it.mensaje != null }
         assertEquals("Esta oferta está agotada", estado.mensaje)
+    }
+
+    @Test
+    fun reservaLaUltimaUnidadYElEstadoQuedaAgotado() = runTest {
+        val repositorioOfertas = RepositorioOfertas()
+        val oferta = repositorioOfertas.obtenerActualPorId(14)!!
+        repositorioOfertas.actualizar(oferta.copy(cantidadDisponible = 1))
+        val viewModel = crearViewModel(14, repositorioOfertas)
+        viewModel.uiState.first { it.oferta?.cantidadDisponible == 1 }
+
+        viewModel.reservar()
+
+        val estado = viewModel.uiState.first { it.oferta?.estaAgotada == true }
+        assertTrue(estado.oferta?.estaAgotada == true)
+        assertEquals("Reservaste Pack Sorpresa. Puedes verlo en Pedidos.", estado.mensaje)
     }
 
     private fun crearViewModel(

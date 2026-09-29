@@ -191,7 +191,7 @@ private fun ContenidoDetalle(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = NaranjaRescat)
                 ) {
-                    Text("Reservar")
+                    Text(if (oferta.estaAgotada) "Agotado" else "Reservar")
                 }
             }
         }

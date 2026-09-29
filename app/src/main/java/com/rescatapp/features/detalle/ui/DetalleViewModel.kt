@@ -42,8 +42,10 @@ class DetalleViewModel @Inject constructor(
 
     fun reservar() {
         mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
-            is ResultadoOperacion.Exito ->
-                "Reservaste ${(resultado.valor as Pedido).nombreOferta}"
+            is ResultadoOperacion.Exito -> {
+                "Reservaste ${resultado.valor.nombreOferta}. Puedes verlo en Pedidos."
+            }
+
 
             is ResultadoOperacion.Error -> resultado.mensaje
         }
