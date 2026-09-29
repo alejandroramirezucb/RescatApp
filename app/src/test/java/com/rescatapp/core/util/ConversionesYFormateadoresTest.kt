@@ -10,16 +10,23 @@ class ConversionesYFormateadoresTest {
         assertEquals(1.5, "1,5".aDecimalOrNull())
         assertEquals(1.5, "1.5".aDecimalOrNull())
         assertEquals(4, "4".aEnteroPositivoOrNull())
+        assertEquals("09:00", "09:00".aHoraOrNull().toString())
         assertEquals("23:59", "23:59".aHoraOrNull().toString())
     }
 
     @Test
     fun rechazaTextoInvalido() {
+        assertNull("".aDecimalOrNull())
         assertNull("abc".aDecimalOrNull())
+        assertNull("".aEnteroPositivoOrNull())
+        assertNull("abc".aEnteroPositivoOrNull())
         assertNull("0".aEnteroPositivoOrNull())
+        assertNull("-1".aEnteroPositivoOrNull())
         assertNull("2.5".aEnteroPositivoOrNull())
         assertNull("9:00".aHoraOrNull())
         assertNull("25:00".aHoraOrNull())
+        assertNull("12:60".aHoraOrNull())
+        assertNull("18h".aHoraOrNull())
     }
 
     @Test

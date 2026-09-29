@@ -9,8 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.rescatapp.core.data.repository.RepositorioOfertas
-import com.rescatapp.core.data.repository.RepositorioPedidos
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
@@ -20,7 +18,7 @@ import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
 @Composable
-fun RescatNavHost(ofertas: RepositorioOfertas, pedidos: RepositorioPedidos) {
+fun RescatNavHost() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "explorar") {

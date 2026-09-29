@@ -2,7 +2,7 @@ package com.rescatapp.features.perfil.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rescatapp.core.data.repository.Repositorio
+import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.Pedido
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,11 +14,11 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class PerfilViewModel @Inject constructor(
-    repositorio: Repositorio<Pedido>,
+    repositorioPedidos: RepositorioPedidos,
     calcularImpactoUseCase: CalcularImpactoUseCase
 ) : ViewModel() {
 
-    val uiState: StateFlow<PerfilUiState> = repositorio.elementos
+    val uiState: StateFlow<PerfilUiState> = repositorioPedidos.pedidos
         .map { listaPedidos ->
             val impacto = calcularImpactoUseCase(listaPedidos)
             PerfilUiState(

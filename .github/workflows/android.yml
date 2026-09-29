@@ -19,6 +19,6 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v4
-      - run: sdkmanager 'platforms;android-37'
+      - run: sdkmanager --channel=3 'platforms;android-37.0' 'build-tools;37.0.0'
       - uses: gradle/actions/setup-gradle@v6
       - run: bash ./gradlew spotlessCheck :app:testDebugUnitTest :app:assembleDebug --no-daemon

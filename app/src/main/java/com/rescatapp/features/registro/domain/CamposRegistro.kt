@@ -13,10 +13,4 @@ data class CamposRegistro(
     val cantidadDisponible: String = "",
     val horaRetiroDesde: String = "",
     val horaRetiroHasta: String = ""
-) {
-    val horaDesde: String
-        get() = horaRetiroDesde
-
-    val horaHasta: String
-        get() = horaRetiroHasta
-}
+)
