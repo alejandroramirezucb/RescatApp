@@ -8,7 +8,7 @@ import javax.inject.Inject
 class AvanzarPedidoUseCase @Inject constructor(
     private val repositorioPedidos: RepositorioPedidos
 ) {
-    operator fun invoke(pedido: Pedido): ResultadoOperacion {
+    operator fun invoke(pedido: Pedido): ResultadoOperacion<Pedido> {
         val siguienteEstado = pedido.estado.siguiente()
             ?: return ResultadoOperacion.Error("No se puede avanzar un pedido en estado ${pedido.estado.etiqueta}")
 
@@ -17,7 +17,7 @@ class AvanzarPedidoUseCase @Inject constructor(
         return ResultadoOperacion.Exito(pedidoActualizado)
     }
 
-    operator fun invoke(pedidoId: Int): ResultadoOperacion {
+    operator fun invoke(pedidoId: Int): ResultadoOperacion<Pedido> {
         val pedido = repositorioPedidos.obtenerActualPorId(pedidoId)
             ?: return ResultadoOperacion.Error("Pedido no encontrado")
         return invoke(pedido)

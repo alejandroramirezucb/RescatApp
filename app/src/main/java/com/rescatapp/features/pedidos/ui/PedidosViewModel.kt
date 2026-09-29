@@ -53,7 +53,7 @@ class PedidosViewModel @Inject constructor(
 
     fun avanzarPedido(pedidoId: Int) {
         when (val resultado = avanzarPedidoUseCase(pedidoId)) {
-            is ResultadoOperacion.Exito -> {
+            is ResultadoOperacion.Exito<*> -> {
                 mensajeError.value = null
             }
 

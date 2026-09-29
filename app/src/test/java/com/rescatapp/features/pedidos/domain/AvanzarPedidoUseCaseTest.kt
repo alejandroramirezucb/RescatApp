@@ -28,7 +28,7 @@ class AvanzarPedidoUseCaseTest {
         val resultado = useCase(pedido)
 
         assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedidoActualizado = (resultado as ResultadoOperacion.Exito).valor as Pedido
+        val pedidoActualizado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
         assertEquals(EstadoPedido.PREPARANDO, pedidoActualizado.estado)
     }
 
@@ -39,7 +39,7 @@ class AvanzarPedidoUseCaseTest {
         val resultado = useCase(pedido)
 
         assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedidoActualizado = (resultado as ResultadoOperacion.Exito).valor as Pedido
+        val pedidoActualizado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
         assertEquals(EstadoPedido.LISTO, pedidoActualizado.estado)
     }
 
@@ -50,7 +50,7 @@ class AvanzarPedidoUseCaseTest {
         val resultado = useCase(pedido)
 
         assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedidoActualizado = (resultado as ResultadoOperacion.Exito).valor as Pedido
+        val pedidoActualizado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
         assertEquals(EstadoPedido.RECOGIDO, pedidoActualizado.estado)
     }
 

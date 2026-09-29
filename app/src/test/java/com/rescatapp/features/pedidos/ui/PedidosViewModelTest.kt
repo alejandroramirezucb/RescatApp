@@ -1,7 +1,7 @@
 package com.rescatapp.features.pedidos.ui
 
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.core.data.mock.pedidosDeEjemplo
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,6 +28,7 @@ class PedidosViewModelTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         repositorioPedidos = RepositorioPedidos()
+        pedidosDeEjemplo.forEach { repositorioPedidos.agregar(it) }
         avanzarPedidoUseCase = AvanzarPedidoUseCase(repositorioPedidos)
         viewModel = PedidosViewModel(repositorioPedidos, avanzarPedidoUseCase)
     }
