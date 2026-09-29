@@ -14,6 +14,7 @@ val VerdeBordeRescat = Color(0xFF86EFAC)
 // ---------- Colores Neutros y Estructurales ----------
 val FondoGrisRescat = Color(0xFFF3F4F6)
 val FondoRescat = Color(0xFFF4F5F3)
+val CremaRescat = Color(0xFFFFF7ED)
 val TextoOscuroRescat = Color(0xFF1F2937)
 val TextoGrisRescat = Color(0xFF6B7280)
 val DivisorColorRescat = Color(0xFFE5E7EB)
