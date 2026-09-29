@@ -11,7 +11,7 @@ class RegistrarOfertaUseCase @Inject constructor(
     private val repositorio: RepositorioOfertas,
     private val validarOferta: ValidarOfertaUseCase
 ) {
-    operator fun invoke(campos: CamposRegistro): ResultadoOperacion {
+    operator fun invoke(campos: CamposRegistro): ResultadoOperacion<Oferta> {
         val error = ResultadoOperacion.Error("Revisa los datos de la oferta")
         if (validarOferta(campos).hayErrores) return error
 

@@ -3,8 +3,10 @@ package com.rescatapp.features.perfil.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.Pedido
+import com.rescatapp.features.perfil.domain.PerfilUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,24 +17,25 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class PerfilViewModel @Inject constructor(
     repositorioPedidos: RepositorioPedidos,
-    calcularImpactoUseCase: CalcularImpactoUseCase
+    calcularImpacto: CalcularImpactoSemanalUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<PerfilUiState> = repositorioPedidos.pedidos
         .map { listaPedidos ->
-            val impacto = calcularImpactoUseCase(listaPedidos)
+            val impacto = calcularImpacto(listaPedidos)
             PerfilUiState(
                 nombre = "Invitado",
                 correo = "invitado@example.com",
                 inicial = "I",
-                rescates = impacto.rescates,
-                ahorrado = impacto.ahorrado,
-                aprovechado = impacto.aprovechado
+                impacto = impacto,
+                rescates = impacto.reservas,
+                ahorrado = impacto.ahorro,
+                aprovechado = impacto.pesoKg
             )
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.WhileSubscribed(5_000),
             initialValue = PerfilUiState()
         )
 }

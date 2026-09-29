@@ -38,21 +38,16 @@ import com.rescatapp.core.designsystem.NaranjaRescat
 import com.rescatapp.core.designsystem.TextoGrisRescat
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.formatearPeso
+import com.rescatapp.features.perfil.domain.PerfilUiState
 
 @Composable
-fun PerfilScreen(
-    onVolver: () -> Unit = {},
-    viewModel: PerfilViewModel = hiltViewModel()
-) {
+fun PerfilScreen(onVolver: () -> Unit = {}, viewModel: PerfilViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     PerfilContent(estado = estado, onVolver = onVolver)
 }
 
 @Composable
-fun PerfilContent(
-    estado: PerfilUiState,
-    onVolver: () -> Unit = {}
-) {
+fun PerfilContent(estado: PerfilUiState, onVolver: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,12 +70,7 @@ fun PerfilContent(
 
 // ---------- Header naranja ----------
 @Composable
-private fun HeaderPerfil(
-    nombre: String,
-    correo: String,
-    inicial: String,
-    onVolver: () -> Unit
-) {
+private fun HeaderPerfil(nombre: String, correo: String, inicial: String, onVolver: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,11 +137,7 @@ private fun HeaderPerfil(
 
 // ---------- Estadísticas ----------
 @Composable
-private fun EstadisticasRow(
-    rescates: Int,
-    ahorrado: Double,
-    aprovechado: Double
-) {
+private fun EstadisticasRow(rescates: Int, ahorrado: Double, aprovechado: Double) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
