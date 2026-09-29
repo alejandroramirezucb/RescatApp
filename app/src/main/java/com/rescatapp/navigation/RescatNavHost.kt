@@ -9,13 +9,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.rescatapp.core.model.Categoria
 import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.explorar.ui.ExplorarViewModel
 import com.rescatapp.features.inicio.ui.InicioScreen
 import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
+
+fun construirRutaExplorar(categoria: String?): String =
+    if (!categoria.isNullOrBlank()) "explorar?categoria=$categoria" else "explorar"
 
 @Composable
 fun RescatNavHost() {
@@ -49,9 +51,8 @@ fun RescatNavHost() {
         }
         composable("inicio") {
             InicioScreen(
-                onExplorar = { categoria: Categoria? ->
-                    val ruta = categoria?.let { "explorar?categoria=${it.name}" } ?: "explorar"
-                    navController.navigate(ruta)
+                onExplorar = { categoria ->
+                    navController.navigate(construirRutaExplorar(categoria))
                 },
                 onPublicar = { navController.navigate("registro") },
                 onVerDetalle = { id -> navController.navigate("detalle/$id") }
