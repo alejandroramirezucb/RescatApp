@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,9 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rescatapp.core.designsystem.CremaRescat
 import com.rescatapp.core.designsystem.DivisorColorRescat
 import com.rescatapp.core.designsystem.FondoRescat
 import com.rescatapp.core.designsystem.NaranjaRescat
+import com.rescatapp.core.designsystem.RojoTextoRescat
 import com.rescatapp.core.designsystem.TextoGrisRescat
 import com.rescatapp.core.designsystem.TextoOscuroRescat
 import com.rescatapp.core.designsystem.VerdeRescat
@@ -93,7 +97,7 @@ fun InicioContent(
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 "Inicio",
@@ -102,6 +106,17 @@ fun InicioContent(
             )
 
             BloqueImpactoSemanal(impacto = estado.impacto)
+
+            SeccionOfertasCerca(
+                ofertas = estado.ofertasDisponibles,
+                onVerTodo = { onExplorar(null) },
+                onVerDetalle = onVerDetalle
+            )
+
+            SeccionSeEstanAgotando(
+                ofertas = estado.seEstanAgotando,
+                onVerDetalle = onVerDetalle
+            )
 
             Text(
                 "Explora por categoría",
@@ -123,24 +138,179 @@ fun InicioContent(
                     Text(categoria.etiqueta)
                 }
             }
+        }
+    }
+}
 
-            Text(
-                "Ofertas cerca de ti",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 12.dp)
-            )
-
-            if (estado.ofertasCerca.isEmpty()) {
+@Composable
+private fun SeccionOfertasCerca(
+    ofertas: List<Oferta>,
+    onVerTodo: () -> Unit,
+    onVerDetalle: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "No hay ofertas disponibles",
-                    style = MaterialTheme.typography.bodyMedium,
+                    "Ofertas cerca de ti",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "Lo que está disponible ahora",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            } else {
-                estado.ofertasCerca.forEach { oferta ->
-                    TarjetaOfertaInicio(oferta = oferta, onClick = { onVerDetalle(oferta.id) })
+            }
+            TextButton(onClick = onVerTodo) {
+                Text(
+                    text = "Ver todo",
+                    color = NaranjaRescat,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        if (ofertas.isEmpty()) {
+            Text(
+                text = "No hay ofertas disponibles",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        } else {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(ofertas.size) { index ->
+                    val oferta = ofertas[index]
+                    TarjetaOfertaHorizontal(
+                        oferta = oferta,
+                        onClick = { onVerDetalle(oferta.id) }
+                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SeccionSeEstanAgotando(ofertas: List<Oferta>, onVerDetalle: (Int) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = CremaRescat),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Se están agotando",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "No dejes que se acaben",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            if (ofertas.isEmpty()) {
+                Text(
+                    text = "No hay ofertas por agotarse",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(ofertas.size) { index ->
+                        val oferta = ofertas[index]
+                        TarjetaOfertaHorizontal(
+                            oferta = oferta,
+                            onClick = { onVerDetalle(oferta.id) },
+                            subetiqueta = "Hasta ${oferta.horaRetiroHasta}"
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TarjetaOfertaHorizontal(
+    oferta: Oferta,
+    onClick: () -> Unit,
+    subetiqueta: String? = null
+) {
+    Card(
+        modifier = Modifier
+            .width(200.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(oferta.categoria.visual().simbolo, fontSize = 28.sp)
+                Text(
+                    oferta.precioRescate.formatearDinero(),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = NaranjaRescat,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                oferta.nombre,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+            Text(
+                oferta.comercio,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            if (subetiqueta != null) {
+                Text(
+                    text = subetiqueta,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = RojoTextoRescat,
+                    fontWeight = FontWeight.Bold
+                )
+            } else {
+                Text(
+                    oferta.cantidadDisponible.formatearDisponibilidad(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = VerdeRescat,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
@@ -218,54 +388,5 @@ private fun ItemImpacto(valor: String, etiqueta: String, modifier: Modifier = Mo
             style = MaterialTheme.typography.bodySmall,
             color = TextoGrisRescat
         )
-    }
-}
-
-@Composable
-private fun TarjetaOfertaInicio(oferta: Oferta, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                oferta.categoria.visual().simbolo,
-                fontSize = 32.sp,
-                modifier = Modifier.padding(end = 12.dp)
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    oferta.nombre,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    oferta.comercio,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    oferta.precioRescate.formatearDinero(),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = NaranjaRescat,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    oferta.cantidadDisponible.formatearDisponibilidad(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = VerdeRescat,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
     }
 }

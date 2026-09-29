@@ -4,6 +4,7 @@ import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import kotlinx.coroutines.Dispatchers
@@ -35,12 +36,26 @@ class InicioViewModelTest {
     }
 
     @Test
-    fun iniciaConCuatroOfertasAgotandose() = runTest {
+    fun iniciaConCatorceOfertasDisponiblesComenzandoPorPackSorpresa() = runTest {
         val viewModel = crearViewModel()
 
-        val estado = viewModel.uiState.first { it.ofertasAgotando.size == 4 }
+        val estado = viewModel.uiState.first { it.ofertasDisponibles.size == 14 }
 
-        assertEquals(4, estado.ofertasAgotando.size)
+        assertEquals(14, estado.ofertasDisponibles.size)
+        assertEquals("Pack Sorpresa", estado.ofertasDisponibles.first().nombre)
+    }
+
+    @Test
+    fun iniciaConCuatroOfertasAgotandoseConLosNombresRequeridos() = runTest {
+        val viewModel = crearViewModel()
+
+        val estado = viewModel.uiState.first { it.seEstanAgotando.size == 4 }
+
+        assertEquals(4, estado.seEstanAgotando.size)
+        assertEquals(
+            listOf("Pizza Familiar", "2 Pizzas Medianas", "Caja Cupcakes", "Burger + Papas"),
+            estado.seEstanAgotando.map { it.nombre }
+        )
     }
 
     @Test
@@ -59,12 +74,12 @@ class InicioViewModelTest {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
         val viewModel = crearViewModel(ofertas, pedidos)
-        viewModel.uiState.first { it.ofertasAgotando.size == 4 }
+        viewModel.uiState.first { it.seEstanAgotando.size == 4 }
 
         ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-        val estado = viewModel.uiState.first { it.ofertasAgotando.size == 5 }
-        assertTrue(estado.ofertasAgotando.any { it.id == 13 && it.cantidadDisponible == 2 })
+        val estado = viewModel.uiState.first { it.seEstanAgotando.size == 5 }
+        assertTrue(estado.seEstanAgotando.any { it.id == 13 && it.cantidadDisponible == 2 })
         assertEquals(5, estado.impacto.rescates)
     }
 
@@ -77,7 +92,7 @@ class InicioViewModelTest {
         assertEquals(4, estadoInicial.impacto.rescates)
 
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
-        val pedidoCreado = (resultado as ResultadoOperacion.Exito).valor
+        val pedidoCreado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
 
         val estadoReservado = viewModel.uiState.first { it.impacto.rescates == 5 }
         assertEquals(5, estadoReservado.impacto.rescates)
@@ -110,16 +125,16 @@ class InicioViewModelTest {
         val croissants = ofertas.obtenerActualPorId(13)!!
         ofertas.actualizar(croissants.copy(cantidadDisponible = 1))
         val viewModel = crearViewModel(ofertas, pedidos)
-        viewModel.uiState.first { it.ofertasAgotando.any { oferta -> oferta.id == 13 } }
+        viewModel.uiState.first { it.seEstanAgotando.any { oferta -> oferta.id == 13 } }
 
         ReservarOfertaUseCase(ofertas, pedidos)(13)
 
         val estado = viewModel.uiState.first { estado ->
-            estado.ofertasCerca.none { oferta -> oferta.id == 13 } &&
-                estado.ofertasAgotando.none { oferta -> oferta.id == 13 }
+            estado.ofertasDisponibles.none { oferta -> oferta.id == 13 } &&
+                estado.seEstanAgotando.none { oferta -> oferta.id == 13 }
         }
-        assertFalse(estado.ofertasCerca.any { it.id == 13 })
-        assertFalse(estado.ofertasAgotando.any { it.id == 13 })
+        assertFalse(estado.ofertasDisponibles.any { it.id == 13 })
+        assertFalse(estado.seEstanAgotando.any { it.id == 13 })
     }
 
     private fun crearViewModel(
