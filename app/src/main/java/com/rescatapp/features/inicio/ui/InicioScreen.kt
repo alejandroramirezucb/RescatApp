@@ -2,6 +2,7 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +17,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -57,7 +56,7 @@ import com.rescatapp.features.inicio.domain.InicioUiState
 
 @Composable
 fun InicioScreen(
-    onExplorar: (Categoria?) -> Unit,
+    onExplorar: (String?) -> Unit,
     onPublicar: () -> Unit = {},
     onVerDetalle: (Int) -> Unit = {},
     viewModel: InicioViewModel = hiltViewModel()
@@ -75,7 +74,7 @@ fun InicioScreen(
 @Composable
 fun InicioContent(
     estado: InicioUiState,
-    onExplorar: (Categoria?) -> Unit,
+    onExplorar: (String?) -> Unit,
     onPublicar: () -> Unit = {},
     onVerDetalle: (Int) -> Unit = {}
 ) {
@@ -99,44 +98,128 @@ fun InicioContent(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                "Inicio",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
+            // 1. Encabezado: Ubicacion, Saludo, Subtitulo y Barra de busqueda
+            EncabezadoInicio(
+                usuario = estado.usuario,
+                onBuscar = { onExplorar(null) }
             )
 
+            // 2. Tu impacto esta semana
             BloqueImpactoSemanal(impacto = estado.impacto)
 
+            // 3. Explora por categoria
+            SeccionExploraPorCategoria(
+                onSeleccionarCategoria = onExplorar
+            )
+
+            // 4. Ofertas cerca de ti
             SeccionOfertasCerca(
                 ofertas = estado.ofertasDisponibles,
                 onVerTodo = { onExplorar(null) },
                 onVerDetalle = onVerDetalle
             )
 
+            // 5. Se estan agotando
             SeccionSeEstanAgotando(
                 ofertas = estado.seEstanAgotando,
                 onVerDetalle = onVerDetalle
             )
+        }
+    }
+}
 
+@Composable
+private fun EncabezadoInicio(usuario: String, onBuscar: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text("📍", fontSize = 14.sp)
             Text(
-                "Explora por categoría",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                text = "Santa Cruz de la Sierra",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextoGrisRescat,
+                fontWeight = FontWeight.Medium
             )
-            Button(
-                onClick = { onExplorar(null) },
-                colors = ButtonDefaults.buttonColors(containerColor = NaranjaRescat),
-                modifier = Modifier.fillMaxWidth()
+        }
+
+        Text(
+            text = "Hola, $usuario",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = TextoOscuroRescat
+        )
+
+        Text(
+            text = "¿Qué vamos a aprovechar hoy?",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextoGrisRescat
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        // Barra de busqueda que no abre teclado y navega a Explorar
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClickLabel = "Buscar ofertas", onClick = onBuscar),
+            shape = RoundedCornerShape(8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Todas las ofertas")
+                Text("🔍", fontSize = 16.sp)
+                Text(
+                    text = "Buscar ofertas",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextoGrisRescat
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun SeccionExploraPorCategoria(onSeleccionarCategoria: (String?) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "Explora por categoría",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = TextoOscuroRescat
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilterChip(
+                selected = false,
+                onClick = { onSeleccionarCategoria(null) },
+                label = { Text("Todos") }
+            )
             Categoria.entries.forEach { categoria ->
-                OutlinedButton(
-                    onClick = { onExplorar(categoria) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(categoria.etiqueta)
-                }
+                FilterChip(
+                    selected = false,
+                    onClick = { onSeleccionarCategoria(categoria.name) },
+                    label = { Text(categoria.etiqueta) }
+                )
             }
         }
     }
@@ -161,7 +244,8 @@ private fun SeccionOfertasCerca(
                 Text(
                     "Ofertas cerca de ti",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = TextoOscuroRescat
                 )
                 Text(
                     "Lo que está disponible ahora",
@@ -219,7 +303,8 @@ private fun SeccionSeEstanAgotando(ofertas: List<Oferta>, onVerDetalle: (Int) ->
             Text(
                 text = "Se están agotando",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = TextoOscuroRescat
             )
             Text(
                 text = "No dejes que se acaben",
