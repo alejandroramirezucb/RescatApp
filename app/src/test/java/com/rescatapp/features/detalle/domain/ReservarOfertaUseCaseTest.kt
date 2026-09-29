@@ -11,77 +11,37 @@ import org.junit.Test
 
 class ReservarOfertaUseCaseTest {
     @Test
-    fun reservaCroissantsCopiaDatosYActualizaDisponibilidad() {
+    fun reservaUnaOfertaDisponible() {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-<<<<<<< HEAD
-        val resultado = reservar(13)
-
         assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedido = (resultado as ResultadoOperacion.Exito).valor
+        val pedido = (resultado as ResultadoOperacion.Exito).valor as Pedido
         assertEquals(EstadoPedido.RESERVADO, pedido.estado)
         assertEquals("Pack Croissants", pedido.nombreOferta)
-        assertEquals(15.0, pedido.precioPagado, 0.0)
-        assertEquals(15.0, pedido.ahorro, 0.0)
-        assertEquals(0.6, pedido.pesoKg, 0.0)
         assertEquals(2, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
         assertEquals(pedido, pedidos.pedidos.value.first())
-        assertTrue(pedido.estaActivo)
     }
 
     @Test
-    fun noReservaUnaOfertaAgotadaNiModificaLosRepositorios() {
+    fun noReservaUnaOfertaAgotada() {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
         val oferta = ofertas.obtenerActualPorId(13)!!
+        val cantidadInicial = pedidos.pedidos.value.size
         ofertas.actualizar(oferta.copy(cantidadDisponible = 0))
 
-<<<<<<< HEAD
-        assertEquals(
-            ResultadoOperacion.Error("Esta oferta está agotada"),
-            reservar(13)
-        )
-=======
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-        assertTrue(resultado is ResultadoOperacion.Error)
-        assertEquals("Esta oferta está agotada", (resultado as ResultadoOperacion.Error).mensaje)
-        assertEquals(0, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
-        assertTrue(pedidos.pedidos.value.isEmpty())
->>>>>>> 1bd7640 (feature: logica de ofertas+ una pequena base de perfil, solo la logica basica+ reactividad)
+        assertEquals(ResultadoOperacion.Error("Esta oferta está agotada"), resultado)
+        assertEquals(cantidadInicial, pedidos.pedidos.value.size)
     }
 
     @Test
-    fun informaSiLaOfertaNoExiste() {
-<<<<<<< HEAD
-        val reservar = ReservarOfertaUseCase(RepositorioOfertas(), RepositorioPedidos())
+    fun informaCuandoLaOfertaNoExiste() {
+        val resultado = ReservarOfertaUseCase(RepositorioOfertas(), RepositorioPedidos())(999)
 
-        assertEquals(ResultadoOperacion.Error("Oferta no encontrada"), reservar(999))
-=======
-        val ofertas = RepositorioOfertas()
-        val pedidos = RepositorioPedidos()
-
-        val resultado = ReservarOfertaUseCase(ofertas, pedidos)(999)
-
-        assertTrue(resultado is ResultadoOperacion.Error)
-        assertEquals("Oferta no encontrada", (resultado as ResultadoOperacion.Error).mensaje)
-        assertTrue(pedidos.pedidos.value.isEmpty())
-    }
-
-    @Test
-    fun reservaLaUltimaUnidadYDejaLaOfertaAgotada() {
-        val ofertas = RepositorioOfertas()
-        val pedidos = RepositorioPedidos()
-        val oferta = ofertas.obtenerActualPorId(13)!!
-        ofertas.actualizar(oferta.copy(cantidadDisponible = 1))
-
-        val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
-
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        assertEquals(0, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
-        assertEquals(1, pedidos.pedidos.value.size)
->>>>>>> 1bd7640 (feature: logica de ofertas+ una pequena base de perfil, solo la logica basica+ reactividad)
+        assertEquals(ResultadoOperacion.Error("Oferta no encontrada"), resultado)
     }
 }

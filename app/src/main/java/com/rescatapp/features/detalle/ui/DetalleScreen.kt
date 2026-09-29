@@ -40,9 +40,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.FondoRescat
 import com.rescatapp.core.designsystem.NaranjaRescat
 import com.rescatapp.core.designsystem.VerdeRescat
+import com.rescatapp.core.designsystem.colorDisponibilidad
 import com.rescatapp.core.designsystem.visual
-import com.rescatapp.core.model.Disponibilidad
 import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.util.formatearDescuento
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.formatearDisponibilidad
 import com.rescatapp.core.util.formatearHorario
@@ -121,7 +122,7 @@ private fun ContenidoDetalle(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    "-${oferta.porcentajeDescuento}%",
+                    oferta.porcentajeDescuento.formatearDescuento(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
@@ -160,7 +161,7 @@ private fun ContenidoDetalle(
                 FilaInformacion(
                     "Disponibilidad",
                     oferta.cantidadDisponible.formatearDisponibilidad(),
-                    colorDisponibilidad(oferta.disponibilidad)
+                    oferta.disponibilidad.colorDisponibilidad()
                 )
                 FilaInformacion(
                     "Retiro",
@@ -206,10 +207,4 @@ private fun FilaInformacion(etiqueta: String, valor: String, color: Color = Colo
         Spacer(Modifier.weight(1f))
         Text(valor, color = color, fontWeight = FontWeight.SemiBold)
     }
-}
-
-private fun colorDisponibilidad(disponibilidad: Disponibilidad): Color = when (disponibilidad) {
-    Disponibilidad.ALTA -> VerdeRescat
-    Disponibilidad.MEDIA -> NaranjaRescat
-    Disponibilidad.BAJA, Disponibilidad.AGOTADA -> Color(0xFFBE3535)
 }

@@ -13,12 +13,12 @@ class CalcularImpactoSemanalUseCaseTest {
     private val calcular = CalcularImpactoSemanalUseCase()
 
     @Test
-    fun parteDelImpactoDemoSinPedidos() {
+    fun devuelveCeroSinPedidos() {
         val impacto = calcular(emptyList())
 
-        assertEquals(4, impacto.reservas)
-        assertEquals(102.0, impacto.ahorro, 0.0)
-        assertEquals(3.6, impacto.pesoKg, 0.0)
+        assertEquals(0, impacto.reservas)
+        assertEquals(0.0, impacto.ahorro, 0.0)
+        assertEquals(0.0, impacto.pesoKg, 0.0)
     }
 
     @Test
@@ -38,9 +38,9 @@ class CalcularImpactoSemanalUseCaseTest {
     fun excluyeLosPedidosCancelados() {
         val impacto = calcular(listOf(pedido(EstadoPedido.CANCELADO)))
 
-        assertEquals(4, impacto.reservas)
-        assertEquals(102.0, impacto.ahorro, 0.0)
-        assertEquals(3.6, impacto.pesoKg, 0.0)
+        assertEquals(0, impacto.reservas)
+        assertEquals(0.0, impacto.ahorro, 0.0)
+        assertEquals(0.0, impacto.pesoKg, 0.0)
     }
 
     private fun pedido(estado: EstadoPedido) = Pedido(

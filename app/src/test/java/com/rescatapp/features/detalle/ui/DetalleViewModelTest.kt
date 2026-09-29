@@ -61,10 +61,10 @@ class DetalleViewModelTest {
 
         val estado = viewModel.uiState.first {
             it.oferta?.cantidadDisponible == 4 &&
-                it.mensaje == "Reservaste Pack Sorpresa. Puedes verlo en Pedidos."
+                it.mensaje == "Oferta reservada. Puedes verla en Pedidos."
         }
         assertEquals(4, estado.oferta?.cantidadDisponible)
-        assertEquals("Reservaste Pack Sorpresa. Puedes verlo en Pedidos.", estado.mensaje)
+        assertEquals("Oferta reservada. Puedes verla en Pedidos.", estado.mensaje)
     }
 
     @Test
@@ -93,7 +93,7 @@ class DetalleViewModelTest {
 
         val estado = viewModel.uiState.first { it.oferta?.estaAgotada == true }
         assertTrue(estado.oferta?.estaAgotada == true)
-        assertEquals("Reservaste Pack Sorpresa. Puedes verlo en Pedidos.", estado.mensaje)
+        assertEquals("Oferta reservada. Puedes verla en Pedidos.", estado.mensaje)
     }
 
     private fun crearViewModel(

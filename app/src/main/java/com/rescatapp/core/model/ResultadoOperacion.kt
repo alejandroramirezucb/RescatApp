@@ -1,7 +1,7 @@
 package com.rescatapp.core.model
 
-sealed class ResultadoOperacion<out T> {
-    data class Exito<out T>(val valor: T) : ResultadoOperacion<T>()
+sealed class ResultadoOperacion {
+    data class Exito(val valor: Any) : ResultadoOperacion()
 
-    data class Error(val mensaje: String) : ResultadoOperacion<Nothing>()
+    data class Error(val mensaje: String) : ResultadoOperacion()
 }

@@ -34,10 +34,10 @@ class PerfilViewModelTest {
     fun emiteElImpactoBase() = runTest {
         val viewModel = PerfilViewModel(RepositorioPedidos(), CalcularImpactoSemanalUseCase())
 
-        val estado = viewModel.uiState.first { it.impacto.reservas == 4 }
+        val estado = viewModel.uiState.first { it.rescates == 4 }
 
-        assertEquals(102.0, estado.impacto.ahorro, 0.0)
-        assertEquals(3.6, estado.impacto.pesoKg, 0.0)
+        assertEquals(102.0, estado.ahorrado, 0.0)
+        assertEquals(3.6, estado.aprovechado, 0.0)
     }
 
     @Test
@@ -45,12 +45,12 @@ class PerfilViewModelTest {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
         val viewModel = PerfilViewModel(pedidos, CalcularImpactoSemanalUseCase())
-        viewModel.uiState.first { it.impacto.reservas == 4 }
+        viewModel.uiState.first { it.rescates == 4 }
 
         ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-        val estado = viewModel.uiState.first { it.impacto.reservas == 5 }
-        assertEquals(117.0, estado.impacto.ahorro, 0.0)
-        assertEquals(4.2, estado.impacto.pesoKg, 0.0)
+        val estado = viewModel.uiState.first { it.rescates == 5 }
+        assertEquals(117.0, estado.ahorrado, 0.0)
+        assertEquals(4.2, estado.aprovechado, 0.0)
     }
 }
