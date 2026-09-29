@@ -2,7 +2,9 @@ package com.rescatapp.features.inicio.ui
 
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
+import com.rescatapp.core.domain.CalcularImpactoUseCase
+import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -42,6 +44,17 @@ class InicioViewModelTest {
     }
 
     @Test
+    fun calculaElImpactoInicialConLosDatosDeEjemplo() = runTest {
+        val viewModel = crearViewModel()
+
+        val estado = viewModel.uiState.first { it.impacto.rescates == 4 }
+
+        assertEquals(4, estado.impacto.rescates)
+        assertEquals(102.0, estado.impacto.ahorrado, 0.0)
+        assertEquals(3.6, estado.impacto.kgAprovechados, 0.001)
+    }
+
+    @Test
     fun incorporaCroissantsCuandoSuDisponibilidadBajaADos() = runTest {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
@@ -52,7 +65,42 @@ class InicioViewModelTest {
 
         val estado = viewModel.uiState.first { it.ofertasAgotando.size == 5 }
         assertTrue(estado.ofertasAgotando.any { it.id == 13 && it.cantidadDisponible == 2 })
-        assertEquals(5, estado.impacto.reservas)
+        assertEquals(5, estado.impacto.rescates)
+    }
+
+    @Test
+    fun actualizaElImpactoAlReservarYAlCancelarSinRecargaManual() = runTest {
+        val ofertas = RepositorioOfertas()
+        val pedidos = RepositorioPedidos()
+        val viewModel = crearViewModel(ofertas, pedidos)
+        val estadoInicial = viewModel.uiState.first { it.impacto.rescates == 4 }
+        assertEquals(4, estadoInicial.impacto.rescates)
+
+        val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
+        val pedidoCreado = (resultado as ResultadoOperacion.Exito).valor
+
+        val estadoReservado = viewModel.uiState.first { it.impacto.rescates == 5 }
+        assertEquals(5, estadoReservado.impacto.rescates)
+        assertEquals(117.0, estadoReservado.impacto.ahorrado, 0.0)
+        assertEquals(4.2, estadoReservado.impacto.kgAprovechados, 0.001)
+
+        pedidos.actualizar(pedidoCreado.copy(estado = EstadoPedido.CANCELADO))
+
+        val estadoCancelado = viewModel.uiState.first { it.impacto.rescates == 4 }
+        assertEquals(4, estadoCancelado.impacto.rescates)
+        assertEquals(102.0, estadoCancelado.impacto.ahorrado, 0.0)
+        assertEquals(3.6, estadoCancelado.impacto.kgAprovechados, 0.001)
+    }
+
+    @Test
+    fun conListaDePedidosVaciaElImpactoEsCero() = runTest {
+        val viewModel = crearViewModel(pedidos = RepositorioPedidos(emptyList()))
+
+        val estado = viewModel.uiState.first()
+
+        assertEquals(0, estado.impacto.rescates)
+        assertEquals(0.0, estado.impacto.ahorrado, 0.0)
+        assertEquals(0.0, estado.impacto.kgAprovechados, 0.0)
     }
 
     @Test
@@ -77,5 +125,5 @@ class InicioViewModelTest {
     private fun crearViewModel(
         ofertas: RepositorioOfertas = RepositorioOfertas(),
         pedidos: RepositorioPedidos = RepositorioPedidos()
-    ) = InicioViewModel(ofertas, pedidos, CalcularImpactoSemanalUseCase())
+    ) = InicioViewModel(ofertas, pedidos, CalcularImpactoUseCase())
 }

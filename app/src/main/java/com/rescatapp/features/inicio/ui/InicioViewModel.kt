@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
+import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.features.inicio.domain.InicioUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.stateIn
 class InicioViewModel @Inject constructor(
     repositorioOfertas: RepositorioOfertas,
     repositorioPedidos: RepositorioPedidos,
-    private val calcularImpacto: CalcularImpactoSemanalUseCase
+    private val calcularImpacto: CalcularImpactoUseCase
 ) : ViewModel() {
     val uiState: StateFlow<InicioUiState> = combine(
         repositorioOfertas.ofertas,
