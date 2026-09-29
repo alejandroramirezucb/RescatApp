@@ -12,19 +12,38 @@ class FiltrarOfertasUseCaseTest {
     private val ofertas = RepositorioOfertas().ofertas.value
 
     @Test
-    fun ordenaLasOfertasMasRecientes() {
+    fun sinFiltrosRetornaLasCatorceOfertasDeMasRecienteAMasAntigua() {
         val resultado = filtrar(ofertas, "", null, OrdenOfertas.RECOMENDADAS)
 
         assertEquals(14, resultado.size)
-        assertEquals(14, resultado.first().id)
-        assertEquals(1, resultado.last().id)
+        assertEquals((14 downTo 1).toList(), resultado.map { it.id })
     }
 
     @Test
-    fun combinaBusquedaYCategoria() {
-        assertEquals(3, filtrar(ofertas, "café", null, OrdenOfertas.RECOMENDADAS).size)
-        assertEquals(2, filtrar(ofertas, "", Categoria.POSTRES, OrdenOfertas.RECOMENDADAS).size)
-        assertTrue(filtrar(ofertas, "café", Categoria.POSTRES, OrdenOfertas.RECOMENDADAS).isEmpty())
+    fun buscaCafeEnNombreOComercio() {
+        val resultado = filtrar(ofertas, "café", null, OrdenOfertas.RECOMENDADAS)
+
+        assertEquals(
+            listOf("Pack Café+", "Pack Mañanero", "Sándwich Combo"),
+            resultado.map { it.nombre }
+        )
+    }
+
+    @Test
+    fun buscaSinDistinguirMayusculas() {
+        val resultado = filtrar(ofertas, "PIZZA", null, OrdenOfertas.RECOMENDADAS)
+
+        assertEquals(
+            listOf("Pizza Familiar", "2 Pizzas Medianas"),
+            resultado.map { it.nombre }
+        )
+    }
+
+    @Test
+    fun filtraPorCategoriaPostres() {
+        val resultado = filtrar(ofertas, "", Categoria.POSTRES, OrdenOfertas.RECOMENDADAS)
+
+        assertEquals(listOf("Tortas Mix", "Caja Cupcakes"), resultado.map { it.nombre })
     }
 
     @Test
@@ -32,6 +51,16 @@ class FiltrarOfertasUseCaseTest {
         val resultado = filtrar(ofertas, "", null, OrdenOfertas.MAYOR_DESCUENTO)
 
         assertEquals("Pack Frutas", resultado.first().nombre)
+        assertEquals(51, resultado.first().porcentajeDescuento)
         assertEquals("Pack Croissants", resultado[1].nombre)
+        assertEquals(50, resultado[1].porcentajeDescuento)
+        assertEquals(13, resultado[1].id)
+    }
+
+    @Test
+    fun combinaBusquedaYCategoriaYRetornaVacioSiNoHayCoincidencias() {
+        val resultado = filtrar(ofertas, "café", Categoria.POSTRES, OrdenOfertas.RECOMENDADAS)
+
+        assertTrue(resultado.isEmpty())
     }
 }
