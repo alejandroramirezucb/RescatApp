@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.rescatapp.core.designsystem.FondoRescat
 import com.rescatapp.core.designsystem.NaranjaRescat
 import com.rescatapp.core.designsystem.VerdeRescat
+import com.rescatapp.core.designsystem.visual
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Disponibilidad
 import com.rescatapp.core.model.Oferta
@@ -163,10 +164,10 @@ private fun TarjetaOferta(oferta: Oferta, onClick: () -> Unit) {
     ) {
         Box(
             modifier = Modifier.fillMaxWidth().height(108.dp)
-                .background(colorCategoria(oferta.categoria)),
+                .background(oferta.categoria.visual().color),
             contentAlignment = Alignment.Center
         ) {
-            Text(simboloCategoria(oferta.categoria), fontSize = 46.sp)
+            Text(oferta.categoria.visual().simbolo, fontSize = 46.sp)
             Surface(
                 modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
                 color = NaranjaRescat,
@@ -222,20 +223,6 @@ private fun TarjetaOferta(oferta: Oferta, onClick: () -> Unit) {
             )
         }
     }
-}
-
-private fun simboloCategoria(categoria: Categoria): String = when (categoria) {
-    Categoria.PANADERIA -> "🥐"
-    Categoria.COMIDA -> "🍽️"
-    Categoria.POSTRES -> "🧁"
-    Categoria.CAFETERIA -> "☕"
-}
-
-private fun colorCategoria(categoria: Categoria): Color = when (categoria) {
-    Categoria.PANADERIA -> Color(0xFFF5D7BE)
-    Categoria.COMIDA -> Color(0xFFDCEBD8)
-    Categoria.POSTRES -> Color(0xFFF3DCE5)
-    Categoria.CAFETERIA -> Color(0xFFDAE8EC)
 }
 
 private fun colorDisponibilidad(disponibilidad: Disponibilidad): Color = when (disponibilidad) {
