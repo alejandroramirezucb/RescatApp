@@ -1,8 +1,10 @@
 package com.rescatapp.features.pedidos.ui
 
+import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.data.mock.pedidosDeEjemplo
+import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
+import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -21,16 +23,23 @@ class PedidosViewModelTest {
 
     private val dispatcher = UnconfinedTestDispatcher()
     private lateinit var repositorioPedidos: RepositorioPedidos
+    private lateinit var repositorioOfertas: RepositorioOfertas
     private lateinit var avanzarPedidoUseCase: AvanzarPedidoUseCase
+    private lateinit var cancelarPedidoUseCase: CancelarPedidoUseCase
     private lateinit var viewModel: PedidosViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         repositorioPedidos = RepositorioPedidos()
-        pedidosDeEjemplo.forEach { repositorioPedidos.agregar(it) }
+        repositorioOfertas = RepositorioOfertas()
         avanzarPedidoUseCase = AvanzarPedidoUseCase(repositorioPedidos)
-        viewModel = PedidosViewModel(repositorioPedidos, avanzarPedidoUseCase)
+        cancelarPedidoUseCase = CancelarPedidoUseCase(repositorioPedidos, repositorioOfertas)
+        viewModel = PedidosViewModel(
+            repositorioPedidos,
+            avanzarPedidoUseCase,
+            cancelarPedidoUseCase
+        )
     }
 
     @After
@@ -47,7 +56,6 @@ class PedidosViewModelTest {
             assertTrue(estado.activos.isNotEmpty())
             assertTrue(estado.historial.isNotEmpty())
 
-            // Verificar orden descendente por ID
             val idsActivos = estado.activos.map { it.id }
             assertEquals(idsActivos.sortedDescending(), idsActivos)
 
@@ -72,10 +80,18 @@ class PedidosViewModelTest {
 
         val estadoNuevo = viewModel.uiState.first()
         val pedidoActualizado = (estadoNuevo.activos + estadoNuevo.historial).find {
-            it.id ==
-                primerPedido.id
+            it.id == primerPedido.id
         }
 
         assertEquals(estadoInicial.siguiente(), pedidoActualizado?.estado)
+    }
+
+    @Test
+    fun `cancelarPedido en pedido no reservado asigna mensaje de error`() = runTest {
+        // ID 5 en pedidosDeEjemplo esta en estado LISTO (no reservado)
+        viewModel.cancelarPedido(5)
+
+        val estado = viewModel.uiState.first { it.mensaje != null }
+        assertEquals("Solo puedes cancelar un pedido reservado", estado.mensaje)
     }
 }

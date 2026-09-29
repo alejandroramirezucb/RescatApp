@@ -23,10 +23,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,8 +49,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.DivisorColorRescat
 import com.rescatapp.core.designsystem.FondoGrisRescat
 import com.rescatapp.core.designsystem.NaranjaRescat
+import com.rescatapp.core.designsystem.RojoFondoRescat
+import com.rescatapp.core.designsystem.RojoTextoRescat
 import com.rescatapp.core.designsystem.TextoGrisRescat
 import com.rescatapp.core.designsystem.TextoOscuroRescat
+import com.rescatapp.core.designsystem.VerdeFondoRescat
+import com.rescatapp.core.designsystem.VerdeRescat
 import com.rescatapp.core.designsystem.visual
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
@@ -65,16 +73,33 @@ fun PedidosScreen(
     viewModel: PedidosViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    PedidosContent(
-        estado = estado,
-        onCambiarPestana = viewModel::cambiarPestana,
-        onAvanzarPedido = viewModel::avanzarPedido,
-        onVolver = onVolver,
-        onInicio = onInicio,
-        onExplorar = onExplorar,
-        onPublicar = onPublicar,
-        onPerfil = onPerfil
-    )
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(estado.mensaje) {
+        estado.mensaje?.let { mensaje ->
+            snackbarHostState.showSnackbar(mensaje)
+            viewModel.limpiarMensaje()
+        }
+    }
+
+    Scaffold(
+        containerColor = FondoGrisRescat,
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            PedidosContent(
+                estado = estado,
+                onCambiarPestana = viewModel::cambiarPestana,
+                onAvanzarPedido = viewModel::avanzarPedido,
+                onCancelarPedido = viewModel::cancelarPedido,
+                onVolver = onVolver,
+                onInicio = onInicio,
+                onExplorar = onExplorar,
+                onPublicar = onPublicar,
+                onPerfil = onPerfil
+            )
+        }
+    }
 }
 
 @Composable
@@ -82,6 +107,7 @@ fun PedidosContent(
     estado: PedidosUiState,
     onCambiarPestana: (PestanaPedidos) -> Unit = {},
     onAvanzarPedido: (Int) -> Unit = {},
+    onCancelarPedido: (Int) -> Unit = {},
     onVolver: () -> Unit = {},
     onInicio: () -> Unit = {},
     onExplorar: () -> Unit = {},
@@ -143,7 +169,7 @@ fun PedidosContent(
                     val textoVacio = if (estado.pestana == PestanaPedidos.ACTIVOS) {
                         "Aún no tienes pedidos activos"
                     } else {
-                        "Aún no tienes pedidos en el historial"
+                        "Aún no tienes pedidos en tu historial"
                     }
                     Text(
                         text = textoVacio,
@@ -160,7 +186,8 @@ fun PedidosContent(
                     items(lista, key = { it.id }) { pedido ->
                         TarjetaPedido(
                             pedido = pedido,
-                            onAvanzarPedido = onAvanzarPedido
+                            onAvanzarPedido = onAvanzarPedido,
+                            onCancelarPedido = onCancelarPedido
                         )
                     }
                 }
@@ -215,7 +242,11 @@ private fun TabsPedidos(
 
 // ---------- Tarjeta de pedido ----------
 @Composable
-private fun TarjetaPedido(pedido: Pedido, onAvanzarPedido: (Int) -> Unit) {
+private fun TarjetaPedido(
+    pedido: Pedido,
+    onAvanzarPedido: (Int) -> Unit,
+    onCancelarPedido: (Int) -> Unit
+) {
     val construirProgresoUseCase = remember { ConstruirProgresoPedidoUseCase() }
     val pasos = construirProgresoUseCase(pedido)
 
@@ -261,14 +292,23 @@ private fun TarjetaPedido(pedido: Pedido, onAvanzarPedido: (Int) -> Unit) {
                         text = pedido.nombreOferta,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = TextoOscuroRescat
+                        color = TextoOscuroRescat,
+                        modifier = Modifier.weight(1f, fill = false)
                     )
-                    Text(
-                        text = pedido.precioPagado.formatearDinero(),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = NaranjaRescat
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        if (!pedido.estaActivo) {
+                            ChipEstado(estado = pedido.estado)
+                        }
+                        Text(
+                            text = pedido.precioPagado.formatearDinero(),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = NaranjaRescat
+                        )
+                    }
                 }
                 Text(
                     text = pedido.comercio,
@@ -298,7 +338,7 @@ private fun TarjetaPedido(pedido: Pedido, onAvanzarPedido: (Int) -> Unit) {
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
         )
 
-        // Botón de acción dinámico
+        // Botón de acción dinámico + Cancelar
         if (pedido.estaActivo) {
             val textoBoton = when (pedido.estado) {
                 EstadoPedido.RESERVADO -> "Marcar como Preparando"
@@ -307,13 +347,29 @@ private fun TarjetaPedido(pedido: Pedido, onAvanzarPedido: (Int) -> Unit) {
                 else -> null
             }
 
-            if (textoBoton != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 12.dp, end = 12.dp, bottom = 12.dp, top = 4.dp),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 12.dp, end = 12.dp, bottom = 12.dp, top = 4.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (pedido.estado == EstadoPedido.RESERVADO) {
+                    TextButton(
+                        onClick = { onCancelarPedido(pedido.id) },
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Cancelar",
+                            color = RojoTextoRescat,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                }
+
+                if (textoBoton != null) {
                     Button(
                         onClick = { onAvanzarPedido(pedido.id) },
                         colors = ButtonDefaults.buttonColors(containerColor = NaranjaRescat),
@@ -411,5 +467,28 @@ private fun CirculoPaso(paso: PasoProgreso, diametro: Dp) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun ChipEstado(estado: EstadoPedido) {
+    val (texto, colorTexto, colorFondo) = when (estado) {
+        EstadoPedido.RECOGIDO -> Triple("Completado", VerdeRescat, VerdeFondoRescat)
+        EstadoPedido.CANCELADO -> Triple("Cancelado", RojoTextoRescat, RojoFondoRescat)
+        else -> Triple(estado.etiqueta, TextoGrisRescat, DivisorColorRescat)
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(colorFondo)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = texto,
+            color = colorTexto,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
 }

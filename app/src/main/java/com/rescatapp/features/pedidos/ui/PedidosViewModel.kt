@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
+import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +16,9 @@ import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class PedidosViewModel @Inject constructor(
-    repositorioPedidos: RepositorioPedidos,
-    private val avanzarPedidoUseCase: AvanzarPedidoUseCase
+    private val repositorioPedidos: RepositorioPedidos,
+    private val avanzarPedidoUseCase: AvanzarPedidoUseCase,
+    private val cancelarPedidoUseCase: CancelarPedidoUseCase
 ) : ViewModel() {
 
     private val pestanaSeleccionada = MutableStateFlow(PestanaPedidos.ACTIVOS)
@@ -53,6 +55,18 @@ class PedidosViewModel @Inject constructor(
 
     fun avanzarPedido(pedidoId: Int) {
         when (val resultado = avanzarPedidoUseCase(pedidoId)) {
+            is ResultadoOperacion.Exito<*> -> {
+                mensajeError.value = null
+            }
+
+            is ResultadoOperacion.Error -> {
+                mensajeError.value = resultado.mensaje
+            }
+        }
+    }
+
+    fun cancelarPedido(pedidoId: Int) {
+        when (val resultado = cancelarPedidoUseCase(pedidoId)) {
             is ResultadoOperacion.Exito<*> -> {
                 mensajeError.value = null
             }
