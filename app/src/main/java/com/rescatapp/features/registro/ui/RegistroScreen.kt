@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.RegistroUiState
 
 @Composable
@@ -38,16 +39,7 @@ fun RegistroScreen(onVolver: () -> Unit, viewModel: RegistroViewModel = hiltView
     RegistroContent(
         estado = estado,
         onVolver = onVolver,
-        onNombreCambiado = viewModel::onNombreCambiado,
-        onComercioCambiado = viewModel::onComercioCambiado,
-        onCategoriaCambiada = viewModel::onCategoriaCambiada,
-        onDescripcionCambiado = viewModel::onDescripcionCambiado,
-        onPesoKgCambiado = viewModel::onPesoKgCambiado,
-        onPrecioNormalCambiado = viewModel::onPrecioNormalCambiado,
-        onPrecioRescateCambiado = viewModel::onPrecioRescateCambiado,
-        onCantidadDisponibleCambiado = viewModel::onCantidadDisponibleCambiado,
-        onHoraRetiroDesdeCambiado = viewModel::onHoraRetiroDesdeCambiado,
-        onHoraRetiroHastaCambiado = viewModel::onHoraRetiroHastaCambiado,
+        onCampoCambiado = viewModel::onCampoCambiado,
         onPublicar = viewModel::publicar
     )
 }
@@ -56,16 +48,7 @@ fun RegistroScreen(onVolver: () -> Unit, viewModel: RegistroViewModel = hiltView
 fun RegistroContent(
     estado: RegistroUiState,
     onVolver: () -> Unit,
-    onNombreCambiado: (String) -> Unit,
-    onComercioCambiado: (String) -> Unit,
-    onCategoriaCambiada: (Categoria) -> Unit,
-    onDescripcionCambiado: (String) -> Unit,
-    onPesoKgCambiado: (String) -> Unit,
-    onPrecioNormalCambiado: (String) -> Unit,
-    onPrecioRescateCambiado: (String) -> Unit,
-    onCantidadDisponibleCambiado: (String) -> Unit,
-    onHoraRetiroDesdeCambiado: (String) -> Unit,
-    onHoraRetiroHastaCambiado: (String) -> Unit,
+    onCampoCambiado: (CamposRegistro) -> Unit,
     onPublicar: () -> Unit
 ) {
     val campos = estado.campos
@@ -79,7 +62,7 @@ fun RegistroContent(
         Text("Publicar oferta", style = MaterialTheme.typography.headlineMedium)
         OutlinedTextField(
             value = campos.nombre,
-            onValueChange = onNombreCambiado,
+            onValueChange = { onCampoCambiado(campos.copy(nombre = it)) },
             label = { Text("Nombre") },
             isError = errores.nombre != null,
             supportingText = { errores.nombre?.let { Text(it) } },
@@ -87,7 +70,7 @@ fun RegistroContent(
         )
         OutlinedTextField(
             value = campos.comercio,
-            onValueChange = onComercioCambiado,
+            onValueChange = { onCampoCambiado(campos.copy(comercio = it)) },
             label = { Text("Comercio") },
             isError = errores.comercio != null,
             supportingText = { errores.comercio?.let { Text(it) } },
@@ -101,7 +84,7 @@ fun RegistroContent(
             Categoria.entries.forEach { categoria ->
                 FilterChip(
                     selected = campos.categoria == categoria,
-                    onClick = { onCategoriaCambiada(categoria) },
+                    onClick = { onCampoCambiado(campos.copy(categoria = categoria)) },
                     label = { Text(categoria.etiqueta) }
                 )
             }
@@ -109,49 +92,47 @@ fun RegistroContent(
         errores.categoria?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         OutlinedTextField(
             value = campos.descripcion,
-            onValueChange = onDescripcionCambiado,
+            onValueChange = { onCampoCambiado(campos.copy(descripcion = it)) },
             label = { Text("Descripción") },
             isError = errores.descripcion != null,
             supportingText = { errores.descripcion?.let { Text(it) } },
             modifier = Modifier.fillMaxWidth()
         )
-        CampoNumerico("Peso en kg", campos.pesoKg, errores.pesoKg, onPesoKgCambiado)
+        CampoNumerico("Peso en kg", campos.pesoKg, errores.pesoKg) {
+            onCampoCambiado(campos.copy(pesoKg = it))
+        }
         CampoNumerico(
             "Precio normal",
             campos.precioNormal,
-            errores.precioNormal,
-            onPrecioNormalCambiado
-        )
+            errores.precioNormal
+        ) { onCampoCambiado(campos.copy(precioNormal = it)) }
         CampoNumerico(
             "Precio de rescate",
             campos.precioRescate,
-            errores.precioRescate,
-            onPrecioRescateCambiado
-        )
+            errores.precioRescate
+        ) { onCampoCambiado(campos.copy(precioRescate = it)) }
         CampoNumerico(
             "Cantidad",
             campos.cantidadDisponible,
-            errores.cantidadDisponible,
-            onCantidadDisponibleCambiado
-        )
+            errores.cantidadDisponible
+        ) { onCampoCambiado(campos.copy(cantidadDisponible = it)) }
         CampoNumerico(
             "Retiro desde (HH:mm)",
             campos.horaRetiroDesde,
-            errores.horaRetiroDesde,
-            onHoraRetiroDesdeCambiado
-        )
+            errores.horaRetiroDesde
+        ) { onCampoCambiado(campos.copy(horaRetiroDesde = it)) }
         CampoNumerico(
             "Retiro hasta (HH:mm)",
             campos.horaRetiroHasta,
-            errores.horaRetiroHasta,
-            onHoraRetiroHastaCambiado
-        )
+            errores.horaRetiroHasta
+        ) { onCampoCambiado(campos.copy(horaRetiroHasta = it)) }
         Button(
             onClick = onPublicar,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Publicar oferta")
         }
+        estado.mensaje?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
 }
 

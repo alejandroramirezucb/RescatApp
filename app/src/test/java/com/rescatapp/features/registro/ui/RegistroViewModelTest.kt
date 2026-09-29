@@ -76,7 +76,6 @@ class RegistroViewModelTest {
 
     @Test
     fun unCampoConError_alIngresarNuevoValor_eliminaErrorDeEseCampoYMantieneLosDemas() {
-        // Al intentar publicar campos vacíos se generan errores
         viewModel.publicar()
 
         val stateConErrores = viewModel.uiState.value
@@ -85,23 +84,22 @@ class RegistroViewModelTest {
         assertEquals(MensajeError.NOMBRE_VACIO, stateConErrores.errores.nombre)
         assertEquals(MensajeError.COMERCIO_VACIO, stateConErrores.errores.comercio)
 
-        // El usuario ingresa un nuevo valor únicamente en el nombre
-        viewModel.onCampoCambiado(nombre = "Pack Salteñas")
+        viewModel.onCampoCambiado(viewModel.uiState.value.campos.copy(nombre = "Pack Salteñas"))
 
         val stateActualizado = viewModel.uiState.value
-        // El error de nombre se elimina inmediatamente
         assertNull(stateActualizado.errores.nombre)
-        // El error de comercio se mantiene
         assertEquals(MensajeError.COMERCIO_VACIO, stateActualizado.errores.comercio)
     }
 
     @Test
-    fun metodosIndividuales_actualizanCampoYEliminanSoloSuError() {
+    fun alCorregirComercioConservaOtrosErrores() {
         viewModel.publicar()
         assertNotNull(viewModel.uiState.value.errores.comercio)
         assertNotNull(viewModel.uiState.value.errores.descripcion)
 
-        viewModel.onComercioCambiado("Panadería La Central")
+        viewModel.onCampoCambiado(
+            viewModel.uiState.value.campos.copy(comercio = "Panadería La Central")
+        )
 
         val state = viewModel.uiState.value
         assertEquals("Panadería La Central", state.campos.comercio)

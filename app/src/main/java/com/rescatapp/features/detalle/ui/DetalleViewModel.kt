@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.model.Pedido
+import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.detalle.domain.DetalleUiState
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,11 +41,11 @@ class DetalleViewModel @Inject constructor(
     )
 
     fun reservar() {
-        val pedido = reservarOferta(ofertaId)
-        mensaje.value = if (pedido != null) {
-            "Reservaste ${pedido.nombreOferta}"
-        } else {
-            "Esta oferta está agotada"
+        mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
+            is ResultadoOperacion.Exito ->
+                "Reservaste ${(resultado.valor as Pedido).nombreOferta}"
+
+            is ResultadoOperacion.Error -> resultado.mensaje
         }
     }
 

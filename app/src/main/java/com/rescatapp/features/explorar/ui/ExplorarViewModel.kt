@@ -3,7 +3,7 @@ package com.rescatapp.features.explorar.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rescatapp.core.data.repository.RepositorioOfertas
+import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.features.explorar.domain.ExplorarUiState

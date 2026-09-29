@@ -1,5 +1,6 @@
 package com.rescatapp.core.data
 
+import com.rescatapp.core.data.mock.ofertasDeEjemplo
 import com.rescatapp.core.model.Oferta
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.update
 
 @Singleton
 class RepositorioOfertas @Inject constructor() {
-    private val ofertasMutables = MutableStateFlow(ofertasIniciales())
+    private val ofertasMutables = MutableStateFlow(ofertasDeEjemplo)
     val ofertas = ofertasMutables.asStateFlow()
 
     fun obtenerPorId(id: Int): Flow<Oferta?> = ofertas.map { lista ->

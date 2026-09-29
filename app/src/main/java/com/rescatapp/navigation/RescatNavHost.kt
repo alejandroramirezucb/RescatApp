@@ -2,7 +2,6 @@ package com.rescatapp.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
@@ -10,8 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.rescatapp.core.data.repository.RepositorioOfertas
-import com.rescatapp.core.data.repository.RepositorioPedidos
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
@@ -20,7 +17,7 @@ import com.rescatapp.features.inicio.ui.InicioScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
 @Composable
-fun RescatNavHost(ofertas: RepositorioOfertas, pedidos: RepositorioPedidos) {
+fun RescatNavHost() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "explorar") {
