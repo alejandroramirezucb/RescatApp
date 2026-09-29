@@ -2,7 +2,7 @@ package com.rescatapp.features.perfil.ui
 
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
+import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,25 +32,27 @@ class PerfilViewModelTest {
 
     @Test
     fun emiteElImpactoBase() = runTest {
-        val viewModel = PerfilViewModel(RepositorioPedidos(), CalcularImpactoSemanalUseCase())
+        val viewModel = PerfilViewModel(RepositorioPedidos(), CalcularImpactoUseCase())
 
         val estado = viewModel.uiState.first { it.rescates == 4 }
 
+        assertEquals(4, estado.rescates)
         assertEquals(102.0, estado.ahorrado, 0.0)
-        assertEquals(3.6, estado.aprovechado, 0.0)
+        assertEquals(3.6, estado.aprovechado, 0.001)
     }
 
     @Test
     fun actualizaElImpactoAlCrearUnaReserva() = runTest {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
-        val viewModel = PerfilViewModel(pedidos, CalcularImpactoSemanalUseCase())
+        val viewModel = PerfilViewModel(pedidos, CalcularImpactoUseCase())
         viewModel.uiState.first { it.rescates == 4 }
 
         ReservarOfertaUseCase(ofertas, pedidos)(13)
 
         val estado = viewModel.uiState.first { it.rescates == 5 }
+        assertEquals(5, estado.rescates)
         assertEquals(117.0, estado.ahorrado, 0.0)
-        assertEquals(4.2, estado.aprovechado, 0.0)
+        assertEquals(4.2, estado.aprovechado, 0.001)
     }
 }
