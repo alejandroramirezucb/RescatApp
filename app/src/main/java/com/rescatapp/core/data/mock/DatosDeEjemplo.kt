@@ -1,12 +1,14 @@
-package com.rescatapp.core.data
+package com.rescatapp.core.data.mock
 
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.model.Pedido
 
-internal fun ofertasIniciales(): List<Oferta> = listOf(
+val ofertasDeEjemplo: List<Oferta> = listOf(
     Oferta(
         14, "Pack Sorpresa", "Panadería La Central", Categoria.PANADERIA,
-        "Surtido de panes del día",
+        "Surtido de panes y facturas del día",
         1.0, 45.0, 25.0, 5, "18:00", "20:00"
     ),
     Oferta(
@@ -60,5 +62,28 @@ internal fun ofertasIniciales(): List<Oferta> = listOf(
     Oferta(
         1, "Sándwich Combo", "Café Aroma", Categoria.CAFETERIA, "Sándwich y café",
         0.6, 50.0, 28.0, 3, "12:00", "14:00"
+    )
+)
+
+val pedidosDeEjemplo: List<Pedido> = listOf(
+    Pedido(
+        5, 14, "Pack Sorpresa", "Panadería La Central", Categoria.PANADERIA,
+        25.0, 20.0, 1.0, "18:00", "20:00", EstadoPedido.LISTO
+    ),
+    Pedido(
+        4, 12, "Pizza Familiar", "Pizzería Don Marco", Categoria.COMIDA,
+        45.0, 35.0, 1.2, "20:00", "22:00", EstadoPedido.PREPARANDO
+    ),
+    Pedido(
+        3, 10, "Pack Café+", "Café Aroma", Categoria.CAFETERIA,
+        18.0, 17.0, 0.5, "16:00", "18:00", EstadoPedido.RECOGIDO
+    ),
+    Pedido(
+        2, 8, "Tortas Mix", "Dulcería Bella", Categoria.POSTRES,
+        30.0, 30.0, 0.9, "18:00", "20:00", EstadoPedido.RECOGIDO
+    ),
+    Pedido(
+        1, 1, "Sándwich Combo", "Café Aroma", Categoria.CAFETERIA,
+        28.0, 22.0, 0.6, "12:00", "14:00", EstadoPedido.CANCELADO
     )
 )

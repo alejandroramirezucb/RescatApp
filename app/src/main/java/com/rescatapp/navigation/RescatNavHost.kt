@@ -10,8 +10,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.rescatapp.core.data.RepositorioOfertas
-import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.repository.RepositorioOfertas
+import com.rescatapp.core.data.repository.RepositorioPedidos
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import com.rescatapp.features.detalle.ui.DetalleScreen

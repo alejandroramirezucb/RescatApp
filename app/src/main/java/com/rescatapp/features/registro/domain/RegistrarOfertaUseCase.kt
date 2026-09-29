@@ -1,6 +1,6 @@
 package com.rescatapp.features.registro.domain
 
-import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.data.repository.RepositorioOfertas
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.aDecimalOrNull
 import com.rescatapp.core.util.aEnteroPositivoOrNull

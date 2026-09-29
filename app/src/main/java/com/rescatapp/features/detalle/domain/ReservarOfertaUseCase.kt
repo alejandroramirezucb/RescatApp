@@ -1,7 +1,7 @@
 package com.rescatapp.features.detalle.domain
 
-import com.rescatapp.core.data.RepositorioOfertas
-import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.repository.RepositorioOfertas
+import com.rescatapp.core.data.repository.RepositorioPedidos
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
 
