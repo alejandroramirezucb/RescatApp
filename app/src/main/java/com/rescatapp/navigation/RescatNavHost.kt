@@ -14,6 +14,7 @@ import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.explorar.ui.ExplorarViewModel
 import com.rescatapp.features.inicio.ui.InicioScreen
+import com.rescatapp.features.pedidos.ui.PedidosScreen
 import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
@@ -54,7 +55,9 @@ fun RescatNavHost() {
                     navController.navigate(ruta)
                 },
                 onPublicar = { navController.navigate("registro") },
-                onVerDetalle = { id -> navController.navigate("detalle/$id") }
+                onVerDetalle = { id -> navController.navigate("detalle/$id") },
+                onPedidos = { navController.navigate("pedidos") },
+                onPerfil = { navController.navigate("perfil") }
             )
         }
         composable(
@@ -73,7 +76,7 @@ fun RescatNavHost() {
             PerfilScreen(onVolver = { navController.popBackStack() })
         }
         composable("pedidos") {
-            com.rescatapp.features.pedidos.ui.PedidosScreen(
+            PedidosScreen(
                 onVolver = { navController.popBackStack() },
                 onInicio = { navController.navigate("inicio") },
                 onExplorar = { navController.navigate("explorar") },

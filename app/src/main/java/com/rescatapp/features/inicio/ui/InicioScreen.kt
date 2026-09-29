@@ -60,6 +60,8 @@ fun InicioScreen(
     onExplorar: (Categoria?) -> Unit,
     onPublicar: () -> Unit = {},
     onVerDetalle: (Int) -> Unit = {},
+    onPedidos: () -> Unit = {},
+    onPerfil: () -> Unit = {},
     viewModel: InicioViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
