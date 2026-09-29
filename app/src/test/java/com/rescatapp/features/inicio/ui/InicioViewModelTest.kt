@@ -36,6 +36,13 @@ class InicioViewModelTest {
     }
 
     @Test
+    fun estadoInicialTieneUsuarioInvitado() = runTest {
+        val viewModel = crearViewModel()
+        val estado = viewModel.uiState.first()
+        assertEquals("Invitado", estado.usuario)
+    }
+
+    @Test
     fun iniciaConCatorceOfertasDisponiblesComenzandoPorPackSorpresa() = runTest {
         val viewModel = crearViewModel()
 
