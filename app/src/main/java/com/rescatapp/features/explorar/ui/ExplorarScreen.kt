@@ -63,6 +63,7 @@ fun ExplorarScreen(
     onVerDetalle: (Int) -> Unit,
     onInicio: () -> Unit,
     onPublicar: () -> Unit,
+    onPedidos: () -> Unit = {},
     onPerfil: () -> Unit = {}
 ) {
     var mostrarFiltros by remember { mutableStateOf(false) }
@@ -80,6 +81,10 @@ fun ExplorarScreen(
                     onClick = onInicio,
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) { Text("Inicio") }
+                TextButton(
+                    onClick = onPedidos,
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) { Text("Pedidos") }
                 TextButton(
                     onClick = onPublicar,
                     contentPadding = PaddingValues(horizontal = 4.dp)

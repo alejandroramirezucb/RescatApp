@@ -43,6 +43,7 @@ fun RescatNavHost() {
                 onVerDetalle = { id -> navController.navigate("detalle/$id") },
                 onInicio = { navController.navigate("inicio") },
                 onPublicar = { navController.navigate("registro") },
+                onPedidos = { navController.navigate("pedidos") },
                 onPerfil = { navController.navigate("perfil") }
             )
         }
@@ -63,6 +64,15 @@ fun RescatNavHost() {
         }
         composable("perfil") {
             PerfilScreen(onVolver = { navController.popBackStack() })
+        }
+        composable("pedidos") {
+            com.rescatapp.features.pedidos.ui.PedidosScreen(
+                onVolver = { navController.popBackStack() },
+                onInicio = { navController.navigate("inicio") },
+                onExplorar = { navController.navigate("explorar") },
+                onPublicar = { navController.navigate("registro") },
+                onPerfil = { navController.navigate("perfil") }
+            )
         }
     }
 }
