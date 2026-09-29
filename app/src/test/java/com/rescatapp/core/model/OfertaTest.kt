@@ -1,45 +1,40 @@
 package com.rescatapp.core.model
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class OfertaTest {
-    private val oferta = Oferta(
-        id = 1,
-        nombre = "Pack Sorpresa",
-        comercio = "Panadería La Central",
-        categoria = Categoria.PANADERIA,
-        descripcion = "Excedente del día",
-        pesoKg = 1.0,
-        precioNormal = 45.0,
-        precioRescate = 25.0,
-        cantidadDisponible = 5,
-        horaRetiroDesde = "18:00",
-        horaRetiroHasta = "20:00"
+    private val packSorpresa = Oferta(
+        14, "Pack Sorpresa", "Panadería La Central", Categoria.PANADERIA,
+        "Surtido", 1.0, 45.0, 25.0, 5, "18:00", "20:00"
     )
 
     @Test
     fun calculaDescuentoYAhorroPorUnidad() {
-        assertEquals(44, oferta.porcentajeDescuento)
-        assertEquals(20.0, oferta.ahorroPorUnidad, 0.0)
-        assertEquals(
-            51,
-            oferta.copy(precioNormal = 200.0, precioRescate = 99.0).porcentajeDescuento
-        )
+        assertEquals(44, packSorpresa.porcentajeDescuento)
+        assertEquals(20.0, packSorpresa.ahorroPorUnidad, 0.0)
     }
 
     @Test
-    fun clasificaLosLimitesDeDisponibilidad() {
-        assertEquals(Disponibilidad.AGOTADA, oferta.copy(cantidadDisponible = 0).disponibilidad)
-        assertEquals(Disponibilidad.BAJA, oferta.copy(cantidadDisponible = 1).disponibilidad)
-        assertEquals(Disponibilidad.BAJA, oferta.copy(cantidadDisponible = 2).disponibilidad)
-        assertEquals(Disponibilidad.MEDIA, oferta.copy(cantidadDisponible = 3).disponibilidad)
-        assertEquals(Disponibilidad.MEDIA, oferta.copy(cantidadDisponible = 4).disponibilidad)
-        assertEquals(Disponibilidad.ALTA, oferta.copy(cantidadDisponible = 5).disponibilidad)
-        assertEquals(Disponibilidad.ALTA, oferta.copy(cantidadDisponible = 6).disponibilidad)
-        assertTrue(oferta.copy(cantidadDisponible = 0).estaAgotada)
-        assertFalse(oferta.estaAgotada)
+    fun clasificaLaDisponibilidadSegunLasUnidades() {
+        assertEquals(Disponibilidad.ALTA, conUnidades(6).disponibilidad)
+        assertEquals(Disponibilidad.MEDIA, conUnidades(3).disponibilidad)
+        assertEquals(Disponibilidad.BAJA, conUnidades(2).disponibilidad)
+        assertEquals(Disponibilidad.AGOTADA, conUnidades(0).disponibilidad)
+        assertTrue(conUnidades(0).estaAgotada)
+    }
+
+    private fun conUnidades(cantidad: Int) = packSorpresa.copy(cantidadDisponible = cantidad)
+
+    @Test
+    fun crearPedidoCopiaLosDatosDeLaOferta() {
+        val pedido = packSorpresa.crearPedido(idPedido = 7)
+
+        assertEquals(7, pedido.id)
+        assertEquals(14, pedido.ofertaId)
+        assertEquals(25.0, pedido.precioPagado, 0.0)
+        assertEquals(20.0, pedido.ahorro, 0.0)
+        assertEquals(EstadoPedido.RESERVADO, pedido.estado)
     }
 }

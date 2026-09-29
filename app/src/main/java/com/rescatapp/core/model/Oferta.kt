@@ -35,4 +35,18 @@ data class Oferta(
             cantidadDisponible <= UMBRAL_DISPONIBILIDAD_MEDIA -> Disponibilidad.MEDIA
             else -> Disponibilidad.ALTA
         }
+
+    fun crearPedido(idPedido: Int, estado: EstadoPedido = EstadoPedido.RESERVADO) = Pedido(
+        id = idPedido,
+        ofertaId = id,
+        nombreOferta = nombre,
+        comercio = comercio,
+        categoria = categoria,
+        precioPagado = precioRescate,
+        ahorro = ahorroPorUnidad,
+        pesoKg = pesoKg,
+        horaRetiroDesde = horaRetiroDesde,
+        horaRetiroHasta = horaRetiroHasta,
+        estado = estado
+    )
 }

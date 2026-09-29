@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
-import com.rescatapp.features.inicio.domain.InicioUiState
+import com.rescatapp.core.domain.CalcularImpactoUseCase
+import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.model.Pedido
+import com.rescatapp.core.util.suscripcionPantalla
+import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -17,30 +19,21 @@ import kotlinx.coroutines.flow.stateIn
 class InicioViewModel @Inject constructor(
     repositorioOfertas: RepositorioOfertas,
     repositorioPedidos: RepositorioPedidos,
-    private val calcularImpacto: CalcularImpactoSemanalUseCase
+    private val calcularImpacto: CalcularImpactoUseCase,
+    private val seleccionarOfertas: SeleccionarOfertasInicioUseCase
 ) : ViewModel() {
-    val uiState: StateFlow<InicioUiState> = combine(
-        repositorioOfertas.ofertas,
-        repositorioPedidos.pedidos
-    ) { ofertas, pedidos ->
-        InicioUiState(
-            ofertasCerca = ofertas.filterNot { it.estaAgotada }.sortedByDescending { it.id },
-            ofertasAgotando = ofertas
-                .filter { it.cantidadDisponible in 1..2 }
-                .sortedByDescending { it.id },
-            impacto = calcularImpacto(pedidos)
+    val uiState: StateFlow<InicioUiState> =
+        combine(repositorioOfertas.ofertas, repositorioPedidos.pedidos, ::crearEstado).stateIn(
+            scope = viewModelScope,
+            started = suscripcionPantalla,
+            initialValue = crearEstado(
+                repositorioOfertas.ofertas.value,
+                repositorioPedidos.pedidos.value
+            )
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = InicioUiState(
-            ofertasCerca = repositorioOfertas.ofertas.value
-                .filterNot { it.estaAgotada }
-                .sortedByDescending { it.id },
-            ofertasAgotando = repositorioOfertas.ofertas.value
-                .filter { it.cantidadDisponible in 1..2 }
-                .sortedByDescending { it.id },
-            impacto = calcularImpacto(repositorioPedidos.pedidos.value)
-        )
+
+    private fun crearEstado(ofertas: List<Oferta>, pedidos: List<Pedido>) = InicioUiState(
+        impacto = calcularImpacto(pedidos),
+        ofertas = seleccionarOfertas(ofertas)
     )
 }

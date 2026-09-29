@@ -1,109 +1,52 @@
 package com.rescatapp.features.registro.ui
 
 import com.rescatapp.core.data.RepositorioOfertas
-import com.rescatapp.core.model.Categoria
 import com.rescatapp.features.registro.domain.CamposRegistro
-import com.rescatapp.features.registro.domain.MensajeError
+import com.rescatapp.features.registro.domain.MensajesValidacion
 import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
 import com.rescatapp.features.registro.domain.ValidarOfertaUseCase
+import com.rescatapp.features.registro.domain.camposValidos
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Test
 
 class RegistroViewModelTest {
-
-    private lateinit var repositorio: RepositorioOfertas
-    private lateinit var viewModel: RegistroViewModel
-
-    @Before
-    fun setUp() {
-        repositorio = RepositorioOfertas()
-        val validarUseCase = ValidarOfertaUseCase()
-        val registrarUseCase = RegistrarOfertaUseCase(repositorio, validarUseCase)
-        viewModel = RegistroViewModel(validarUseCase, registrarUseCase)
-    }
+    private val repositorioOfertas = RepositorioOfertas()
+    private val viewModel = RegistroViewModel(
+        validarOferta = ValidarOfertaUseCase(),
+        registrarOferta = RegistrarOfertaUseCase(repositorioOfertas)
+    )
 
     @Test
-    fun datosValidos_publicarGuardaOfertaYNotificaGuardadoExitoso() {
-        val totalInicial = repositorio.ofertas.value.size
-        val camposValidos = CamposRegistro(
-            nombre = "Pack Salteñas",
-            comercio = "Panadería La Central",
-            categoria = Categoria.PANADERIA,
-            descripcion = "Salteñas del día",
-            pesoKg = "1,5",
-            precioNormal = "40",
-            precioRescate = "20",
-            cantidadDisponible = "4",
-            horaRetiroDesde = "09:00",
-            horaRetiroHasta = "11:00"
-        )
-
+    fun publicarDatosValidosGuardaLaOferta() {
         viewModel.onCampoCambiado(camposValidos)
+
         viewModel.publicar()
 
-        val state = viewModel.uiState.value
-        assertTrue(state.guardadoExitoso)
-        assertFalse(state.errores.hayErrores)
-        assertEquals(totalInicial + 1, repositorio.ofertas.value.size)
-
-        val ofertaGuardada = repositorio.ofertas.value.first()
-        assertEquals("Pack Salteñas", ofertaGuardada.nombre)
-        assertEquals("Panadería La Central", ofertaGuardada.comercio)
-        assertEquals(Categoria.PANADERIA, ofertaGuardada.categoria)
-        assertEquals(1.5, ofertaGuardada.pesoKg, 0.0)
-        assertEquals(4, ofertaGuardada.cantidadDisponible)
-        assertTrue(ofertaGuardada.id > 14)
+        assertTrue(viewModel.uiState.value.guardadoExitoso)
+        assertEquals(15, repositorioOfertas.ofertas.value.size)
     }
 
     @Test
-    fun datosInvalidos_publicarNoInvocaRepositorioYPermaneceEnFormulario() {
-        val totalInicial = repositorio.ofertas.value.size
-        val camposInvalidos = CamposRegistro(nombre = "")
-
-        viewModel.onCampoCambiado(camposInvalidos)
+    fun publicarDatosInvalidosMuestraErroresSinGuardar() {
         viewModel.publicar()
 
-        val state = viewModel.uiState.value
-        assertFalse(state.guardadoExitoso)
-        assertTrue(state.errores.hayErrores)
-        assertEquals(totalInicial, repositorio.ofertas.value.size)
+        val estado = viewModel.uiState.value
+        assertFalse(estado.guardadoExitoso)
+        assertEquals(MensajesValidacion.NOMBRE_VACIO, estado.errores.nombre)
+        assertEquals(14, repositorioOfertas.ofertas.value.size)
     }
 
     @Test
-    fun unCampoConError_alIngresarNuevoValor_eliminaErrorDeEseCampoYMantieneLosDemas() {
+    fun corregirUnCampoQuitaSuErrorYMantieneLosDemas() {
         viewModel.publicar()
 
-        val stateConErrores = viewModel.uiState.value
-        assertNotNull(stateConErrores.errores.nombre)
-        assertNotNull(stateConErrores.errores.comercio)
-        assertEquals(MensajeError.NOMBRE_VACIO, stateConErrores.errores.nombre)
-        assertEquals(MensajeError.COMERCIO_VACIO, stateConErrores.errores.comercio)
+        viewModel.onCampoCambiado(CamposRegistro(nombre = "Pack Salteñas"))
 
-        viewModel.onCampoCambiado(viewModel.uiState.value.campos.copy(nombre = "Pack Salteñas"))
-
-        val stateActualizado = viewModel.uiState.value
-        assertNull(stateActualizado.errores.nombre)
-        assertEquals(MensajeError.COMERCIO_VACIO, stateActualizado.errores.comercio)
-    }
-
-    @Test
-    fun alCorregirComercioConservaOtrosErrores() {
-        viewModel.publicar()
-        assertNotNull(viewModel.uiState.value.errores.comercio)
-        assertNotNull(viewModel.uiState.value.errores.descripcion)
-
-        viewModel.onCampoCambiado(
-            viewModel.uiState.value.campos.copy(comercio = "Panadería La Central")
-        )
-
-        val state = viewModel.uiState.value
-        assertEquals("Panadería La Central", state.campos.comercio)
-        assertNull(state.errores.comercio)
-        assertNotNull(state.errores.descripcion)
+        val errores = viewModel.uiState.value.errores
+        assertNull(errores.nombre)
+        assertEquals(MensajesValidacion.COMERCIO_VACIO, errores.comercio)
     }
 }

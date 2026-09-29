@@ -14,8 +14,5 @@ data class Pedido(
     val estado: EstadoPedido
 ) {
     val estaActivo: Boolean
-        get() = when (estado) {
-            EstadoPedido.RESERVADO, EstadoPedido.PREPARANDO, EstadoPedido.LISTO -> true
-            EstadoPedido.RECOGIDO, EstadoPedido.CANCELADO -> false
-        }
+        get() = !estado.esFinal
 }

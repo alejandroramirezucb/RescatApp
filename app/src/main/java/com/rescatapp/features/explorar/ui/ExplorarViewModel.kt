@@ -5,63 +5,52 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.OrdenOfertas
-import com.rescatapp.features.explorar.domain.ExplorarUiState
+import com.rescatapp.core.navigation.ArgumentosRuta
+import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.explorar.domain.FiltrarOfertasUseCase
+import com.rescatapp.features.explorar.domain.FiltrosOfertas
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class ExplorarViewModel @Inject constructor(
-    repositorio: RepositorioOfertas,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    repositorioOfertas: RepositorioOfertas,
+    private val filtrarOfertas: FiltrarOfertasUseCase
 ) : ViewModel() {
-    private val filtro = FiltrarOfertasUseCase()
-    private val nombreCategoria: String? = savedStateHandle["categoria"]
-    private val categoriaInicial = Categoria.entries.find { it.name == nombreCategoria }
-    private val texto = MutableStateFlow("")
-    private val categoria = MutableStateFlow(categoriaInicial)
-    private val orden = MutableStateFlow(OrdenOfertas.RECOMENDADAS)
-
-    val uiState = combine(repositorio.ofertas, texto, categoria, orden) {
-            ofertas,
-            busqueda,
-            seleccion,
-            ordenActual
-        ->
-        ExplorarUiState(
-            texto = busqueda,
-            categoria = seleccion,
-            orden = ordenActual,
-            ofertas = filtro(ofertas, busqueda, seleccion, ordenActual)
-        )
-    }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        ExplorarUiState(
-            categoria = categoriaInicial,
-            ofertas = filtro(
-                repositorio.ofertas.value,
-                "",
-                categoriaInicial,
-                OrdenOfertas.RECOMENDADAS
-            )
-        )
+    private val filtros = MutableStateFlow(
+        FiltrosOfertas(categoria = savedStateHandle.categoriaSolicitada())
     )
 
-    fun buscar(valor: String) {
-        texto.value = valor
-    }
+    val uiState: StateFlow<ExplorarUiState> =
+        combine(repositorioOfertas.ofertas, filtros, ::crearEstado).stateIn(
+            scope = viewModelScope,
+            started = suscripcionPantalla,
+            initialValue = crearEstado(repositorioOfertas.ofertas.value, filtros.value)
+        )
 
-    fun seleccionarCategoria(valor: Categoria?) {
-        categoria.value = valor
-    }
+    fun buscar(texto: String) = filtros.update { it.copy(texto = texto) }
 
-    fun seleccionarOrden(valor: OrdenOfertas) {
-        orden.value = valor
+    fun seleccionarCategoria(categoria: Categoria?) =
+        filtros.update { it.copy(categoria = categoria) }
+
+    fun seleccionarOrden(orden: OrdenOfertas) = filtros.update { it.copy(orden = orden) }
+
+    private fun crearEstado(ofertas: List<Oferta>, filtrosActuales: FiltrosOfertas) =
+        ExplorarUiState(
+            filtros = filtrosActuales,
+            ofertas = filtrarOfertas(ofertas, filtrosActuales)
+        )
+
+    private fun SavedStateHandle.categoriaSolicitada(): Categoria? {
+        val nombreCategoria: String? = get(ArgumentosRuta.CATEGORIA)
+        return Categoria.entries.find { it.name == nombreCategoria }
     }
 }

@@ -6,11 +6,11 @@ import javax.inject.Inject
 
 class CalcularImpactoUseCase @Inject constructor() {
     operator fun invoke(pedidos: List<Pedido>): Impacto {
-        val validos = pedidos.filter { it.estado != EstadoPedido.CANCELADO }
+        val pedidosVigentes = pedidos.filter { it.estado != EstadoPedido.CANCELADO }
         return Impacto(
-            rescates = validos.count(),
-            ahorrado = validos.sumOf { it.ahorro },
-            aprovechado = validos.sumOf { it.pesoKg }
+            rescates = pedidosVigentes.count(),
+            ahorrado = pedidosVigentes.sumOf { it.ahorro },
+            kgAprovechados = pedidosVigentes.sumOf { it.pesoKg }
         )
     }
 }

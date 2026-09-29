@@ -3,9 +3,9 @@ package com.rescatapp.core.util
 import java.util.Locale
 
 fun Double.formatearDinero(): String = if (this % 1.0 == 0.0) {
-    "Bs.${String.format(Locale.US, "%.0f", this)}"
+    "Bs.${toInt()}"
 } else {
-    "Bs.${String.format(Locale.US, "%.2f", this)}"
+    String.format(Locale.US, "Bs.%.2f", this)
 }
 
 fun Double.formatearPeso(): String = String.format(Locale.US, "%.1fkg", this)

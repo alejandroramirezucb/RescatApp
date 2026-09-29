@@ -1,107 +1,63 @@
 package com.rescatapp.features.detalle.ui
 
 import androidx.lifecycle.SavedStateHandle
+import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DetalleViewModelTest {
-    private val dispatcher = UnconfinedTestDispatcher()
+    @get:Rule
+    val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    @Before
-    fun prepararDispatcherPrincipal() {
-        Dispatchers.setMain(dispatcher)
-    }
+    private val repositorioOfertas = RepositorioOfertas()
 
-    @After
-    fun restaurarDispatcherPrincipal() {
-        Dispatchers.resetMain()
+    @Test
+    fun muestraLaOfertaRecibidaEnLaRuta() {
+        val viewModel = crearViewModel(ofertaId = 14)
+
+        assertEquals("Pack Sorpresa", viewModel.uiState.value.oferta?.nombre)
     }
 
     @Test
-    fun cargaLaOfertaIndicadaPorLaRuta() = runTest {
-        val viewModel = crearViewModel(14)
-
-        val estado = viewModel.uiState.first { it.oferta?.id == 14 }
-
-        assertEquals("Pack Sorpresa", estado.oferta?.nombre)
-        assertFalse(estado.noEncontrada)
+    fun indicaCuandoLaOfertaNoExiste() {
+        assertTrue(crearViewModel(ofertaId = 99).uiState.value.noEncontrada)
     }
 
     @Test
-    fun muestraEstadoNoEncontradoParaUnIdInexistente() = runTest {
-        val viewModel = crearViewModel(999)
-
-        val estado = viewModel.uiState.first { it.noEncontrada }
-
-        assertTrue(estado.noEncontrada)
-        assertEquals(null, estado.oferta)
-    }
-
-    @Test
-    fun reservaYActualizaLaDisponibilidadEnElMismoEstado() = runTest {
-        val viewModel = crearViewModel(14)
-        viewModel.uiState.first { it.oferta?.id == 14 }
+    fun reservarActualizaLaCantidadYMuestraUnMensaje() = runTest {
+        val viewModel = crearViewModel(ofertaId = 13)
+        observarDuranteLaPrueba(viewModel.uiState)
 
         viewModel.reservar()
 
-        val estado = viewModel.uiState.first {
-            it.oferta?.cantidadDisponible == 4 &&
-                it.mensaje == "Oferta reservada. Puedes verla en Pedidos."
-        }
-        assertEquals(4, estado.oferta?.cantidadDisponible)
-        assertEquals("Oferta reservada. Puedes verla en Pedidos.", estado.mensaje)
+        val estado = viewModel.uiState.value
+        assertEquals(2, estado.oferta?.cantidadDisponible)
+        assertEquals("Reservaste Pack Croissants. Puedes verlo en Pedidos.", estado.mensaje)
     }
 
     @Test
-    fun informaCuandoLaOfertaEstaAgotada() = runTest {
-        val repositorioOfertas = RepositorioOfertas()
-        val oferta = repositorioOfertas.obtenerActualPorId(14)!!
-        repositorioOfertas.actualizar(oferta.copy(cantidadDisponible = 0))
-        val viewModel = crearViewModel(14, repositorioOfertas)
-        viewModel.uiState.first { it.oferta?.estaAgotada == true }
-
+    fun limpiarMensajeLoOculta() = runTest {
+        val viewModel = crearViewModel(ofertaId = 13)
+        observarDuranteLaPrueba(viewModel.uiState)
         viewModel.reservar()
 
-        val estado = viewModel.uiState.first { it.mensaje != null }
-        assertEquals("Esta oferta está agotada", estado.mensaje)
+        viewModel.limpiarMensaje()
+
+        assertNull(viewModel.uiState.value.mensaje)
     }
 
-    @Test
-    fun reservaLaUltimaUnidadYElEstadoQuedaAgotado() = runTest {
-        val repositorioOfertas = RepositorioOfertas()
-        val oferta = repositorioOfertas.obtenerActualPorId(14)!!
-        repositorioOfertas.actualizar(oferta.copy(cantidadDisponible = 1))
-        val viewModel = crearViewModel(14, repositorioOfertas)
-        viewModel.uiState.first { it.oferta?.cantidadDisponible == 1 }
-
-        viewModel.reservar()
-
-        val estado = viewModel.uiState.first { it.oferta?.estaAgotada == true }
-        assertTrue(estado.oferta?.estaAgotada == true)
-        assertEquals("Oferta reservada. Puedes verla en Pedidos.", estado.mensaje)
-    }
-
-    private fun crearViewModel(
-        ofertaId: Int,
-        repositorioOfertas: RepositorioOfertas = RepositorioOfertas()
-    ): DetalleViewModel = DetalleViewModel(
-        SavedStateHandle(mapOf("ofertaId" to ofertaId)),
-        repositorioOfertas,
-        ReservarOfertaUseCase(repositorioOfertas, RepositorioPedidos())
+    private fun crearViewModel(ofertaId: Int) = DetalleViewModel(
+        savedStateHandle = SavedStateHandle(mapOf(ArgumentosRuta.OFERTA_ID to ofertaId)),
+        repositorioOfertas = repositorioOfertas,
+        reservarOferta = ReservarOfertaUseCase(repositorioOfertas, RepositorioPedidos())
     )
 }

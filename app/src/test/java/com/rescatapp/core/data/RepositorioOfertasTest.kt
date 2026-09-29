@@ -1,28 +1,39 @@
 package com.rescatapp.core.data
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class RepositorioOfertasTest {
+    private val repositorio = RepositorioOfertas()
+
     @Test
-    fun emiteOfertasActualizadas() {
-        val repositorio = RepositorioOfertas()
-        val oferta = repositorio.obtenerActualPorId(13)!!
+    fun agregarAsignaElSiguienteIdYColocaLaOfertaPrimero() {
+        val ofertaNueva = repositorio.agregar(ofertasDeEjemplo.first().copy(id = 0))
 
-        repositorio.actualizar(oferta.copy(cantidadDisponible = 2))
-
-        assertEquals(2, repositorio.ofertas.value.find { it.id == 13 }?.cantidadDisponible)
+        assertEquals(15, ofertaNueva.id)
+        assertEquals(ofertaNueva, repositorio.ofertas.value.first())
     }
 
     @Test
-    fun emiteOfertasPublicadas() {
-        val repositorio = RepositorioOfertas()
-        val oferta = repositorio.obtenerActualPorId(14)!!
+    fun actualizarReemplazaSoloLaOfertaConElMismoId() {
+        val oferta = repositorio.buscarPorId(14)!!.copy(cantidadDisponible = 0)
 
-        val publicada = repositorio.agregar(oferta.copy(id = 0, nombre = "Nueva oferta"))
+        repositorio.actualizar(oferta)
 
-        assertEquals(15, publicada.id)
-        assertEquals(15, repositorio.ofertas.value.size)
-        assertEquals("Nueva oferta", repositorio.ofertas.value.first().nombre)
+        assertEquals(0, repositorio.buscarPorId(14)?.cantidadDisponible)
+        assertEquals(14, repositorio.ofertas.value.size)
+    }
+
+    @Test
+    fun obtenerPorIdEmiteNuloCuandoLaOfertaNoExiste() = runTest {
+        assertNull(repositorio.obtenerPorId(99).first())
+    }
+
+    @Test
+    fun generarSiguienteIdEmpiezaEnUnoConListaVacia() {
+        assertEquals(1, generarSiguienteId(emptyList()))
     }
 }

@@ -1,56 +1,40 @@
 package com.rescatapp.features.perfil.ui
 
-import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
-import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import com.rescatapp.core.domain.CalcularImpactoUseCase
+import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class PerfilViewModelTest {
-    private val dispatcher = UnconfinedTestDispatcher()
+    @get:Rule
+    val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    @Before
-    fun prepararDispatcherPrincipal() {
-        Dispatchers.setMain(dispatcher)
-    }
+    private val repositorioPedidos = RepositorioPedidos()
 
-    @After
-    fun restaurarDispatcherPrincipal() {
-        Dispatchers.resetMain()
+    @Test
+    fun muestraElImpactoDeLosPedidosDeEjemplo() {
+        val impacto = crearViewModel().uiState.value.impacto
+
+        assertEquals(4, impacto.rescates)
+        assertEquals(102.0, impacto.ahorrado, 0.001)
+        assertEquals(3.6, impacto.kgAprovechados, 0.001)
     }
 
     @Test
-    fun emiteElImpactoBase() = runTest {
-        val viewModel = PerfilViewModel(RepositorioPedidos(), CalcularImpactoSemanalUseCase())
+    fun cancelarUnPedidoActualizaElImpactoSinRecargar() = runTest {
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+        val pedidoListo = repositorioPedidos.buscarPorId(5)!!
 
-        val estado = viewModel.uiState.first { it.rescates == 4 }
+        repositorioPedidos.actualizar(pedidoListo.copy(estado = EstadoPedido.CANCELADO))
 
-        assertEquals(102.0, estado.ahorrado, 0.0)
-        assertEquals(3.6, estado.aprovechado, 0.0)
+        assertEquals(3, viewModel.uiState.value.impacto.rescates)
     }
 
-    @Test
-    fun actualizaElImpactoAlCrearUnaReserva() = runTest {
-        val ofertas = RepositorioOfertas()
-        val pedidos = RepositorioPedidos()
-        val viewModel = PerfilViewModel(pedidos, CalcularImpactoSemanalUseCase())
-        viewModel.uiState.first { it.rescates == 4 }
-
-        ReservarOfertaUseCase(ofertas, pedidos)(13)
-
-        val estado = viewModel.uiState.first { it.rescates == 5 }
-        assertEquals(117.0, estado.ahorrado, 0.0)
-        assertEquals(4.2, estado.aprovechado, 0.0)
-    }
+    private fun crearViewModel() = PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase())
 }

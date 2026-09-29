@@ -1,81 +1,52 @@
 package com.rescatapp.features.inicio.ui
 
+import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
-import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
+import com.rescatapp.core.domain.CalcularImpactoUseCase
+import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
+import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class InicioViewModelTest {
-    private val dispatcher = UnconfinedTestDispatcher()
+    @get:Rule
+    val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    @Before
-    fun prepararDispatcherPrincipal() {
-        Dispatchers.setMain(dispatcher)
-    }
+    private val repositorioOfertas = RepositorioOfertas()
+    private val repositorioPedidos = RepositorioPedidos()
 
-    @After
-    fun restaurarDispatcherPrincipal() {
-        Dispatchers.resetMain()
+    @Test
+    fun iniciaConElImpactoYLasSeccionesDelDiseno() {
+        val estado = crearViewModel().uiState.value
+
+        assertEquals(4, estado.impacto.rescates)
+        assertEquals(14, estado.ofertas.disponibles.size)
+        assertEquals(4, estado.ofertas.porAgotarse.size)
     }
 
     @Test
-    fun iniciaConCuatroOfertasAgotandose() = runTest {
+    fun unaReservaActualizaImpactoYSeccionesSinRecargar() = runTest {
         val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+        val packCroissants = repositorioOfertas.buscarPorId(13)!!
 
-        val estado = viewModel.uiState.first { it.ofertasAgotando.size == 4 }
+        repositorioOfertas.actualizar(packCroissants.copy(cantidadDisponible = 2))
+        repositorioPedidos.agregar(packCroissants.crearPedido(idPedido = 0))
 
-        assertEquals(4, estado.ofertasAgotando.size)
+        val estado = viewModel.uiState.value
+        assertEquals(5, estado.impacto.rescates)
+        assertEquals(117.0, estado.impacto.ahorrado, 0.001)
+        assertEquals(4.2, estado.impacto.kgAprovechados, 0.001)
+        assertEquals(5, estado.ofertas.porAgotarse.size)
     }
 
-    @Test
-    fun incorporaCroissantsCuandoSuDisponibilidadBajaADos() = runTest {
-        val ofertas = RepositorioOfertas()
-        val pedidos = RepositorioPedidos()
-        val viewModel = crearViewModel(ofertas, pedidos)
-        viewModel.uiState.first { it.ofertasAgotando.size == 4 }
-
-        ReservarOfertaUseCase(ofertas, pedidos)(13)
-
-        val estado = viewModel.uiState.first { it.ofertasAgotando.size == 5 }
-        assertTrue(estado.ofertasAgotando.any { it.id == 13 && it.cantidadDisponible == 2 })
-        assertEquals(5, estado.impacto.reservas)
-    }
-
-    @Test
-    fun excluyeUnaOfertaCuandoSeAgota() = runTest {
-        val ofertas = RepositorioOfertas()
-        val pedidos = RepositorioPedidos()
-        val croissants = ofertas.obtenerActualPorId(13)!!
-        ofertas.actualizar(croissants.copy(cantidadDisponible = 1))
-        val viewModel = crearViewModel(ofertas, pedidos)
-        viewModel.uiState.first { it.ofertasAgotando.any { oferta -> oferta.id == 13 } }
-
-        ReservarOfertaUseCase(ofertas, pedidos)(13)
-
-        val estado = viewModel.uiState.first { estado ->
-            estado.ofertasCerca.none { oferta -> oferta.id == 13 } &&
-                estado.ofertasAgotando.none { oferta -> oferta.id == 13 }
-        }
-        assertFalse(estado.ofertasCerca.any { it.id == 13 })
-        assertFalse(estado.ofertasAgotando.any { it.id == 13 })
-    }
-
-    private fun crearViewModel(
-        ofertas: RepositorioOfertas = RepositorioOfertas(),
-        pedidos: RepositorioPedidos = RepositorioPedidos()
-    ) = InicioViewModel(ofertas, pedidos, CalcularImpactoSemanalUseCase())
+    private fun crearViewModel() = InicioViewModel(
+        repositorioOfertas = repositorioOfertas,
+        repositorioPedidos = repositorioPedidos,
+        calcularImpacto = CalcularImpactoUseCase(),
+        seleccionarOfertas = SeleccionarOfertasInicioUseCase()
+    )
 }

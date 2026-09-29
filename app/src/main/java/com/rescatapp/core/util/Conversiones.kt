@@ -11,6 +11,8 @@ private val FORMATO_HORA =
 fun String.aDecimalOrNull(): Double? =
     trim().replace(',', '.').toDoubleOrNull()?.takeIf { it.isFinite() }
 
+fun String.aDecimalPositivoOrNull(): Double? = aDecimalOrNull()?.takeIf { it > 0 }
+
 fun String.aEnteroPositivoOrNull(): Int? = trim().toIntOrNull()?.takeIf { it > 0 }
 
 fun String.aHoraOrNull(): LocalTime? = try {

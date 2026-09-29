@@ -1,32 +1,27 @@
 package com.rescatapp.features.explorar.domain
 
-import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.OrdenOfertas
+import javax.inject.Inject
 
-class FiltrarOfertasUseCase {
-    operator fun invoke(
-        ofertas: List<Oferta>,
-        texto: String,
-        categoria: Categoria?,
-        orden: OrdenOfertas
-    ): List<Oferta> {
-        val busqueda = texto.trim()
-        val filtradas = ofertas.filter { oferta ->
-            (categoria == null || oferta.categoria == categoria) &&
-                (
-                    busqueda.isEmpty() ||
-                        oferta.nombre.contains(busqueda, ignoreCase = true) ||
-                        oferta.comercio.contains(busqueda, ignoreCase = true)
-                    )
+class FiltrarOfertasUseCase @Inject constructor() {
+    operator fun invoke(ofertas: List<Oferta>, filtros: FiltrosOfertas): List<Oferta> {
+        val ofertasFiltradas = ofertas.filter { oferta ->
+            oferta.perteneceA(filtros) && oferta.coincideCon(filtros.texto.trim())
         }
+        val masRecientesPrimero = ofertasFiltradas.sortedByDescending { it.id }
+        return when (filtros.orden) {
+            OrdenOfertas.RECOMENDADAS -> masRecientesPrimero
 
-        return when (orden) {
-            OrdenOfertas.RECOMENDADAS -> filtradas.sortedByDescending { it.id }
-
-            OrdenOfertas.MAYOR_DESCUENTO -> filtradas.sortedWith(
-                compareByDescending(Oferta::porcentajeDescuento).thenByDescending(Oferta::id)
-            )
+            OrdenOfertas.MAYOR_DESCUENTO ->
+                masRecientesPrimero.sortedByDescending { it.porcentajeDescuento }
         }
     }
+
+    private fun Oferta.perteneceA(filtros: FiltrosOfertas): Boolean =
+        filtros.categoria == null || categoria == filtros.categoria
+
+    private fun Oferta.coincideCon(busqueda: String): Boolean = busqueda.isEmpty() ||
+        nombre.contains(busqueda, ignoreCase = true) ||
+        comercio.contains(busqueda, ignoreCase = true)
 }

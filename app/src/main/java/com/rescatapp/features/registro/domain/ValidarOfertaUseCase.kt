@@ -1,45 +1,58 @@
 package com.rescatapp.features.registro.domain
 
-import com.rescatapp.core.util.aDecimalOrNull
+import com.rescatapp.core.util.aDecimalPositivoOrNull
 import com.rescatapp.core.util.aEnteroPositivoOrNull
 import com.rescatapp.core.util.aHoraOrNull
+import java.time.LocalTime
 import javax.inject.Inject
 
 class ValidarOfertaUseCase @Inject constructor() {
     operator fun invoke(campos: CamposRegistro): ErroresRegistro {
-        val peso = campos.pesoKg.aDecimalOrNull()?.takeIf { it > 0 }
-        val precioNormal = campos.precioNormal.aDecimalOrNull()?.takeIf { it > 0 }
-        val precioRescate = campos.precioRescate.aDecimalOrNull()?.takeIf { it > 0 }
-        val cantidad = campos.cantidadDisponible.aEnteroPositivoOrNull()
+        val precioNormal = campos.precioNormal.aDecimalPositivoOrNull()
         val horaDesde = campos.horaRetiroDesde.aHoraOrNull()
-        val horaHasta = campos.horaRetiroHasta.aHoraOrNull()
-
         return ErroresRegistro(
-            nombre = if (campos.nombre.isBlank()) MensajeError.NOMBRE_VACIO else null,
-            comercio = if (campos.comercio.isBlank()) MensajeError.COMERCIO_VACIO else null,
-            categoria = if (campos.categoria == null) MensajeError.CATEGORIA_VACIA else null,
-            descripcion = if (campos.descripcion.isBlank()) {
-                MensajeError.DESCRIPCION_VACIA
-            } else {
-                null
-            },
-            pesoKg = if (peso == null) MensajeError.PESO_VACIO else null,
-            precioNormal = if (precioNormal == null) MensajeError.PRECIO_NORMAL_VACIO else null,
-            precioRescate = when {
-                precioRescate == null -> MensajeError.PRECIO_RESCATE_VACIO
-
-                precioNormal != null && precioRescate >= precioNormal ->
-                    MensajeError.PRECIO_RESCATE_MENOR_NORMAL
-
-                else -> null
-            },
-            cantidadDisponible = if (cantidad == null) MensajeError.CANTIDAD_INVALIDA else null,
-            horaRetiroDesde = if (horaDesde == null) MensajeError.FORMATO_HORA_INVALIDO else null,
-            horaRetiroHasta = when {
-                horaHasta == null -> MensajeError.FORMATO_HORA_INVALIDO
-                horaDesde != null && !horaHasta.isAfter(horaDesde) -> MensajeError.HORA_FINAL_MAYOR
-                else -> null
-            }
+            nombre = MensajesValidacion.NOMBRE_VACIO
+                .takeIf { campos.nombre.isBlank() },
+            comercio = MensajesValidacion.COMERCIO_VACIO
+                .takeIf { campos.comercio.isBlank() },
+            categoria = MensajesValidacion.CATEGORIA_SIN_ELEGIR
+                .takeIf { campos.categoria == null },
+            descripcion = MensajesValidacion.DESCRIPCION_VACIA
+                .takeIf { campos.descripcion.isBlank() },
+            pesoKg = MensajesValidacion.PESO_INVALIDO
+                .takeIf { campos.pesoKg.aDecimalPositivoOrNull() == null },
+            precioNormal = MensajesValidacion.PRECIO_NORMAL_INVALIDO
+                .takeIf { precioNormal == null },
+            precioRescate = validarPrecioRescate(campos.precioRescate, precioNormal),
+            cantidadDisponible = MensajesValidacion.CANTIDAD_INVALIDA
+                .takeIf { campos.cantidadDisponible.aEnteroPositivoOrNull() == null },
+            horaRetiroDesde = MensajesValidacion.FORMATO_HORA_INVALIDO
+                .takeIf { horaDesde == null },
+            horaRetiroHasta = validarHoraHasta(campos.horaRetiroHasta, horaDesde)
         )
+    }
+
+    private fun validarPrecioRescate(texto: String, precioNormal: Double?): String? {
+        val precioRescate = texto.aDecimalPositivoOrNull()
+        return when {
+            precioRescate == null -> MensajesValidacion.PRECIO_RESCATE_INVALIDO
+
+            precioNormal != null && precioRescate >= precioNormal ->
+                MensajesValidacion.PRECIO_RESCATE_NO_MENOR
+
+            else -> null
+        }
+    }
+
+    private fun validarHoraHasta(texto: String, horaDesde: LocalTime?): String? {
+        val horaHasta = texto.aHoraOrNull()
+        return when {
+            horaHasta == null -> MensajesValidacion.FORMATO_HORA_INVALIDO
+
+            horaDesde != null && !horaHasta.isAfter(horaDesde) ->
+                MensajesValidacion.HORA_FINAL_NO_POSTERIOR
+
+            else -> null
+        }
     }
 }

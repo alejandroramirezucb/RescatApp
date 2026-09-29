@@ -13,14 +13,16 @@ data class ErroresRegistro(
     val horaRetiroHasta: String? = null
 ) {
     val hayErrores: Boolean
-        get() = nombre != null ||
-            comercio != null ||
-            categoria != null ||
-            descripcion != null ||
-            pesoKg != null ||
-            precioNormal != null ||
-            precioRescate != null ||
-            cantidadDisponible != null ||
-            horaRetiroDesde != null ||
-            horaRetiroHasta != null
+        get() = listOfNotNull(
+            nombre,
+            comercio,
+            categoria,
+            descripcion,
+            pesoKg,
+            precioNormal,
+            precioRescate,
+            cantidadDisponible,
+            horaRetiroDesde,
+            horaRetiroHasta
+        ).isNotEmpty()
 }
