@@ -5,6 +5,7 @@ import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.ResultadoOperacion
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -13,18 +14,20 @@ class ReservarOfertaUseCaseTest {
     fun reservaCroissantsCopiaDatosYActualizaDisponibilidad() {
         val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
+
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedido = (resultado as ResultadoOperacion.Exito).valor
-        assertEquals(EstadoPedido.RESERVADO, pedido.estado)
-        assertEquals("Pack Croissants", pedido.nombreOferta)
-        assertEquals(15.0, pedido.precioPagado, 0.0)
-        assertEquals(15.0, pedido.ahorro, 0.0)
-        assertEquals(0.6, pedido.pesoKg, 0.0)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
+        val pedido = resultado.valorExitoso
+        assertNotNull(pedido)
+        assertEquals(EstadoPedido.RESERVADO, pedido?.estado)
+        assertEquals("Pack Croissants", pedido?.nombreOferta)
+        assertEquals(15.0, pedido?.precioPagado ?: 0.0, 0.0)
+        assertEquals(15.0, pedido?.ahorro ?: 0.0, 0.0)
+        assertEquals(0.6, pedido?.pesoKg ?: 0.0, 0.0)
         assertEquals(2, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
         assertEquals(pedido, pedidos.pedidos.value.first())
-        assertTrue(pedido.estaActivo)
+        assertTrue(pedido?.estaActivo == true)
     }
 
     @Test
@@ -36,22 +39,18 @@ class ReservarOfertaUseCaseTest {
 
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-        assertTrue(resultado is ResultadoOperacion.Error)
-        assertEquals("Esta oferta está agotada", (resultado as ResultadoOperacion.Error).mensaje)
+        assertEquals(ResultadoOperacion.Error("Esta oferta está agotada"), resultado)
         assertEquals(0, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
-        assertTrue(pedidos.pedidos.value.isEmpty())
+        assertEquals(5, pedidos.pedidos.value.size)
     }
 
     @Test
     fun informaSiLaOfertaNoExiste() {
-        val ofertas = RepositorioOfertas()
         val pedidos = RepositorioPedidos()
+        val resultado = ReservarOfertaUseCase(RepositorioOfertas(), pedidos)(999)
 
-        val resultado = ReservarOfertaUseCase(ofertas, pedidos)(999)
-
-        assertTrue(resultado is ResultadoOperacion.Error)
-        assertEquals("Oferta no encontrada", (resultado as ResultadoOperacion.Error).mensaje)
-        assertTrue(pedidos.pedidos.value.isEmpty())
+        assertEquals(ResultadoOperacion.Error("Oferta no encontrada"), resultado)
+        assertEquals(5, pedidos.pedidos.value.size)
     }
 
     @Test
@@ -63,8 +62,8 @@ class ReservarOfertaUseCaseTest {
 
         val resultado = ReservarOfertaUseCase(ofertas, pedidos)(13)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
         assertEquals(0, ofertas.obtenerActualPorId(13)?.cantidadDisponible)
-        assertEquals(1, pedidos.pedidos.value.size)
+        assertEquals(6, pedidos.pedidos.value.size)
     }
 }

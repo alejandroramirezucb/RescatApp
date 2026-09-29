@@ -2,7 +2,6 @@ package com.rescatapp.features.registro.domain
 
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.ResultadoOperacion
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,11 +28,11 @@ class RegistrarOfertaUseCaseTest {
 
         val resultado = registrar(campos)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val oferta = (resultado as ResultadoOperacion.Exito).valor as Oferta
-        assertEquals(15, oferta.id)
-        assertEquals(1.5, oferta.pesoKg, 0.0)
-        assertEquals(4, oferta.cantidadDisponible)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
+        val oferta = resultado.valorExitoso
+        assertEquals(15, oferta?.id)
+        assertEquals(1.5, oferta?.pesoKg ?: 0.0, 0.0)
+        assertEquals(4, oferta?.cantidadDisponible)
         assertEquals(oferta, repositorio.ofertas.value.first())
     }
 

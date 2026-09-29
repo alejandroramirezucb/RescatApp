@@ -1,5 +1,6 @@
 package com.rescatapp.core.data
 
+import com.rescatapp.core.data.mock.pedidosDeEjemplo
 import com.rescatapp.core.model.Pedido
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.update
 
 @Singleton
 class RepositorioPedidos @Inject constructor() {
-    private val pedidosMutables = MutableStateFlow<List<Pedido>>(emptyList())
+    private val pedidosMutables = MutableStateFlow(pedidosDeEjemplo)
     val pedidos = pedidosMutables.asStateFlow()
 
     fun obtenerActualPorId(id: Int): Pedido? = pedidos.value.find { it.id == id }

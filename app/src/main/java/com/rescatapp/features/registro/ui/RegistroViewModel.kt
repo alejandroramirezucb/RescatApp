@@ -36,7 +36,7 @@ class RegistroViewModel @Inject constructor(
         val resultado = registrar(campos)
         estado.value = estado.value.copy(
             errores = errores,
-            guardadoExitoso = resultado is ResultadoOperacion.Exito,
+            guardadoExitoso = resultado.valorExitoso != null,
             mensaje = if (resultado is ResultadoOperacion.Error) resultado.mensaje else null
         )
     }

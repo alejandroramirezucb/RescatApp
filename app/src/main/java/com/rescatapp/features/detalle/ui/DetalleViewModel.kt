@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
-import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.detalle.domain.DetalleUiState
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
@@ -41,12 +40,12 @@ class DetalleViewModel @Inject constructor(
     )
 
     fun reservar() {
-        mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
-            is ResultadoOperacion.Exito -> {
-                "Reservaste ${resultado.valor.nombreOferta}. Puedes verlo en Pedidos."
-            }
-
-            is ResultadoOperacion.Error -> resultado.mensaje
+        val resultado = reservarOferta(ofertaId)
+        val pedido = resultado.valorExitoso
+        mensaje.value = if (pedido != null) {
+            "Reservaste ${pedido.nombreOferta}. Puedes verlo en Pedidos."
+        } else {
+            (resultado as ResultadoOperacion.Error).mensaje
         }
     }
 

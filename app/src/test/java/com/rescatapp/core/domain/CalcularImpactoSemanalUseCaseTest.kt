@@ -2,6 +2,7 @@ package com.rescatapp.core.domain
 
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.mock.pedidosDeEjemplo
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
@@ -13,12 +14,21 @@ class CalcularImpactoSemanalUseCaseTest {
     private val calcular = CalcularImpactoSemanalUseCase()
 
     @Test
-    fun parteDelImpactoDemoSinPedidos() {
-        val impacto = calcular(emptyList())
+    fun calculaElImpactoDeLosPedidosDeEjemplo() {
+        val impacto = calcular(pedidosDeEjemplo)
 
         assertEquals(4, impacto.reservas)
         assertEquals(102.0, impacto.ahorro, 0.0)
         assertEquals(3.6, impacto.pesoKg, 0.0)
+    }
+
+    @Test
+    fun noSumaPedidosCuandoLaListaEstaVacia() {
+        val impacto = calcular(emptyList())
+
+        assertEquals(0, impacto.reservas)
+        assertEquals(0.0, impacto.ahorro, 0.0)
+        assertEquals(0.0, impacto.pesoKg, 0.0)
     }
 
     @Test
@@ -36,7 +46,7 @@ class CalcularImpactoSemanalUseCaseTest {
 
     @Test
     fun excluyeLosPedidosCancelados() {
-        val impacto = calcular(listOf(pedido(EstadoPedido.CANCELADO)))
+        val impacto = calcular(pedidosDeEjemplo + pedido(EstadoPedido.CANCELADO))
 
         assertEquals(4, impacto.reservas)
         assertEquals(102.0, impacto.ahorro, 0.0)
