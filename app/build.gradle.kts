@@ -10,6 +10,13 @@ spotless {
     kotlin {
         target("src/**/*.kt")
         ktlint(libs.versions.ktlint.get())
+            .setEditorConfigPath(rootProject.file(".editorconfig").absolutePath)
+            .editorConfigOverride(
+                mapOf(
+                    "ktlint_code_style" to "android_studio",
+                    "ktlint_function_naming_ignore_when_annotated_with" to "Composable"
+                )
+            )
     }
     kotlinGradle {
         target("*.gradle.kts")
@@ -49,14 +56,6 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.compiler)
-    
-    // Room
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
-    
-    // Coil
-    implementation(libs.coil.compose)
-    
+
     testImplementation(libs.junit)
 }

@@ -11,11 +11,6 @@ data class CamposRegistro(
     val precioNormal: String = "",
     val precioRescate: String = "",
     val cantidadDisponible: String = "",
-    val horaDesde: String = "",
-    val horaHasta: String = ""
-) {
-    val peso: String get() = pesoKg
-    val cantidad: String get() = cantidadDisponible
-    val horaRetiroDesde: String get() = horaDesde
-    val horaRetiroHasta: String get() = horaHasta
-}
+    val horaRetiroDesde: String = "",
+    val horaRetiroHasta: String = ""
+)

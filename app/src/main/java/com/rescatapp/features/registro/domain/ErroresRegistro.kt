@@ -9,14 +9,9 @@ data class ErroresRegistro(
     val precioNormal: String? = null,
     val precioRescate: String? = null,
     val cantidadDisponible: String? = null,
-    val horaDesde: String? = null,
-    val horaHasta: String? = null
+    val horaRetiroDesde: String? = null,
+    val horaRetiroHasta: String? = null
 ) {
-    val peso: String? get() = pesoKg
-    val cantidad: String? get() = cantidadDisponible
-    val horaRetiroDesde: String? get() = horaDesde
-    val horaRetiroHasta: String? get() = horaHasta
-
     val hayErrores: Boolean
         get() = nombre != null ||
             comercio != null ||
@@ -26,6 +21,6 @@ data class ErroresRegistro(
             precioNormal != null ||
             precioRescate != null ||
             cantidadDisponible != null ||
-            horaDesde != null ||
-            horaHasta != null
+            horaRetiroDesde != null ||
+            horaRetiroHasta != null
 }

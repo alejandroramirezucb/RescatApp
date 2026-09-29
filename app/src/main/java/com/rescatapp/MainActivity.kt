@@ -3,21 +3,24 @@ package com.rescatapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.res.stringResource
+import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.designsystem.TemaRescat
+import com.rescatapp.navigation.RescatNavHost
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var ofertas: RepositorioOfertas
+
+    @Inject lateinit var pedidos: RepositorioPedidos
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
-                Surface {
-                    Text(stringResource(R.string.app_name))
-                }
+            TemaRescat {
+                RescatNavHost(ofertas, pedidos)
             }
         }
     }

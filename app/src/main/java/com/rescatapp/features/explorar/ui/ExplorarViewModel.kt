@@ -3,84 +3,65 @@ package com.rescatapp.features.explorar.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rescatapp.core.domain.repository.OfertasRepository
+import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.features.explorar.domain.ExplorarUiState
+import com.rescatapp.features.explorar.domain.FiltrarOfertasUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 @HiltViewModel
 class ExplorarViewModel @Inject constructor(
-    private val ofertasRepository: OfertasRepository,
+    repositorio: RepositorioOfertas,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val filtro = FiltrarOfertasUseCase()
+    private val nombreCategoria: String? = savedStateHandle["categoria"]
+    private val categoriaInicial = Categoria.entries.find { it.name == nombreCategoria }
+    private val texto = MutableStateFlow("")
+    private val categoria = MutableStateFlow(categoriaInicial)
+    private val orden = MutableStateFlow(OrdenOfertas.RECOMENDADAS)
 
-    // Si venimos de otra pantalla con una categoría preseleccionada
-    private val categoriaInicialString: String? = savedStateHandle.get<String>("categoria_id")
-    private val categoriaInicial: Categoria? = categoriaInicialString?.let {
-        runCatching { Categoria.valueOf(it) }.getOrNull()
-    }
-
-    private val _textoBusqueda = MutableStateFlow("")
-    private val _categoriaFiltro = MutableStateFlow(categoriaInicial)
-    private val _orden = MutableStateFlow(OrdenOfertas.RECOMENDADAS)
-
-    val uiState: StateFlow<ExplorarUiState> = combine(
-        ofertasRepository.getOfertas(),
-        _textoBusqueda,
-        _categoriaFiltro,
-        _orden
-    ) { ofertas, texto, categoria, orden ->
-        
-        var ofertasFiltradas = ofertas
-
-        // Filtro por categoría
-        if (categoria != null) {
-            ofertasFiltradas = ofertasFiltradas.filter { it.categoria == categoria }
-        }
-
-        // Filtro por texto de búsqueda (nombre o comercio)
-        if (texto.isNotBlank()) {
-            ofertasFiltradas = ofertasFiltradas.filter {
-                it.nombre.contains(texto, ignoreCase = true) || 
-                it.comercio.contains(texto, ignoreCase = true)
-            }
-        }
-
-        // Ordenamiento
-        ofertasFiltradas = when (orden) {
-            OrdenOfertas.MAYOR_DESCUENTO -> ofertasFiltradas.sortedByDescending { it.porcentajeDescuento }
-            OrdenOfertas.RECOMENDADAS -> ofertasFiltradas // Podría ser otro criterio, por ahora lo dejamos tal cual o por disponibilidad
-        }
-
+    val uiState = combine(repositorio.ofertas, texto, categoria, orden) {
+            ofertas,
+            busqueda,
+            seleccion,
+            ordenActual
+        ->
         ExplorarUiState(
-            textoBusqueda = texto,
-            categoriaFiltro = categoria,
-            orden = orden,
-            ofertas = ofertasFiltradas,
-            isLoading = false
+            texto = busqueda,
+            categoria = seleccion,
+            orden = ordenActual,
+            ofertas = filtro(ofertas, busqueda, seleccion, ordenActual)
         )
     }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ExplorarUiState(isLoading = true, categoriaFiltro = categoriaInicial)
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        ExplorarUiState(
+            categoria = categoriaInicial,
+            ofertas = filtro(
+                repositorio.ofertas.value,
+                "",
+                categoriaInicial,
+                OrdenOfertas.RECOMENDADAS
+            )
+        )
     )
 
-    fun onBuscarTexto(texto: String) {
-        _textoBusqueda.value = texto
+    fun buscar(valor: String) {
+        texto.value = valor
     }
 
-    fun onSeleccionarCategoria(categoria: Categoria?) {
-        _categoriaFiltro.value = categoria
+    fun seleccionarCategoria(valor: Categoria?) {
+        categoria.value = valor
     }
 
-    fun onSeleccionarOrden(orden: OrdenOfertas) {
-        _orden.value = orden
+    fun seleccionarOrden(valor: OrdenOfertas) {
+        orden.value = valor
     }
 }
