@@ -12,6 +12,12 @@ data class ErroresRegistro(
     val horaRetiroDesde: String? = null,
     val horaRetiroHasta: String? = null
 ) {
+    val horaDesde: String?
+        get() = horaRetiroDesde
+
+    val horaHasta: String?
+        get() = horaRetiroHasta
+
     val hayErrores: Boolean
         get() = nombre != null ||
             comercio != null ||

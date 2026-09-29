@@ -4,10 +4,14 @@ import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.aDecimalOrNull
 import com.rescatapp.core.util.aEnteroPositivoOrNull
+import javax.inject.Inject
 
-class RegistrarOfertaUseCase(private val repositorio: RepositorioOfertas) {
+class RegistrarOfertaUseCase @Inject constructor(
+    private val repositorio: RepositorioOfertas,
+    private val validarOferta: ValidarOfertaUseCase = ValidarOfertaUseCase()
+) {
     operator fun invoke(campos: CamposRegistro): Oferta? {
-        if (ValidarOfertaUseCase()(campos).hayErrores) return null
+        if (validarOferta(campos).hayErrores) return null
 
         val categoria = campos.categoria ?: return null
         val peso = campos.pesoKg.aDecimalOrNull() ?: return null

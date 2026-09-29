@@ -17,13 +17,11 @@ import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.explorar.ui.ExplorarViewModel
 import com.rescatapp.features.inicio.ui.InicioScreen
-import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
 import com.rescatapp.features.registro.ui.RegistroScreen
 
 @Composable
 fun RescatNavHost(ofertas: RepositorioOfertas, pedidos: RepositorioPedidos) {
     val navController = rememberNavController()
-    val publicar = remember(ofertas) { RegistrarOfertaUseCase(ofertas) }
 
     NavHost(navController = navController, startDestination = "explorar") {
         composable(
@@ -62,14 +60,7 @@ fun RescatNavHost(ofertas: RepositorioOfertas, pedidos: RepositorioPedidos) {
             DetalleScreen(onVolver = { navController.popBackStack() })
         }
         composable("registro") {
-            RegistroScreen(
-                onVolver = { navController.popBackStack() },
-                onPublicar = { campos ->
-                    val guardada = publicar(campos) != null
-                    if (guardada) navController.popBackStack()
-                    guardada
-                }
-            )
+            RegistroScreen(onVolver = { navController.popBackStack() })
         }
     }
 }
