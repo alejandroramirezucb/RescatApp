@@ -2,7 +2,6 @@ package com.rescatapp.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
@@ -17,6 +16,7 @@ import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.explorar.ui.ExplorarViewModel
 import com.rescatapp.features.inicio.ui.InicioScreen
+import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
 @Composable
@@ -44,7 +44,8 @@ fun RescatNavHost(ofertas: RepositorioOfertas, pedidos: RepositorioPedidos) {
                 onOrden = viewModel::seleccionarOrden,
                 onVerDetalle = { id -> navController.navigate("detalle/$id") },
                 onInicio = { navController.navigate("inicio") },
-                onPublicar = { navController.navigate("registro") }
+                onPublicar = { navController.navigate("registro") },
+                onPerfil = { navController.navigate("perfil") }
             )
         }
         composable("inicio") {
@@ -61,6 +62,9 @@ fun RescatNavHost(ofertas: RepositorioOfertas, pedidos: RepositorioPedidos) {
         }
         composable("registro") {
             RegistroScreen(onVolver = { navController.popBackStack() })
+        }
+        composable("perfil") {
+            PerfilScreen(onVolver = { navController.popBackStack() })
         }
     }
 }

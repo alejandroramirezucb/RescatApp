@@ -62,7 +62,8 @@ fun ExplorarScreen(
     onOrden: (OrdenOfertas) -> Unit,
     onVerDetalle: (Int) -> Unit,
     onInicio: () -> Unit,
-    onPublicar: () -> Unit
+    onPublicar: () -> Unit,
+    onPerfil: () -> Unit = {}
 ) {
     var mostrarFiltros by remember { mutableStateOf(false) }
 
@@ -75,8 +76,18 @@ fun ExplorarScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = onInicio) { Text("Inicio") }
-                TextButton(onClick = onPublicar) { Text("Publicar") }
+                TextButton(
+                    onClick = onInicio,
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) { Text("Inicio") }
+                TextButton(
+                    onClick = onPublicar,
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) { Text("Publicar") }
+                TextButton(
+                    onClick = onPerfil,
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) { Text("Perfil") }
             }
             OutlinedTextField(
                 value = estado.texto,

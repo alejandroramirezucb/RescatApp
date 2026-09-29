@@ -3,7 +3,7 @@ package com.rescatapp.features.detalle.ui
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.data.repository.RepositorioOfertas
 import com.rescatapp.features.detalle.domain.DetalleUiState
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

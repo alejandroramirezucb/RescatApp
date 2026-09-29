@@ -9,5 +9,5 @@ import kotlinx.coroutines.flow.StateFlow
 class RepositorioOfertas @Inject constructor() : OfertaRepositoryEnMemoria() {
     val ofertas: StateFlow<List<Oferta>> get() = elementos
 
-    fun obtenerPorId(id: Int): Oferta? = elementos.value.find { it.id == id }
+    fun obtenerActualPorId(id: Int): Oferta? = elementos.value.find { it.id == id }
 }
