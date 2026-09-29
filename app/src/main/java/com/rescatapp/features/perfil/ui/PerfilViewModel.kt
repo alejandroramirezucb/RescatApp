@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.domain.CalcularImpactoSemanalUseCase
-import com.rescatapp.features.perfil.domain.PerfilUiState
 import com.rescatapp.core.model.ImpactoSemanal
+import com.rescatapp.features.perfil.domain.PerfilUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted

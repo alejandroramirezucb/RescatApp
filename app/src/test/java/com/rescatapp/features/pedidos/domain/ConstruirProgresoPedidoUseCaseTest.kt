@@ -36,7 +36,7 @@ class ConstruirProgresoPedidoUseCaseTest {
     }
 
     @Test
-    fun `cuando estado es PREPARANDO los dos primeros pasos estan completados y el segundo es actual`() {
+    fun `preparando completa los dos primeros pasos y marca el segundo como actual`() {
         val pasos = useCase(EstadoPedido.PREPARANDO)
 
         assertEquals(4, pasos.size)

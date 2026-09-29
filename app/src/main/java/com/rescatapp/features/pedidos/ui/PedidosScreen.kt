@@ -127,7 +127,13 @@ fun PedidosContent(
 
             Spacer(Modifier.height(14.dp))
 
-            val lista = if (estado.pestana == PestanaPedidos.ACTIVOS) estado.activos else estado.historial
+            val lista = if (estado.pestana ==
+                PestanaPedidos.ACTIVOS
+            ) {
+                estado.activos
+            } else {
+                estado.historial
+            }
 
             if (lista.isEmpty()) {
                 Box(
@@ -184,10 +190,13 @@ private fun TabsPedidos(
                     .weight(1f)
                     .height(38.dp)
                     .then(
-                        if (activo) Modifier
-                            .shadow(2.dp, RoundedCornerShape(10.dp))
-                            .background(Color.White, RoundedCornerShape(10.dp))
-                        else Modifier
+                        if (activo) {
+                            Modifier
+                                .shadow(2.dp, RoundedCornerShape(10.dp))
+                                .background(Color.White, RoundedCornerShape(10.dp))
+                        } else {
+                            Modifier
+                        }
                     )
                     .clip(RoundedCornerShape(10.dp))
                     .clickable { onSeleccion(pestana) },
@@ -206,10 +215,7 @@ private fun TabsPedidos(
 
 // ---------- Tarjeta de pedido ----------
 @Composable
-private fun TarjetaPedido(
-    pedido: Pedido,
-    onAvanzarPedido: (Int) -> Unit
-) {
+private fun TarjetaPedido(pedido: Pedido, onAvanzarPedido: (Int) -> Unit) {
     val construirProgresoUseCase = remember { ConstruirProgresoPedidoUseCase() }
     val pasos = construirProgresoUseCase(pedido)
 
@@ -329,10 +335,7 @@ private fun TarjetaPedido(
 
 // ---------- Stepper de estados ----------
 @Composable
-private fun StepperPedido(
-    pasos: List<PasoProgreso>,
-    modifier: Modifier = Modifier
-) {
+private fun StepperPedido(pasos: List<PasoProgreso>, modifier: Modifier = Modifier) {
     val diametro = 22.dp
     val grosorLinea = 2.dp
 
@@ -398,6 +401,7 @@ private fun CirculoPaso(paso: PasoProgreso, diametro: Dp) {
                         .background(Color.White)
                 )
             }
+
             paso.completado -> {
                 Text(
                     text = "✓",

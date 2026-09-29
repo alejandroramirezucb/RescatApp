@@ -39,20 +39,21 @@ class PedidosViewModelTest {
     }
 
     @Test
-    fun `estado inicial tiene la pestana ACTIVOS y listas ordenadas por ID descendente`() = runTest {
-        val estado = viewModel.uiState.first()
+    fun `estado inicial tiene la pestana ACTIVOS y listas ordenadas por ID descendente`() =
+        runTest {
+            val estado = viewModel.uiState.first()
 
-        assertEquals(PestanaPedidos.ACTIVOS, estado.pestana)
-        assertTrue(estado.activos.isNotEmpty())
-        assertTrue(estado.historial.isNotEmpty())
+            assertEquals(PestanaPedidos.ACTIVOS, estado.pestana)
+            assertTrue(estado.activos.isNotEmpty())
+            assertTrue(estado.historial.isNotEmpty())
 
-        // Verificar orden descendente por ID
-        val idsActivos = estado.activos.map { it.id }
-        assertEquals(idsActivos.sortedDescending(), idsActivos)
+            // Verificar orden descendente por ID
+            val idsActivos = estado.activos.map { it.id }
+            assertEquals(idsActivos.sortedDescending(), idsActivos)
 
-        val idsHistorial = estado.historial.map { it.id }
-        assertEquals(idsHistorial.sortedDescending(), idsHistorial)
-    }
+            val idsHistorial = estado.historial.map { it.id }
+            assertEquals(idsHistorial.sortedDescending(), idsHistorial)
+        }
 
     @Test
     fun `cambiarPestana actualiza la pestana seleccionada`() = runTest {
@@ -70,7 +71,10 @@ class PedidosViewModelTest {
         viewModel.avanzarPedido(primerPedido.id)
 
         val estadoNuevo = viewModel.uiState.first()
-        val pedidoActualizado = (estadoNuevo.activos + estadoNuevo.historial).find { it.id == primerPedido.id }
+        val pedidoActualizado = (estadoNuevo.activos + estadoNuevo.historial).find {
+            it.id ==
+                primerPedido.id
+        }
 
         assertEquals(estadoInicial.siguiente(), pedidoActualizado?.estado)
     }

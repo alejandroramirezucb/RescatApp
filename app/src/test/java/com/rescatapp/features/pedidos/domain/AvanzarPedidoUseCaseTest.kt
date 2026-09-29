@@ -27,9 +27,9 @@ class AvanzarPedidoUseCaseTest {
 
         val resultado = useCase(pedido)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedidoActualizado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
-        assertEquals(EstadoPedido.PREPARANDO, pedidoActualizado.estado)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
+        val pedidoActualizado = resultado.valorExitoso
+        assertEquals(EstadoPedido.PREPARANDO, pedidoActualizado?.estado)
     }
 
     @Test
@@ -38,9 +38,9 @@ class AvanzarPedidoUseCaseTest {
 
         val resultado = useCase(pedido)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedidoActualizado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
-        assertEquals(EstadoPedido.LISTO, pedidoActualizado.estado)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
+        val pedidoActualizado = resultado.valorExitoso
+        assertEquals(EstadoPedido.LISTO, pedidoActualizado?.estado)
     }
 
     @Test
@@ -49,9 +49,9 @@ class AvanzarPedidoUseCaseTest {
 
         val resultado = useCase(pedido)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val pedidoActualizado = (resultado as ResultadoOperacion.Exito<Pedido>).valor
-        assertEquals(EstadoPedido.RECOGIDO, pedidoActualizado.estado)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
+        val pedidoActualizado = resultado.valorExitoso
+        assertEquals(EstadoPedido.RECOGIDO, pedidoActualizado?.estado)
     }
 
     @Test
@@ -79,7 +79,7 @@ class AvanzarPedidoUseCaseTest {
 
         val resultado = useCase(pedidoAgregado.id)
 
-        assertTrue(resultado is ResultadoOperacion.Exito)
+        assertTrue(resultado is ResultadoOperacion.Exito<*>)
         val pedidoEnRepo = repositorio.obtenerActualPorId(pedidoAgregado.id)
         assertEquals(EstadoPedido.PREPARANDO, pedidoEnRepo?.estado)
     }

@@ -10,7 +10,9 @@ class AvanzarPedidoUseCase @Inject constructor(
 ) {
     operator fun invoke(pedido: Pedido): ResultadoOperacion<Pedido> {
         val siguienteEstado = pedido.estado.siguiente()
-            ?: return ResultadoOperacion.Error("No se puede avanzar un pedido en estado ${pedido.estado.etiqueta}")
+            ?: return ResultadoOperacion.Error(
+                "No se puede avanzar un pedido en estado ${pedido.estado.etiqueta}"
+            )
 
         val pedidoActualizado = pedido.copy(estado = siguienteEstado)
         repositorioPedidos.actualizar(pedidoActualizado)
