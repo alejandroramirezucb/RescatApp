@@ -70,11 +70,7 @@ private fun ListaPedidos(
     onAvanzar: (Int) -> Unit,
     onCancelar: (Int) -> Unit
 ) {
-    val hayPedidos = when (estado.pestana) {
-        PestanaPedidos.ACTIVOS -> estado.activos.isNotEmpty()
-        PestanaPedidos.HISTORIAL -> estado.historial.isNotEmpty()
-    }
-    if (!hayPedidos) {
+    if (estado.pestanaSinPedidos) {
         EstadoVacio(estado.pestana.mensajeSinPedidos)
         return
     }

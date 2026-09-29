@@ -15,4 +15,10 @@ data class PedidosUiState(
     val activos: List<PedidoConProgreso> = emptyList(),
     val historial: List<Pedido> = emptyList(),
     val mensaje: String? = null
-)
+) {
+    val pestanaSinPedidos: Boolean
+        get() = when (pestana) {
+            PestanaPedidos.ACTIVOS -> activos.isEmpty()
+            PestanaPedidos.HISTORIAL -> historial.isEmpty()
+        }
+}

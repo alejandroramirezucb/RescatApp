@@ -19,6 +19,11 @@ class InicioViewModelTest {
     private val repositorioPedidos = RepositorioPedidos()
 
     @Test
+    fun estadoInicialTieneUsuarioInvitado() {
+        assertEquals("Invitado", crearViewModel().uiState.value.usuario)
+    }
+
+    @Test
     fun iniciaConElImpactoYLasSeccionesDelDiseno() {
         val estado = crearViewModel().uiState.value
 
@@ -33,7 +38,7 @@ class InicioViewModelTest {
         observarDuranteLaPrueba(viewModel.uiState)
         val packCroissants = repositorioOfertas.buscarPorId(13)!!
 
-        repositorioOfertas.actualizar(packCroissants.copy(cantidadDisponible = 2))
+        repositorioOfertas.cambiarUnidadesDisponibles(packCroissants.id, diferencia = -1)
         repositorioPedidos.agregar(packCroissants.crearPedido(idPedido = 0))
 
         val estado = viewModel.uiState.value

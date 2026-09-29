@@ -31,4 +31,9 @@ class RepositorioOfertas(ofertasIniciales: List<Oferta>) {
     fun actualizar(oferta: Oferta) {
         ofertasEditables.update { lista -> lista.map { if (it.id == oferta.id) oferta else it } }
     }
+
+    fun cambiarUnidadesDisponibles(ofertaId: Int, diferencia: Int) {
+        val oferta = buscarPorId(ofertaId) ?: return
+        actualizar(oferta.copy(cantidadDisponible = oferta.cantidadDisponible + diferencia))
+    }
 }

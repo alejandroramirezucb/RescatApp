@@ -18,7 +18,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.AccesoBusqueda
 import com.rescatapp.core.designsystem.theme.Crema
 import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.UsuarioDemo
 
 @Composable
 fun InicioScreen(
@@ -32,7 +31,7 @@ fun InicioScreen(
         contentPadding = PaddingValues(vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        item { EncabezadoInicio(onBuscar = { onExplorar(null) }) }
+        item { EncabezadoInicio(estado.usuario, onBuscar = { onExplorar(null) }) }
         item { BloqueImpacto(estado.impacto) }
         item { CategoriasInicio(onExplorar) }
         item {
@@ -58,7 +57,7 @@ fun InicioScreen(
 }
 
 @Composable
-private fun EncabezadoInicio(onBuscar: () -> Unit) {
+private fun EncabezadoInicio(usuario: String, onBuscar: () -> Unit) {
     Column(
         modifier = Modifier.padding(horizontal = margenLateral),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -69,7 +68,7 @@ private fun EncabezadoInicio(onBuscar: () -> Unit) {
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "Hola, ${UsuarioDemo.NOMBRE}",
+            text = "Hola, $usuario",
             style = MaterialTheme.typography.headlineSmall
         )
         Text(

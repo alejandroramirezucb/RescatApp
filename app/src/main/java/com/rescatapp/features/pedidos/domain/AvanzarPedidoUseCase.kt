@@ -7,7 +7,7 @@ import javax.inject.Inject
 class AvanzarPedidoUseCase @Inject constructor(private val repositorioPedidos: RepositorioPedidos) {
     operator fun invoke(pedidoId: Int): ResultadoOperacion {
         val pedido = repositorioPedidos.buscarPorId(pedidoId)
-            ?: return ResultadoOperacion.Error("Pedido no encontrado")
+            ?: return ResultadoOperacion.Error(MensajesPedidos.PEDIDO_NO_ENCONTRADO)
         val siguienteEstado = pedido.estado.siguiente()
             ?: return ResultadoOperacion.Error("El pedido ya está ${pedido.estado.etiqueta}")
 

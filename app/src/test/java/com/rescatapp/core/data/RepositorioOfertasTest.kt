@@ -28,6 +28,14 @@ class RepositorioOfertasTest {
     }
 
     @Test
+    fun cambiarUnidadesDisponiblesSumaORestaSobreLaCantidadActual() {
+        repositorio.cambiarUnidadesDisponibles(ofertaId = 13, diferencia = -1)
+        repositorio.cambiarUnidadesDisponibles(ofertaId = 99, diferencia = -1)
+
+        assertEquals(2, repositorio.buscarPorId(13)?.cantidadDisponible)
+    }
+
+    @Test
     fun obtenerPorIdEmiteNuloCuandoLaOfertaNoExiste() = runTest {
         assertNull(repositorio.obtenerPorId(99).first())
     }

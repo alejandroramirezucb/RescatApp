@@ -12,18 +12,14 @@ class CancelarPedidoUseCase @Inject constructor(
 ) {
     operator fun invoke(pedidoId: Int): ResultadoOperacion {
         val pedido = repositorioPedidos.buscarPorId(pedidoId)
-            ?: return ResultadoOperacion.Error("Pedido no encontrado")
+            ?: return ResultadoOperacion.Error(MensajesPedidos.PEDIDO_NO_ENCONTRADO)
         if (pedido.estado != EstadoPedido.RESERVADO) {
-            return ResultadoOperacion.Error("Solo puedes cancelar un pedido reservado")
+            return ResultadoOperacion.Error(MensajesPedidos.SOLO_SE_CANCELA_RESERVADO)
         }
 
         val pedidoCancelado = pedido.copy(estado = EstadoPedido.CANCELADO)
         repositorioPedidos.actualizar(pedidoCancelado)
-        repositorioOfertas.buscarPorId(pedido.ofertaId)?.let { oferta ->
-            repositorioOfertas.actualizar(
-                oferta.copy(cantidadDisponible = oferta.cantidadDisponible + 1)
-            )
-        }
+        repositorioOfertas.cambiarUnidadesDisponibles(pedido.ofertaId, diferencia = 1)
         return ResultadoOperacion.Exito(pedidoCancelado)
     }
 }

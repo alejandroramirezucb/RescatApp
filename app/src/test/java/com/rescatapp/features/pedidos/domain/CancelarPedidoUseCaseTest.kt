@@ -15,7 +15,7 @@ class CancelarPedidoUseCaseTest {
     @Test
     fun cancelarUnPedidoReservadoDevuelveLaUnidadALaOferta() {
         val packCroissants = repositorioOfertas.buscarPorId(13)!!
-        repositorioOfertas.actualizar(packCroissants.copy(cantidadDisponible = 2))
+        repositorioOfertas.cambiarUnidadesDisponibles(packCroissants.id, diferencia = -1)
         val pedido = repositorioPedidos.agregar(packCroissants.crearPedido(idPedido = 0))
 
         cancelarPedido(pedido.id)
