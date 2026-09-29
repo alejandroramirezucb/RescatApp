@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,19 +38,13 @@ import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.formatearPeso
 
 @Composable
-fun PerfilScreen(
-    onVolver: () -> Unit = {},
-    viewModel: PerfilViewModel = hiltViewModel()
-) {
+fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    PerfilContent(estado = estado, onVolver = onVolver)
+    PerfilContent(estado = estado)
 }
 
 @Composable
-fun PerfilContent(
-    estado: PerfilUiState,
-    onVolver: () -> Unit = {}
-) {
+fun PerfilContent(estado: PerfilUiState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,8 +54,7 @@ fun PerfilContent(
         HeaderPerfil(
             nombre = estado.nombre,
             correo = estado.correo,
-            inicial = estado.inicial,
-            onVolver = onVolver
+            inicial = estado.inicial
         )
         EstadisticasRow(
             rescates = estado.rescates,
@@ -73,20 +64,13 @@ fun PerfilContent(
     }
 }
 
-// ---------- Header naranja ----------
 @Composable
-private fun HeaderPerfil(
-    nombre: String,
-    correo: String,
-    inicial: String,
-    onVolver: () -> Unit
-) {
+private fun HeaderPerfil(nombre: String, correo: String, inicial: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(NaranjaRescat)
     ) {
-        // Círculo decorativo arriba a la derecha
         Box(
             modifier = Modifier
                 .size(130.dp)
@@ -97,18 +81,6 @@ private fun HeaderPerfil(
         )
 
         Column(modifier = Modifier.padding(16.dp)) {
-            TextButton(
-                onClick = onVolver,
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                Text(
-                    text = "← Volver",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp
-                )
-            }
-            Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -145,13 +117,8 @@ private fun HeaderPerfil(
     }
 }
 
-// ---------- Estadísticas ----------
 @Composable
-private fun EstadisticasRow(
-    rescates: Int,
-    ahorrado: Double,
-    aprovechado: Double
-) {
+private fun EstadisticasRow(rescates: Int, ahorrado: Double, aprovechado: Double) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
