@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Borde
 import com.rescatapp.core.designsystem.theme.Naranja
@@ -83,4 +84,17 @@ private fun CirculoPaso(paso: PasoProgreso) {
             )
         }
     }
+}
+
+@Preview(name = "Barra de Progreso - Preparando", showBackground = true)
+@Composable
+private fun BarraProgresoPedidoPreview() {
+    BarraProgresoPedido(
+        pasos = listOf(
+            PasoProgreso("Reservado", completado = true, actual = false),
+            PasoProgreso("Preparando", completado = true, actual = true),
+            PasoProgreso("Listo", completado = false, actual = false),
+            PasoProgreso("Recogido", completado = false, actual = false)
+        )
+    )
 }

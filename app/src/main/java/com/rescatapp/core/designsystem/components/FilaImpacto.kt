@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import com.rescatapp.core.designsystem.theme.Verde
 import com.rescatapp.core.domain.Impacto
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.formatearPeso
@@ -28,6 +30,12 @@ fun FilaImpacto(impacto: Impacto, colorValores: Color, modifier: Modifier = Modi
     }
 }
 
+/** Alias para compatibilidad con criterios de diseño */
+@Composable
+fun FilaEstadisticas(impacto: Impacto, colorValores: Color, modifier: Modifier = Modifier) {
+    FilaImpacto(impacto = impacto, colorValores = colorValores, modifier = modifier)
+}
+
 @Composable
 private fun RowScope.IndicadorImpacto(valor: String, etiqueta: String, colorValor: Color) {
     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -38,4 +46,13 @@ private fun RowScope.IndicadorImpacto(valor: String, etiqueta: String, colorValo
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
+}
+
+@Preview(name = "Fila Estadísticas / Impacto", showBackground = true)
+@Composable
+private fun FilaEstadisticasPreview() {
+    FilaEstadisticas(
+        impacto = Impacto(rescates = 4, ahorrado = 102.0, kgAprovechados = 3.6),
+        colorValores = Verde
+    )
 }

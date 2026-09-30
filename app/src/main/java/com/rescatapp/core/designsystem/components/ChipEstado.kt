@@ -7,6 +7,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.designsystem.theme.NaranjaSuave
@@ -31,4 +32,16 @@ fun ChipEstado(estado: EstadoPedido) {
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
         )
     }
+}
+
+@Preview(name = "Chip Recogido (Completado)")
+@Composable
+private fun ChipEstadoRecogidoPreview() {
+    ChipEstado(estado = EstadoPedido.RECOGIDO)
+}
+
+@Preview(name = "Chip Cancelado")
+@Composable
+private fun ChipEstadoCanceladoPreview() {
+    ChipEstado(estado = EstadoPedido.CANCELADO)
 }
