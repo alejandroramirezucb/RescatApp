@@ -116,14 +116,14 @@ private fun ListaPedidos(
                 TarjetaPedido(activo.pedido) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
+                    BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
+
                     if (rol == com.rescatapp.core.model.RolUsuario.NEGOCIO) {
                         AccionesPedidoNegocio(
                             pedido = activo.pedido,
                             onAvanzar = { onAvanzar(activo.pedido.id) },
                             onCancelar = { onCancelar(activo.pedido.id) }
                         )
-                    } else {
-                        BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
                     }
                 }
             }
@@ -152,7 +152,7 @@ private fun AccionesPedidoNegocio(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (pedido.estado == EstadoPedido.RESERVADO) {
