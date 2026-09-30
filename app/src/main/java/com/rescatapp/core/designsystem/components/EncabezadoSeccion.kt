@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EncabezadoSeccion(
     titulo: String,
-    subtitulo: String,
     modifier: Modifier = Modifier,
+    subtitulo: String? = null,
     textoAccion: String? = null,
     onAccion: () -> Unit = {}
 ) {
@@ -33,19 +33,16 @@ fun EncabezadoSeccion(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            if (subtitulo.isNotEmpty()) {
+            subtitulo?.let {
                 Text(
-                    text = subtitulo,
+                    text = it,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
         textoAccion?.let {
-            TextButton(
-                onClick = onAccion,
-                contentPadding = PaddingValues(0.dp)
-            ) {
+            TextButton(onClick = onAccion, contentPadding = PaddingValues(0.dp)) {
                 Text(
                     text = it,
                     fontWeight = FontWeight.Bold,

@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.BarraProgresoPedido
-import com.rescatapp.core.designsystem.components.ChipSeleccionable
 import com.rescatapp.core.designsystem.components.EfectoMensajeTemporal
 import com.rescatapp.core.designsystem.components.EstadoVacio
 import com.rescatapp.core.designsystem.components.TarjetaPedido
 import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.core.model.Pedido
 
 @Composable
 fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
@@ -43,48 +43,9 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
             Text(
                 text = "Mis pedidos",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
                 modifier = Modifier.padding(vertical = 20.dp)
             )
-            androidx.compose.material3.Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    PestanaPedidos.entries.forEach { pestana ->
-                        val seleccionado = estado.pestana == pestana
-                        val backgroundColor = if (seleccionado) {
-                            MaterialTheme.colorScheme.surface
-                        } else {
-                            androidx.compose.ui.graphics.Color.Transparent
-                        }
-                        val textColor = if (seleccionado) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                        androidx.compose.material3.Surface(
-                            color = backgroundColor,
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-                            modifier = Modifier.weight(1f),
-                            onClick = { viewModel.seleccionarPestana(pestana) }
-                        ) {
-                            Text(
-                                text = pestana.titulo,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                                color = textColor,
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
+            SelectorPestanasPedidos(estado.pestana, viewModel::seleccionarPestana)
             ListaPedidos(
                 estado = estado,
                 onAvanzar = viewModel::avanzar,
@@ -101,8 +62,6 @@ private fun ListaPedidos(
     onAvanzar: (Int) -> Unit,
     onCancelar: (Int) -> Unit
 ) {
-    val rol by com.rescatapp.core.model.UsuarioDemo.rol.collectAsStateWithLifecycle()
-
     if (estado.pestanaSinPedidos) {
         EstadoVacio(estado.pestana.mensajeSinPedidos)
         return
@@ -118,7 +77,7 @@ private fun ListaPedidos(
 
                     BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
 
-                    if (rol == com.rescatapp.core.model.RolUsuario.NEGOCIO) {
+                    if (estado.esNegocio) {
                         AccionesPedidoNegocio(
                             pedido = activo.pedido,
                             onAvanzar = { onAvanzar(activo.pedido.id) },
@@ -136,11 +95,7 @@ private fun ListaPedidos(
 }
 
 @Composable
-private fun AccionesPedidoNegocio(
-    pedido: com.rescatapp.core.model.Pedido,
-    onAvanzar: () -> Unit,
-    onCancelar: () -> Unit
-) {
+private fun AccionesPedidoNegocio(pedido: Pedido, onAvanzar: () -> Unit, onCancelar: () -> Unit) {
     val textoBotonPrimario = when (pedido.estado) {
         EstadoPedido.RESERVADO -> "Comenzar a preparar"
         EstadoPedido.PREPARANDO -> "Marcar como listo"

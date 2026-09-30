@@ -2,6 +2,7 @@ package com.rescatapp.features.pedidos.ui
 
 import com.rescatapp.core.model.PasoProgreso
 import com.rescatapp.core.model.Pedido
+import com.rescatapp.core.model.RolUsuario
 
 enum class PestanaPedidos(val titulo: String, val mensajeSinPedidos: String) {
     ACTIVOS("Activos", "Aún no tienes pedidos activos"),
@@ -14,8 +15,12 @@ data class PedidosUiState(
     val pestana: PestanaPedidos = PestanaPedidos.ACTIVOS,
     val activos: List<PedidoConProgreso> = emptyList(),
     val historial: List<Pedido> = emptyList(),
-    val mensaje: String? = null
+    val mensaje: String? = null,
+    val rol: RolUsuario = RolUsuario.CLIENTE
 ) {
+    val esNegocio: Boolean
+        get() = rol == RolUsuario.NEGOCIO
+
     val pestanaSinPedidos: Boolean
         get() = when (pestana) {
             PestanaPedidos.ACTIVOS -> activos.isEmpty()

@@ -49,24 +49,7 @@ fun TarjetaOferta(
                 porcentajeDescuento = oferta.porcentajeDescuento,
                 modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
             )
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
-                    .size(24.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
+            MarcadorFavorito(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
             if (mostrarHoraLimite) {
                 EtiquetaHoraLimite(
                     horaLimite = oferta.horaRetiroHasta,
@@ -142,4 +125,21 @@ private fun TarjetaOfertaConHoraLimitePreview() {
         modifier = Modifier.width(172.dp),
         mostrarHoraLimite = true
     )
+}
+
+@Composable
+private fun MarcadorFavorito(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(24.dp)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.FavoriteBorder,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp)
+        )
+    }
 }

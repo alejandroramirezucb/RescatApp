@@ -39,11 +39,6 @@ fun BarraBusqueda(texto: String, onTextoCambiado: (String) -> Unit, modifier: Mo
 }
 
 @Composable
-fun BarraBusqueda(onClick: () -> Unit, modifier: Modifier = Modifier) {
-    AccesoBusqueda(onClick = onClick, modifier = modifier)
-}
-
-@Composable
 fun AccesoBusqueda(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         onClick = onClick,
@@ -52,19 +47,15 @@ fun AccesoBusqueda(onClick: () -> Unit, modifier: Modifier = Modifier) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextoDeBusqueda()
-        }
+        TextoDeBusqueda(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp))
     }
 }
 
 @Composable
-private fun TextoDeBusqueda() {
+private fun TextoDeBusqueda(modifier: Modifier = Modifier) {
     Text(
         text = TEXTO_DE_BUSQUEDA,
+        modifier = modifier,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         maxLines = 1,

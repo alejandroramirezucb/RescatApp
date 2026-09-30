@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.domain.CalcularImpactoUseCase
+import com.rescatapp.core.domain.seleccionarPedidosPorRol
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
@@ -24,12 +25,7 @@ class PerfilViewModel @Inject constructor(
         repositorioPedidos.pedidos,
         UsuarioDemo.rol
     ) { pedidos, rol ->
-        val pedidosFiltrados = if (rol == RolUsuario.NEGOCIO) {
-            pedidos.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
-        } else {
-            pedidos
-        }
-        crearEstado(pedidosFiltrados, rol)
+        crearEstado(seleccionarPedidosPorRol(pedidos, rol), rol)
     }.stateIn(
         scope = viewModelScope,
         started = suscripcionPantalla,

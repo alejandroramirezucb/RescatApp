@@ -22,11 +22,12 @@ import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.designsystem.theme.NaranjaVivo
 import com.rescatapp.core.designsystem.theme.TextoSecundario
+import com.rescatapp.core.model.RolUsuario
 
 @Composable
 fun BarraNavegacionInferior(
     destinoActual: DestinoPrincipal,
-    rol: com.rescatapp.core.model.RolUsuario,
+    rol: RolUsuario,
     onDestinoSeleccionado: (DestinoPrincipal) -> Unit
 ) {
     Surface(shadowElevation = 12.dp) {

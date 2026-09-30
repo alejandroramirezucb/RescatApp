@@ -17,7 +17,11 @@ import com.rescatapp.core.util.formatearDisponibilidad
 @Composable
 fun TextoDisponibilidad(oferta: Oferta) {
     Text(
-        text = oferta.cantidadDisponible.formatearDisponibilidad(),
+        text = if (oferta.estaAgotada) {
+            "Agotado"
+        } else {
+            oferta.cantidadDisponible.formatearDisponibilidad()
+        },
         style = MaterialTheme.typography.labelMedium,
         color = oferta.disponibilidad.color
     )

@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Borde
@@ -47,8 +48,8 @@ fun BarraProgresoPedido(pasos: List<PasoProgreso>, modifier: Modifier = Modifier
                 Text(
                     text = paso.etiqueta,
                     style = MaterialTheme.typography.labelSmall,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                    color = if (paso.completado || paso.actual) Naranja else TextoSecundario
+                    fontWeight = FontWeight.Bold,
+                    color = if (paso.completado) Naranja else TextoSecundario
                 )
             }
         }

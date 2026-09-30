@@ -3,8 +3,11 @@ package com.rescatapp.features.pedidos.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.domain.seleccionarPedidosPorRol
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
+import com.rescatapp.core.model.RolUsuario
+import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
 import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
@@ -31,18 +34,23 @@ class PedidosViewModel @Inject constructor(
             repositorioPedidos.pedidos,
             pestana,
             mensaje,
-            com.rescatapp.core.model.UsuarioDemo.rol
-        ) { pedidos, pestanaActual, msj, rol ->
-            val pedidosFiltrados = if (rol == com.rescatapp.core.model.RolUsuario.NEGOCIO) {
-                pedidos.filter { it.comercio == com.rescatapp.core.model.UsuarioDemo.NEGOCIO_DEMO }
-            } else {
-                pedidos
-            }
-            crearEstado(pedidosFiltrados, pestanaActual, msj)
+            UsuarioDemo.rol
+        ) { pedidos, pestanaActual, mensajeActual, rol ->
+            crearEstado(
+                seleccionarPedidosPorRol(pedidos, rol),
+                pestanaActual,
+                mensajeActual,
+                rol
+            )
         }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
-            initialValue = crearEstado(repositorioPedidos.pedidos.value, pestana.value, null)
+            initialValue = crearEstado(
+                seleccionarPedidosPorRol(repositorioPedidos.pedidos.value, UsuarioDemo.rol.value),
+                pestana.value,
+                null,
+                UsuarioDemo.rol.value
+            )
         )
 
     fun seleccionarPestana(pestanaElegida: PestanaPedidos) {
@@ -64,7 +72,8 @@ class PedidosViewModel @Inject constructor(
     private fun crearEstado(
         pedidos: List<Pedido>,
         pestanaActual: PestanaPedidos,
-        mensajeActual: String?
+        mensajeActual: String?,
+        rol: RolUsuario
     ): PedidosUiState {
         val masRecientesPrimero = pedidos.sortedByDescending { it.id }
         return PedidosUiState(
@@ -73,7 +82,8 @@ class PedidosViewModel @Inject constructor(
                 .filter { it.estaActivo }
                 .map { PedidoConProgreso(it, construirProgreso(it.estado)) },
             historial = masRecientesPrimero.filterNot { it.estaActivo },
-            mensaje = mensajeActual
+            mensaje = mensajeActual,
+            rol = rol
         )
     }
 }

@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.domain.seleccionarPedidosPorRol
 import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.suscripcionPantalla
@@ -27,7 +29,7 @@ class InicioNegocioViewModel @Inject constructor(
         ) { ofertas, pedidos ->
             val negocio = UsuarioDemo.NEGOCIO_DEMO
             val ofertasNegocio = ofertas.filter { it.comercio == negocio }
-            val pedidosNegocio = pedidos.filter { it.comercio == negocio }
+            val pedidosNegocio = seleccionarPedidosPorRol(pedidos, RolUsuario.NEGOCIO)
             val pedidosVigentes = pedidosNegocio.filter {
                 it.estado != EstadoPedido.CANCELADO
             }

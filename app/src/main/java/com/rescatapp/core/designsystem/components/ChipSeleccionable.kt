@@ -41,49 +41,17 @@ fun ChipSeleccionable(
     )
 }
 
-@Composable
-fun ChipCategoria(
-    etiqueta: String,
-    seleccionado: Boolean,
-    onClick: () -> Unit,
-    icono: ImageVector? = null,
-    modifier: Modifier = Modifier
-) {
-    ChipSeleccionable(
-        etiqueta = etiqueta,
-        seleccionado = seleccionado,
-        onClick = onClick,
-        icono = icono,
-        modifier = modifier
-    )
-}
-
-@Composable
-fun ChipOpcion(
-    etiqueta: String,
-    seleccionado: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    ChipSeleccionable(
-        etiqueta = etiqueta,
-        seleccionado = seleccionado,
-        onClick = onClick,
-        modifier = modifier
-    )
-}
-
 @Preview(name = "Chip Categoría Seleccionado y No Seleccionado")
 @Composable
 private fun ChipCategoriaPreview() {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ChipCategoria(
+        ChipSeleccionable(
             etiqueta = "Panadería",
             seleccionado = true,
             onClick = {},
             icono = Icons.Default.BakeryDining
         )
-        ChipCategoria(
+        ChipSeleccionable(
             etiqueta = "Panadería",
             seleccionado = false,
             onClick = {},
@@ -96,7 +64,7 @@ private fun ChipCategoriaPreview() {
 @Composable
 private fun ChipOpcionPreview() {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        ChipOpcion(etiqueta = "Recomendadas", seleccionado = true, onClick = {})
-        ChipOpcion(etiqueta = "Mayor descuento", seleccionado = false, onClick = {})
+        ChipSeleccionable(etiqueta = "Recomendadas", seleccionado = true, onClick = {})
+        ChipSeleccionable(etiqueta = "Mayor descuento", seleccionado = false, onClick = {})
     }
 }

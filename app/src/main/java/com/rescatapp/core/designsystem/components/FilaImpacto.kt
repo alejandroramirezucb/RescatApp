@@ -30,12 +30,6 @@ fun FilaImpacto(impacto: Impacto, colorValores: Color, modifier: Modifier = Modi
     }
 }
 
-/** Alias para compatibilidad con criterios de diseño */
-@Composable
-fun FilaEstadisticas(impacto: Impacto, colorValores: Color, modifier: Modifier = Modifier) {
-    FilaImpacto(impacto = impacto, colorValores = colorValores, modifier = modifier)
-}
-
 @Composable
 private fun RowScope.IndicadorImpacto(valor: String, etiqueta: String, colorValor: Color) {
     Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -50,8 +44,8 @@ private fun RowScope.IndicadorImpacto(valor: String, etiqueta: String, colorValo
 
 @Preview(name = "Fila Estadísticas / Impacto", showBackground = true)
 @Composable
-private fun FilaEstadisticasPreview() {
-    FilaEstadisticas(
+private fun FilaImpactoPreview() {
+    FilaImpacto(
         impacto = Impacto(rescates = 4, ahorrado = 102.0, kgAprovechados = 3.6),
         colorValores = Verde
     )

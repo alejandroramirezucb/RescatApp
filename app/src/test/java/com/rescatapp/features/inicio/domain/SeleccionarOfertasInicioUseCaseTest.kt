@@ -21,6 +21,21 @@ class SeleccionarOfertasInicioUseCaseTest {
     }
 
     @Test
+    fun losMejoresDelDiaVanDeMayorAMenorDescuento() {
+        val nombres = seleccionarOfertas(ofertasDeEjemplo).mejoresDelDia.map { it.nombre }
+
+        assertEquals(listOf("Pack Frutas", "Pack Croissants"), nombres.take(2))
+        assertEquals(14, nombres.size)
+    }
+
+    @Test
+    fun puedeInteresarteSoloMuestraPostres() {
+        val postres = seleccionarOfertas(ofertasDeEjemplo).postres
+
+        assertEquals(listOf("Tortas Mix", "Caja Cupcakes"), postres.map { it.nombre })
+    }
+
+    @Test
     fun excluyeLasOfertasAgotadas() {
         val conUnaAgotada = ofertasDeEjemplo.map {
             if (it.id == 11) it.copy(cantidadDisponible = 0) else it

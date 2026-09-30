@@ -22,6 +22,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.features.detalle.ui.DetalleScreen
@@ -64,7 +65,7 @@ fun RescatAppNavHost() {
             modifier = Modifier.padding(espacioInterno).consumeWindowInsets(espacioInterno)
         ) {
             composable(Rutas.INICIO) {
-                if (rol == com.rescatapp.core.model.RolUsuario.NEGOCIO) {
+                if (rol == RolUsuario.NEGOCIO) {
                     InicioNegocioScreen()
                 } else {
                     InicioScreen(
