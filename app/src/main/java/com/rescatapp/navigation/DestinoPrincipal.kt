@@ -18,7 +18,7 @@ enum class DestinoPrincipal(
 ) {
     INICIO(Rutas.INICIO, Rutas.INICIO, "Inicio", Icons.Filled.Home),
     EXPLORAR(Rutas.EXPLORAR, Rutas.EXPLORAR_POR_CATEGORIA, "Explorar", Icons.Filled.Search),
-    OFERTAS(Rutas.EXPLORAR, Rutas.EXPLORAR_POR_CATEGORIA, "Ofertas", Icons.Filled.CardGiftcard),
+    OFERTAS(Rutas.OFERTAS_NEGOCIO, Rutas.OFERTAS_NEGOCIO, "Ofertas", Icons.Filled.CardGiftcard),
     PEDIDOS(Rutas.PEDIDOS, Rutas.PEDIDOS, "Pedidos", Icons.Filled.ShoppingBag),
     STATS(Rutas.EXPLORAR, Rutas.EXPLORAR_POR_CATEGORIA, "Stats", Icons.Filled.ShowChart),
     PERFIL(Rutas.PERFIL, Rutas.PERFIL, "Perfil", Icons.Filled.Person);

@@ -8,6 +8,9 @@ object UsuarioDemo {
     const val NOMBRE = "Invitado"
     const val CORREO = "invitado@example.com"
 
+    /** Negocio seleccionado para la demo del rol de negocio */
+    const val NEGOCIO_DEMO = "Panadería La Central"
+
     val inicial: String
         get() = NOMBRE.take(1)
 

@@ -28,6 +28,7 @@ import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.inicio.ui.InicioNegocioScreen
 import com.rescatapp.features.inicio.ui.InicioScreen
+import com.rescatapp.features.inicio.ui.OfertasNegocioScreen
 import com.rescatapp.features.pedidos.ui.PedidosScreen
 import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
@@ -94,6 +95,7 @@ fun RescatAppNavHost() {
             }
             composable(Rutas.PEDIDOS) { PedidosScreen() }
             composable(Rutas.PERFIL) { PerfilScreen() }
+            composable(Rutas.OFERTAS_NEGOCIO) { OfertasNegocioScreen() }
         }
     }
 }
