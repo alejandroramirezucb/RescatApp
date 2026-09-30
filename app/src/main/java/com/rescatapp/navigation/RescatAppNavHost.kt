@@ -1,7 +1,9 @@
 package com.rescatapp.navigation
 
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -11,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -42,11 +45,11 @@ fun RescatAppNavHost() {
         },
         floatingActionButton = {
             if (destinoPrincipal?.muestraBotonPublicar == true) {
-                ExtendedFloatingActionButton(
-                    onClick = { navController.navigate(Rutas.REGISTRO) },
-                    icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                    text = { Text("Publicar oferta") }
-                )
+                ExtendedFloatingActionButton(onClick = { navController.navigate(Rutas.REGISTRO) }) {
+                    Icon(Icons.Outlined.Add, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Publicar oferta")
+                }
             }
         }
     ) { espacioInterno ->
@@ -88,6 +91,10 @@ fun RescatAppNavHost() {
 }
 
 private fun NavController.navegarAPestana(destino: DestinoPrincipal) {
+    if (destino == DestinoPrincipal.INICIO) {
+        popBackStack(Rutas.INICIO, inclusive = false, saveState = true)
+        return
+    }
     navigate(destino.ruta) {
         popUpTo(Rutas.INICIO) { saveState = true }
         launchSingleTop = true
