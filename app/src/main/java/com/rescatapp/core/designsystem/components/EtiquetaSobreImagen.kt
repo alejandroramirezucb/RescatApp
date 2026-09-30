@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.designsystem.theme.TextoPrincipal
@@ -33,4 +34,16 @@ private fun EtiquetaSobreImagen(texto: String, colorFondo: Color, modifier: Modi
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
         )
     }
+}
+
+@Preview(name = "Insignia Descuento -44%")
+@Composable
+private fun InsigniaDescuentoPreview() {
+    InsigniaDescuento(porcentajeDescuento = 44)
+}
+
+@Preview(name = "Etiqueta Hora Límite")
+@Composable
+private fun EtiquetaHoraLimitePreview() {
+    EtiquetaHoraLimite(horaLimite = "22:00")
 }

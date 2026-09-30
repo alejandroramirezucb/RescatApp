@@ -8,6 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.TextoPrincipal
@@ -32,4 +33,13 @@ fun ImagenCategoria(
         )
         contenidoSuperpuesto()
     }
+}
+
+@Preview(name = "Imagen Categoría Panadería")
+@Composable
+private fun ImagenCategoriaPreview() {
+    ImagenCategoria(
+        categoria = Categoria.PANADERIA,
+        modifier = Modifier.size(100.dp)
+    )
 }
