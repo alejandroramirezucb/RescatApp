@@ -9,11 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun EstadoVacio(mensaje: String, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier.fillMaxWidth().padding(24.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Text(
             text = mensaje,
             style = MaterialTheme.typography.bodyLarge,
@@ -21,4 +25,10 @@ fun EstadoVacio(mensaje: String, modifier: Modifier = Modifier) {
             textAlign = TextAlign.Center
         )
     }
+}
+
+@Preview(name = "Estado Vacío con Mensaje Centrado", showBackground = true)
+@Composable
+private fun EstadoVacioPreview() {
+    EstadoVacio(mensaje = "No hay pedidos en esta sección por ahora")
 }
