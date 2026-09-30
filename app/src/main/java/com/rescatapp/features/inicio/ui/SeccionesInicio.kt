@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -48,6 +50,7 @@ internal fun BloqueImpacto(impacto: Impacto) {
             Text(
                 text = "Tu impacto esta semana",
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
                 color = Verde
             )
             FilaImpacto(impacto = impacto, colorValores = Verde)
@@ -61,14 +64,15 @@ internal fun CategoriasInicio(onExplorar: (Categoria?) -> Unit) {
         Text(
             text = "Explora por categoría",
             style = MaterialTheme.typography.titleMedium,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             modifier = Modifier.padding(rellenoLateral)
         )
         LazyRow(
             contentPadding = rellenoLateral,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                ChipSeleccionable(
+                TarjetaCategoria(
                     etiqueta = "Todos",
                     seleccionado = true,
                     onClick = { onExplorar(null) },
@@ -76,13 +80,67 @@ internal fun CategoriasInicio(onExplorar: (Categoria?) -> Unit) {
                 )
             }
             items(Categoria.entries) { categoria ->
-                ChipSeleccionable(
+                TarjetaCategoria(
                     etiqueta = categoria.etiqueta,
                     seleccionado = false,
                     onClick = { onExplorar(categoria) },
                     icono = categoria.icono
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun TarjetaCategoria(
+    etiqueta: String,
+    seleccionado: Boolean,
+    onClick: () -> Unit,
+    icono: androidx.compose.ui.graphics.vector.ImageVector?
+) {
+    val backgroundColor = if (seleccionado) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    val contentColor = if (seleccionado) {
+        MaterialTheme.colorScheme.onPrimary
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val borderColor = if (seleccionado) {
+        Color.Transparent
+    } else {
+        MaterialTheme.colorScheme.outlineVariant
+    }
+
+    Surface(
+        onClick = onClick,
+        color = backgroundColor,
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor),
+        modifier = Modifier.width(80.dp).height(80.dp)
+    ) {
+        Column(
+            horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            if (icono != null) {
+                androidx.compose.material3.Icon(
+                    imageVector = icono,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(28.dp).padding(bottom = 4.dp)
+                )
+            }
+            Text(
+                text = etiqueta,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -95,7 +153,8 @@ internal fun SeccionOfertas(
     onVerDetalle: (Int) -> Unit,
     onVerTodo: (() -> Unit)? = null,
     colorFondo: Color = Color.Transparent,
-    mostrarHoraLimite: Boolean = false
+    mostrarHoraLimite: Boolean = false,
+    textoAccionOverride: String = "Ver todo"
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().background(colorFondo).padding(vertical = 12.dp),
@@ -105,7 +164,7 @@ internal fun SeccionOfertas(
             titulo = titulo,
             subtitulo = subtitulo,
             modifier = Modifier.padding(rellenoLateral),
-            textoAccion = onVerTodo?.let { "Ver todo" },
+            textoAccion = onVerTodo?.let { textoAccionOverride },
             onAccion = { onVerTodo?.invoke() }
         )
         if (ofertas.isEmpty()) {

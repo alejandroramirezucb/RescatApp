@@ -21,7 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
 private const val TEXTO_DE_BUSQUEDA = "Busca comida, restaurantes o productos..."
-private val formaBusqueda = RoundedCornerShape(12.dp)
+private val formaBusqueda = RoundedCornerShape(50)
 
 @Composable
 fun BarraBusqueda(texto: String, onTextoCambiado: (String) -> Unit) {
@@ -29,12 +29,13 @@ fun BarraBusqueda(texto: String, onTextoCambiado: (String) -> Unit) {
         value = texto,
         onValueChange = onTextoCambiado,
         placeholder = { TextoDeBusqueda() },
-        leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
         singleLine = true,
         shape = formaBusqueda,
         colors = OutlinedTextFieldDefaults.colors(
-            unfocusedContainerColor = MaterialTheme.colorScheme.background,
-            focusedContainerColor = MaterialTheme.colorScheme.surface
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            focusedBorderColor = MaterialTheme.colorScheme.primary
         ),
         modifier = Modifier.fillMaxWidth()
     )
@@ -45,20 +46,14 @@ fun AccesoBusqueda(onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         shape = formaBusqueda,
-        color = MaterialTheme.colorScheme.background,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
             TextoDeBusqueda()
         }
     }

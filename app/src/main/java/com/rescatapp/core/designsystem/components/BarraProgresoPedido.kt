@@ -46,7 +46,8 @@ fun BarraProgresoPedido(pasos: List<PasoProgreso>, modifier: Modifier = Modifier
                 Text(
                     text = paso.etiqueta,
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (paso.completado) Naranja else TextoSecundario
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = if (paso.completado || paso.actual) Naranja else TextoSecundario
                 )
             }
         }
