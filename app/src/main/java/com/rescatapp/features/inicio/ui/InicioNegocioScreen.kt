@@ -81,19 +81,6 @@ private fun EncabezadoNegocio() {
                     fontWeight = FontWeight.ExtraBold
                 )
             }
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .background(Naranja, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Crear",
-                    tint = Color.White,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
         }
     }
 }
