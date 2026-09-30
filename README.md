@@ -10,7 +10,7 @@ Aplicación Android para rescatar alimentos. Los comercios publican sus excedent
 
 1. [Cómo ejecutar](#cómo-ejecutar)
 2. [Tecnologías](#tecnologías)
-3. [Pantallas: dónde está cada cosa](#pantallas-dónde-está-cada-cosa)
+3. [Pantallas](#pantallas)
 4. [Estructura del proyecto](#estructura-del-proyecto)
 5. [Arquitectura](#arquitectura)
 6. [Por qué no usamos Room](#por-qué-no-usamos-room)
@@ -55,20 +55,36 @@ Dependencias declaradas en [libs.versions.toml](gradle/libs.versions.toml) y [ap
 
 ## Pantallas
 
-La barra inferior tiene 4 pestañas (Inicio, Explorar, Pedidos, Perfil). Detalle y Publicar oferta se abren encima y ocultan la barra.
+La barra inferior tiene 4 pestañas por rol: Inicio, Explorar, Pedidos y Perfil para cliente; Inicio, Ofertas, Pedidos y Perfil para negocio. Detalle y Publicar oferta ocultan la barra.
+
+### Dos flujos: cliente y negocio
+
+La app implementa los flujos de cliente y negocio. Se alternan desde Perfil mediante el botón de cambio de rol de demostración.
+
+| Flujo | Qué hace | Pantallas en Figma | En la app |
+| --- | --- | --- | --- |
+| **Cliente** | Explora, reserva y sigue sus pedidos | `Inicio`, `Explorar`, `Pedidos`, `Historial`, `Perfil` | Implementado |
+| **Negocio** | Publica ofertas, gestiona pedidos y consulta sus métricas | `Inicio - Negocio`, `Ofertas - Negocio`, `Crear Oferta - Negocio`, `Pedidos - Negocio` | Implementado, sin lector QR |
+
+Consecuencias en el código:
+
+- El botón **"Publicar oferta"** pertenece al flujo negocio y está oculto en el flujo cliente: [muestraBotonPublicar](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21).
+- Las **acciones sobre un pedido** (cancelar, marcar como preparando o listo, confirmar retiro) también son del negocio: sus casos de uso existen y están probados, pero la pantalla del cliente no tiene botones para ellas.
+- Los archivos del Figma están en `PANTALLAS FIGMA/`. La separación de roles implementada por Ariany tiene prioridad para los flujos.
+- La pestaña Ofertas muestra las publicaciones del negocio de demostración. Sus controles visuales de edición y finalizadas no cambian datos en esta entrega.
 
 ### Inicio (dashboard)
 
 | Qué                                                   | Dónde                                                                                                                                                                                 |
 | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pantalla                                              | [InicioScreen.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L23)                                                                                             |
-| Encabezado: ubicación, saludo y buscador              | [EncabezadoInicio](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L60)                                                                                            |
-| Bloque "Tu impacto esta semana"                       | [BloqueImpacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L38)                                                                                            |
-| Chips "Explora por categoría"                         | [CategoriasInicio](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L59)                                                                                         |
-| Secciones "Ofertas cerca de ti" y "Se están agotando" | [SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L91)                                                                                           |
+| Pantalla | [InicioScreen.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L15) |
+| Encabezado: ubicación, saludo, notificaciones y buscador | [EncabezadoInicio](app/src/main/java/com/rescatapp/features/inicio/ui/EncabezadoInicio.kt#L25) |
+| Bloque "Tu impacto esta semana" | [BloqueImpacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33) |
+| Tarjetas "Explora por categoría" | [CategoriasInicio](app/src/main/java/com/rescatapp/features/inicio/ui/CategoriasInicio.kt#L28) |
+| Secciones "Ofertas cerca de ti", "Se están agotando", "Lo mejor de hoy" y "Puede interesarte" | [SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L54) |
 | Estado de la pantalla                                 | [InicioViewModel.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) y [InicioUiState.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioUiState.kt) |
 | Cálculo del impacto (`filter`, `count`, `sumOf`)      | [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9)                                                                                 |
-| Separar disponibles y las que se agotan               | [SeleccionarOfertasInicioUseCase.kt](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L9)                                                    |
+| Qué ofertas va en cada sección (disponibles, 1 o 2 unidades, mayor descuento y postres) | [SeleccionarOfertasInicioUseCase.kt](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L9) |
 
 ### Explorar
 
@@ -93,10 +109,12 @@ La barra inferior tiene 4 pestañas (Inicio, Explorar, Pedidos, Perfil). Detalle
 
 ### Publicar oferta (registro)
 
+Pertenece al flujo negocio (`Crear Oferta - Negocio` en Figma). La pantalla, sus validaciones y sus pruebas están implementadas, pero el botón que la abre está oculto en el flujo cliente ([muestraBotonPublicar](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)).
+
 | Qué                                              | Dónde                                                                                                               |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
 | Pantalla                                         | [RegistroScreen.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt)                         |
-| Los 10 campos del formulario                     | [FormularioOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/FormularioOferta.kt#L21)                 |
+| Campos visibles del formulario                   | [FormularioOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/FormularioOferta.kt#L18)                 |
 | Validaciones                                     | [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10)     |
 | Mensajes de error                                | [MensajesValidacion.kt](app/src/main/java/com/rescatapp/features/registro/domain/MensajesValidacion.kt)             |
 | Validar y guardar al tocar "Publicar oferta"     | [publicar()](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt#L30)                         |
@@ -108,11 +126,11 @@ La barra inferior tiene 4 pestañas (Inicio, Explorar, Pedidos, Perfil). Detalle
 
 | Qué                                              | Dónde                                                                                                                              |
 | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Pantalla con pestañas Activos / Historial        | [PedidosScreen.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L36)                                       |
-| Botones Cancelar, Marcar como…, Confirmar retiro | [AccionesPedido](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L102)                                        |
+| Pantalla del cliente: pestañas Activos / Historial y barra de progreso | [PedidosScreen.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L30) |
+| Selector de pestañas Activos / Historial | [SelectorPestanasPedidos](app/src/main/java/com/rescatapp/features/pedidos/ui/SelectorPestanasPedidos.kt#L18) |
 | Separar activos e historial (`filter`, `map`)    | [PedidosViewModel.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L61)                                 |
-| Avanzar al siguiente estado                      | [AvanzarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/AvanzarPedidoUseCase.kt#L8)                      |
-| Cancelar y devolver la unidad a la oferta        | [CancelarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/CancelarPedidoUseCase.kt#L13)                   |
+| Avanzar al siguiente estado (acción del negocio, sin botón en la versión cliente) | [AvanzarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/AvanzarPedidoUseCase.kt#L8) |
+| Cancelar y devolver la unidad a la oferta (acción del negocio, sin botón en la versión cliente) | [CancelarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/CancelarPedidoUseCase.kt#L13) |
 | Pasos de la barra de progreso (`mapIndexed`)     | [ConstruirProgresoPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/ConstruirProgresoPedidoUseCase.kt#L17) |
 
 ### Perfil
@@ -128,7 +146,7 @@ La barra inferior tiene 4 pestañas (Inicio, Explorar, Pedidos, Perfil). Detalle
 
 | Qué                                             | Dónde                                                                                                                                                                             |
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tarjeta de oferta (Inicio y Explorar)           | [TarjetaOferta.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaOferta.kt#L21)                                                                             |
+| Tarjeta de oferta (Inicio y Explorar) | [TarjetaOferta.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaOferta.kt#L28) |
 | Tarjeta de pedido                               | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt)                                                                                 |
 | Campo de texto con mensaje de error             | [CampoConError.kt](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L12)                                                                             |
 | Fila de rescates, ahorro y kg (Inicio y Perfil) | [FilaImpacto.kt](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt)                                                                                     |
@@ -174,7 +192,7 @@ com.rescatapp
 | `core/util`         | `Conversiones`, `Formateadores`                                | [abrir](app/src/main/java/com/rescatapp/core/util)         |
 | `features`          | Una carpeta por pantalla                                       | [abrir](app/src/main/java/com/rescatapp/features)          |
 | `navigation`        | `Rutas`, `RescatAppNavHost`, barra inferior                    | [abrir](app/src/main/java/com/rescatapp/navigation)        |
-| Pruebas             | Misma estructura que el código (24 archivos)                   | [abrir](app/src/test/java/com/rescatapp)                   |
+| Pruebas             | Misma estructura que el código (25 archivos, 78 pruebas)                   | [abrir](app/src/test/java/com/rescatapp)                   |
 
 Dentro de cada feature:
 
@@ -210,7 +228,7 @@ Screen  ──►  ViewModel  ──►  UseCase  ──►  Repositorio
 | 5    | Se crea el pedido en estado Reservado                                                          | [crearPedido()](app/src/main/java/com/rescatapp/core/model/Oferta.kt#L39)                                                                                                              |
 | 6    | Los `StateFlow` de los repositorios emiten listas nuevas                                       | [RepositorioOfertas](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L19) · [RepositorioPedidos](app/src/main/java/com/rescatapp/core/data/RepositorioPedidos.kt#L17)  |
 | 7    | Cada ViewModel combina los datos y crea un `UiState` nuevo                                     | [InicioViewModel](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
-| 8    | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L28)     |
+| 8    | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20)     |
 
 Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos.
 
@@ -228,12 +246,13 @@ Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos.
 
 | Cambio                                                    | Motivo                                                                        |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Se agregaron **Publicar oferta** y **Detalle**            | El PDF exige un formulario y una pantalla de detalle, y el Figma no las tenía |
-| Botón flotante **"Publicar oferta"** en Inicio y Explorar | El Figma no tiene acceso al formulario                                        |
+| **Detalle** no existe en el Figma | El PDF exige una pantalla de detalle; se construyó con los componentes del diseño |
+| **Publicar oferta** solo aparece en el flujo negocio | En Figma es `Crear Oferta - Negocio`; en la app cliente el botón está oculto ([DestinoPrincipal.kt](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)) |
 | Íconos de Material en lugar de emojis y fotos             | No hay fotos por producto; se usa un ícono por categoría                      |
 | Naranja más oscuro (`#C2410C`) para texto                 | El naranja original sobre blanco no alcanza el contraste mínimo de 4.5:1      |
 | Perfil sin menú (pagos, ayuda, cerrar sesión…)            | Sin backend esas opciones serían botones que no hacen nada                    |
-| Sin favoritos, calificaciones ni distancia                | Requieren datos que la app no tiene                                           |
+| Sin lector QR ni pantalla independiente de Stats | El negocio gestiona estados con botones y consulta métricas en Inicio |
+| El corazón de favoritos es solo visual; no hay calificaciones ni distancia | Un favorito real y la calificación requieren datos y acciones que la app no tiene |
 
 ---
 
@@ -307,8 +326,8 @@ Decidimos **no implementar Room** por alcance. El objetivo del primer bloque es 
 | Requisito                         | Dónde                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Datos compartidos entre pantallas | [RepositorioOfertas](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L13) y [RepositorioPedidos](app/src/main/java/com/rescatapp/core/data/RepositorioPedidos.kt) (`@Singleton`)                                                                                                                                                                                                                                                        |
-| La interfaz se actualiza sola     | `StateFlow` en cada ViewModel, leído con [collectAsStateWithLifecycle()](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L28)                                                                                                                                                                                                                                                                                                        |
-| `filter`                          | [CalcularImpactoUseCase](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9) · [FiltrarOfertasUseCase](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) · [SeleccionarOfertasInicioUseCase](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L12) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L61) |
+| La interfaz se actualiza sola     | `StateFlow` en cada ViewModel, leído con [collectAsStateWithLifecycle()](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20)                                                                                                                                                                                                                                                                                                        |
+| `filter`                          | [CalcularImpactoUseCase](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9) · [FiltrarOfertasUseCase](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) · [SeleccionarOfertasInicioUseCase](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L13) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L61) |
 | `count`                           | [rescates](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L11) · ["N ofertas encontradas"](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarUiState.kt#L11)                                                                                                                                                                                                                                                          |
 | `map`                             | [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L62) · [ConstruirProgresoPedidoUseCase](app/src/main/java/com/rescatapp/features/pedidos/domain/ConstruirProgresoPedidoUseCase.kt#L17) (`mapIndexed`)                                                                                                                                                                                                        |
 | `sumOf`                           | [ahorro y kg aprovechados](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L12)                                                                                                                                                                                                                                                                                                                                                   |
@@ -322,13 +341,15 @@ No aplica: ver [Por qué no usamos Room](#por-qué-no-usamos-room).
 | Requisito                | Dónde                                                                                                                                                                                                               |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Presentación consistente | Mismo tema en todas las pantallas: [RescatAppTheme](app/src/main/java/com/rescatapp/core/designsystem/theme/RescatAppTheme.kt#L28), aplicado en [MainActivity](app/src/main/java/com/rescatapp/MainActivity.kt#L18) |
-| Textos claros            | Botones con verbo: "Publicar oferta", "Reservar", "Confirmar retiro" ([AccionesPedido](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L102))                                                  |
+| Textos claros | Botones con verbo: "Publicar oferta" ([RegistroScreen](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt#L48)), "Reservar" ([DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L98)), "Ver todo" y "Ver más" ([SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L54)) |
 | Contraste suficiente     | [Color.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/Color.kt#L5): texto naranja oscuro, contraste de al menos 4.5:1                                                                                  |
 | Navegación comprensible  | [Barra inferior](app/src/main/java/com/rescatapp/navigation/BarraNavegacionInferior.kt#L27) con la pestaña activa resaltada y botón atrás en Detalle y Registro                                                     |
 
 ---
 
 ## Guion de la demostración
+
+> **Antes de los pasos 4 a 7:** ir a Perfil, cambiar al rol negocio y abrir Inicio. Allí aparece Publicar oferta. Para explorar y reservar lo publicado, volver a Perfil y cambiar al rol cliente.
 
 | Paso | Acción                                                                                                                   | Qué se ve                                                                                      |
 | ---- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
@@ -337,10 +358,10 @@ No aplica: ver [Por qué no usamos Room](#por-qué-no-usamos-room).
 | 3    | Recorrer Inicio → Explorar → Pedidos → Perfil con la barra inferior                                                      | Cada pestaña se resalta en naranja                                                             |
 | 4    | Tocar "Publicar oferta"                                                                                                  | Se abre el formulario                                                                          |
 | 5    | Poner precio normal **40** y rescate **45**, hora hasta **25:00**, cantidad **2.5**                                      | "Debe ser menor al precio normal", "Usa el formato HH:mm", "Ingresa una cantidad válida"       |
-| 6    | Llenar: Pack Salteñas · Panadería La Central · Panadería · Salteñas del día · peso **1,5** · 40 · 20 · 4 · 09:00 · 11:00 | La pantalla se cierra sola                                                                     |
+| 6    | Llenar: Pack Salteñas · Panadería La Central · Panadería · Salteñas del día · 40 · 20 · 4 · 09:00 · 11:00 | La pantalla se cierra sola                                                                     |
 | 7    | Ir a Explorar                                                                                                            | **15 ofertas encontradas**, con Pack Salteñas primera y "-50%"                                 |
 | 8    | Tocar Pack Croissants                                                                                                    | Detalle con precio, ahorro, peso y horario                                                     |
-| 9    | Tocar **Reservar** y volver a Inicio; en Explorar buscar "café", filtrar Postres y ordenar por mayor descuento           | Impacto **5 · Bs.117 · 4.2kg**; 3 resultados; 2 resultados; Pack Frutas primera                |
+| 9    | Tocar **Reservar** y volver a Inicio; en Explorar buscar "café", filtrar Postres y ordenar por mayor descuento           | Impacto **5 · Bs.117 · 4.2kg**; en Pedidos › Activos aparece Pack Croissants en Reservado; 3 resultados; 2 resultados; Pack Frutas primera                |
 | 10   | Cerrar y reabrir                                                                                                         | **No aplica**: explicar [por qué no usamos Room](#por-qué-no-usamos-room)                      |
 | 11   | Mostrar estructura y repositorio                                                                                         | [Estructura del proyecto](#estructura-del-proyecto), `git shortlog -sn` y las issues en GitHub |
 
@@ -369,7 +390,7 @@ Que cuando su valor cambia, avisa automáticamente a quien la está observando. 
 Código: [ofertas: StateFlow](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L19) y su lectura con [collectAsStateWithLifecycle()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41).
 
 **6. ¿Qué ocurre durante una recomposición?**
-Compose vuelve a ejecutar las funciones `@Composable` cuyo estado cambió para redibujar esa parte de la pantalla. Solo se recompone lo que depende del dato modificado, no toda la pantalla. Por ejemplo, al reservar cambia el número de rescates y se redibuja el [bloque de impacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L38).
+Compose vuelve a ejecutar las funciones `@Composable` cuyo estado cambió para redibujar esa parte de la pantalla. Solo se recompone lo que depende del dato modificado, no toda la pantalla. Por ejemplo, al reservar cambia el número de rescates y se redibuja el [bloque de impacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33).
 Ver el [flujo de una reserva](#flujo-de-una-reserva-estado-y-recomposición).
 
 **7. ¿Cómo se envía información desde una pantalla hacia otra?**
@@ -411,7 +432,7 @@ Ver la tabla de [Equipo](#equipo), con las issues de cada integrante y su códig
 
 ### Cumplimiento
 
-**Se ve en la app.** El bloque [Tu impacto esta semana](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L38) de Inicio y la fila de indicadores del [Perfil](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L31) muestran tres cifras, que se dibujan con [FilaImpacto](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt#L23):
+**Se ve en la app.** El bloque [Tu impacto esta semana](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33) de Inicio y la fila de indicadores del [Perfil](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L31) muestran tres cifras, que se dibujan con [FilaImpacto](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt#L23):
 
 | Indicador   | ODS | Cómo se calcula                                                                                                                                    | Valor con los datos de ejemplo |
 | ----------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
@@ -435,8 +456,8 @@ El cálculo está en un solo lugar: [CalcularImpactoUseCase.kt](app/src/main/jav
 
 ### Limitaciones
 
-- **Medimos lo reservado, no lo retirado.** "Aprovechado" suma todo pedido que no esté cancelado, incluso los que aún están en Reservado, Preparando o Listo. Lo estrictamente rescatado es lo que llega a Recogido.
-- **Los kg son los declarados** por el comercio al publicar la oferta; no hay una confirmación del peso real recibido.
+- **Medimos lo reservado, no lo retirado.** "Aprovechado" suma todo pedido no cancelado, incluso en Reservado, Preparando o Listo. El negocio puede cambiar el estado hasta Recogido desde Pedidos.
+- **El peso de una publicación nueva usa el valor de demostración del formulario.** No hay selección de foto ni confirmación del peso real recibido.
 - **Los valores son de demostración.** Al no haber base de datos, las cifras arrancan con los pedidos de ejemplo del Figma.
 - **ODS 2 y 8 no tienen indicador**, por eso no los presentamos como cumplidos.
 
@@ -452,7 +473,7 @@ Cada integrante trabajó las issues de su área. Las issues se ven en la [pesta�
 | Dariana Pol Aramayo | [D4ri4na](https://github.com/D4ri4na)                         | `datos` · `perfil` · `pedidos`    | [#38](https://github.com/alejandroramirezucb/RescatApp/issues/38) Repositorios en memoria · [#39](https://github.com/alejandroramirezucb/RescatApp/issues/39) Datos de ejemplo · [#49](https://github.com/alejandroramirezucb/RescatApp/issues/49) Perfil · [#58](https://github.com/alejandroramirezucb/RescatApp/issues/58) Progreso de pedidos · [#59](https://github.com/alejandroramirezucb/RescatApp/issues/59) Cancelación e historial                                                                                                           | [core/data/](app/src/main/java/com/rescatapp/core/data), [features/pedidos/](app/src/main/java/com/rescatapp/features/pedidos), [features/perfil/](app/src/main/java/com/rescatapp/features/perfil)                  |
 | Josue Balbontin     | [josue-balbontin](https://github.com/josue-balbontin)         | `registro` · `inicio`             | [#45](https://github.com/alejandroramirezucb/RescatApp/issues/45) Validación del formulario · [#46](https://github.com/alejandroramirezucb/RescatApp/issues/46) Registro válido · [#47](https://github.com/alejandroramirezucb/RescatApp/issues/47) Pantalla Publicar oferta · [#55](https://github.com/alejandroramirezucb/RescatApp/issues/55) Impacto en Inicio · [#56](https://github.com/alejandroramirezucb/RescatApp/issues/56) Secciones de ofertas · [#57](https://github.com/alejandroramirezucb/RescatApp/issues/57) Encabezado y categorías | [features/registro/](app/src/main/java/com/rescatapp/features/registro), [features/inicio/](app/src/main/java/com/rescatapp/features/inicio)                                                                         |
 | Fernando Terrazas   | [FernandoTerrazasLl](https://github.com/FernandoTerrazasLl)   | `explorar` · `detalle`            | [#50](https://github.com/alejandroramirezucb/RescatApp/issues/50) Filtrado y orden · [#51](https://github.com/alejandroramirezucb/RescatApp/issues/51) Pantalla Explorar · [#52](https://github.com/alejandroramirezucb/RescatApp/issues/52) Reserva · [#53](https://github.com/alejandroramirezucb/RescatApp/issues/53) Pantalla Detalle · [#54](https://github.com/alejandroramirezucb/RescatApp/issues/54) Propagación del estado                                                                                                                    | [features/explorar/](app/src/main/java/com/rescatapp/features/explorar), [features/detalle/](app/src/main/java/com/rescatapp/features/detalle)                                                                       |
-| Ariany Lopez        | [arianylopez](https://github.com/arianylopez)                 | `design-system` y todo el Figma   | [#40](https://github.com/alejandroramirezucb/RescatApp/issues/40) Tema visual · [#41](https://github.com/alejandroramirezucb/RescatApp/issues/41) Tarjeta de oferta · [#42](https://github.com/alejandroramirezucb/RescatApp/issues/42) Búsqueda, chips y formulario · [#43](https://github.com/alejandroramirezucb/RescatApp/issues/43) Componentes de pedidos y perfil                                                                                                                                                                                | Diseño de las 5 pantallas del Figma [core/designsystem/](app/src/main/java/com/rescatapp/core/designsystem)                                                                                                          |
+| Ariany Lopez | [arianylopez](https://github.com/arianylopez) | `design-system` · Figma cliente y negocio · rediseño de Inicio y Pedidos | [#40](https://github.com/alejandroramirezucb/RescatApp/issues/40) Tema visual · [#41](https://github.com/alejandroramirezucb/RescatApp/issues/41) Tarjeta de oferta · [#42](https://github.com/alejandroramirezucb/RescatApp/issues/42) Búsqueda, chips y formulario · [#43](https://github.com/alejandroramirezucb/RescatApp/issues/43) Componentes de pedidos y perfil | Diseño del Figma (flujo cliente y flujo negocio). Commits: [rediseño de Inicio](https://github.com/alejandroramirezucb/RescatApp/commit/3a1cce0034c3ab41258e4153b1fd5581985c340b), [Mis pedidos del cliente](https://github.com/alejandroramirezucb/RescatApp/commit/b41313a31a23ebe5396217d56d1b2592a6039f74) y [flujo cliente sin botón de publicar](https://github.com/alejandroramirezucb/RescatApp/commit/862297ecd34c8ce96ab71f8232d0bb0f509e3a3d). Código: [core/designsystem/](app/src/main/java/com/rescatapp/core/designsystem), [features/inicio/ui/](app/src/main/java/com/rescatapp/features/inicio/ui), [features/pedidos/ui/](app/src/main/java/com/rescatapp/features/pedidos/ui) |
 
 ### Qué área cubre cada issue
 
