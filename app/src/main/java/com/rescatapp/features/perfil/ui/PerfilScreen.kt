@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -31,7 +32,7 @@ import com.rescatapp.core.model.UsuarioDemo
 fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column {
+    Column(modifier = Modifier.fillMaxSize()) {
         EncabezadoPerfil()
         Surface(color = MaterialTheme.colorScheme.surface) {
             FilaImpacto(
@@ -39,6 +40,18 @@ fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
                 colorValores = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
+        }
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
+
+        androidx.compose.material3.Button(
+            onClick = { UsuarioDemo.cambiarRol(com.rescatapp.core.model.RolUsuario.NEGOCIO) },
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
+        ) {
+            Text("Cambiar a perfil de negocio (Demo)")
         }
     }
 }

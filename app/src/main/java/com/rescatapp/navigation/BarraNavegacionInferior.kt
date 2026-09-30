@@ -26,11 +26,12 @@ import com.rescatapp.core.designsystem.theme.TextoSecundario
 @Composable
 fun BarraNavegacionInferior(
     destinoActual: DestinoPrincipal,
+    rol: com.rescatapp.core.model.RolUsuario,
     onDestinoSeleccionado: (DestinoPrincipal) -> Unit
 ) {
     Surface(shadowElevation = 12.dp) {
         NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
-            DestinoPrincipal.entries.forEach { destino ->
+            DestinoPrincipal.paraRol(rol).forEach { destino ->
                 val seleccionado = destino == destinoActual
                 NavigationBarItem(
                     selected = seleccionado,
