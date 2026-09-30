@@ -1,7 +1,9 @@
 package com.rescatapp.features.registro.ui
 
 import androidx.lifecycle.ViewModel
+import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.ResultadoOperacion
+import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
 import com.rescatapp.features.registro.domain.ValidarOfertaUseCase

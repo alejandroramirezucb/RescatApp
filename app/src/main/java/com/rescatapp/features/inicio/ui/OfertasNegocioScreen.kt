@@ -32,6 +32,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.designsystem.components.ImagenCategoria
 import com.rescatapp.core.designsystem.theme.Naranja
@@ -45,9 +47,10 @@ private enum class PestanaOfertas(val titulo: String) {
 }
 
 @Composable
-fun OfertasNegocioScreen() {
-    val ofertasNegocio = remember {
-        ofertasDeEjemplo.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
+fun OfertasNegocioScreen(viewModel: OfertasNegocioViewModel = hiltViewModel()) {
+    val todasLasOfertas by viewModel.ofertas.collectAsStateWithLifecycle()
+    val ofertasNegocio = remember(todasLasOfertas) {
+        todasLasOfertas.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
     }
     var pestanaActual by remember { mutableStateOf(PestanaOfertas.ACTIVAS) }
 
