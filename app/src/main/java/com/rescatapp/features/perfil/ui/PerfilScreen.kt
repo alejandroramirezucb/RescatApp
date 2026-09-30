@@ -8,12 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,6 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -39,13 +50,31 @@ fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
     val esNegocio = rol == RolUsuario.NEGOCIO
 
     Column(modifier = Modifier.fillMaxSize()) {
-        EncabezadoPerfil(rol)
-        Surface(color = MaterialTheme.colorScheme.surface) {
+        EncabezadoPerfil(
+            nombre = estado.nombre,
+            correo = estado.correo,
+            inicial = estado.inicial,
+            esNegocio = estado.esNegocio
+        )
+
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 1.dp
+        ) {
             FilaImpacto(
                 impacto = estado.impacto,
                 colorValores = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            DetallesPerfilCard(estado)
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -74,13 +103,13 @@ fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
 }
 
 @Composable
-private fun EncabezadoPerfil(rol: RolUsuario) {
-    val esNegocio = rol == RolUsuario.NEGOCIO
-    val nombre = if (esNegocio) UsuarioDemo.NEGOCIO_DEMO else UsuarioDemo.NOMBRE
-    val correo = if (esNegocio) "contacto@lacentral.com" else UsuarioDemo.CORREO
-    val inicial = if (esNegocio) UsuarioDemo.NEGOCIO_DEMO.take(1) else UsuarioDemo.inicial
-
-    Box(modifier = Modifier.fillMaxWidth().background(Naranja).clipToBounds()) {
+private fun EncabezadoPerfil(nombre: String, correo: String, inicial: String, esNegocio: Boolean) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Naranja)
+            .clipToBounds()
+    ) {
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -89,7 +118,7 @@ private fun EncabezadoPerfil(rol: RolUsuario) {
                 .background(NaranjaVivo.copy(alpha = 0.35f), CircleShape)
         )
         Row(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 32.dp),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 28.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -105,18 +134,102 @@ private fun EncabezadoPerfil(rol: RolUsuario) {
                     color = Color.White
                 )
             }
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = Color.White.copy(alpha = 0.25f)
+                ) {
+                    Text(
+                        text = if (esNegocio) "Rol: Negocio" else "Rol: Cliente",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
                 Text(
                     text = nombre,
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = correo,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
+                    color = Color.White.copy(alpha = 0.9f)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun DetallesPerfilCard(estado: PerfilUiState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Información de la cuenta",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            FilaDatoPerfil(
+                icono = if (estado.esNegocio) Icons.Default.Business else Icons.Default.Person,
+                etiqueta = if (estado.esNegocio) "Comercio" else "Usuario",
+                valor = estado.nombre
+            )
+            FilaDatoPerfil(
+                icono = Icons.Default.Email,
+                etiqueta = "Correo",
+                valor = estado.correo
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilaDatoPerfil(icono: ImageVector, etiqueta: String, valor: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icono,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Column {
+            Text(
+                text = etiqueta,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = valor,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
