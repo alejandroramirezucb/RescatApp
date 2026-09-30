@@ -19,7 +19,7 @@ enum class DestinoPrincipal(
     PERFIL(Rutas.PERFIL, Rutas.PERFIL, "Perfil", Icons.Filled.Person);
 
     val muestraBotonPublicar: Boolean
-        get() = this == INICIO || this == EXPLORAR
+        get() = false // Oculto para el cliente en todas las pestañas principales
 
     companion object {
         fun desdeRuta(rutaActual: String?): DestinoPrincipal? =
