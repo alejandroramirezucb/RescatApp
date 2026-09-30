@@ -85,14 +85,24 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
                     }
                 }
             }
-            ListaPedidos(estado = estado)
+            ListaPedidos(
+                estado = estado,
+                onAvanzar = viewModel::avanzar,
+                onCancelar = viewModel::cancelar
+            )
         }
         SnackbarHost(estadoSnackbar, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
 @Composable
-private fun ListaPedidos(estado: PedidosUiState) {
+private fun ListaPedidos(
+    estado: PedidosUiState,
+    onAvanzar: (Int) -> Unit,
+    onCancelar: (Int) -> Unit
+) {
+    val rol by com.rescatapp.core.model.UsuarioDemo.rol.collectAsStateWithLifecycle()
+
     if (estado.pestanaSinPedidos) {
         EstadoVacio(estado.pestana.mensajeSinPedidos)
         return
@@ -105,12 +115,59 @@ private fun ListaPedidos(estado: PedidosUiState) {
             PestanaPedidos.ACTIVOS -> items(estado.activos, key = { it.pedido.id }) { activo ->
                 TarjetaPedido(activo.pedido) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
+
+                    if (rol == com.rescatapp.core.model.RolUsuario.NEGOCIO) {
+                        AccionesPedidoNegocio(
+                            pedido = activo.pedido,
+                            onAvanzar = { onAvanzar(activo.pedido.id) },
+                            onCancelar = { onCancelar(activo.pedido.id) }
+                        )
+                    } else {
+                        BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
+                    }
                 }
             }
 
             PestanaPedidos.HISTORIAL -> items(estado.historial, key = { it.id }) { pedido ->
                 TarjetaPedido(pedido)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccionesPedidoNegocio(
+    pedido: com.rescatapp.core.model.Pedido,
+    onAvanzar: () -> Unit,
+    onCancelar: () -> Unit
+) {
+    val textoBotonPrimario = when (pedido.estado) {
+        EstadoPedido.RESERVADO -> "Comenzar a preparar"
+        EstadoPedido.PREPARANDO -> "Marcar como listo"
+        EstadoPedido.LISTO -> "Confirmar retiro"
+        else -> null
+    }
+
+    if (textoBotonPrimario != null) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (pedido.estado == EstadoPedido.RESERVADO) {
+                TextButton(
+                    onClick = onCancelar,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Cancelar pedido", color = MaterialTheme.colorScheme.error)
+                }
+            }
+            Button(
+                onClick = onAvanzar,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(textoBotonPrimario)
             }
         }
     }

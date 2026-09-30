@@ -27,7 +27,19 @@ class PedidosViewModel @Inject constructor(
     private val mensaje = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<PedidosUiState> =
-        combine(repositorioPedidos.pedidos, pestana, mensaje, ::crearEstado).stateIn(
+        combine(
+            repositorioPedidos.pedidos,
+            pestana,
+            mensaje,
+            com.rescatapp.core.model.UsuarioDemo.rol
+        ) { pedidos, pestanaActual, msj, rol ->
+            val pedidosFiltrados = if (rol == com.rescatapp.core.model.RolUsuario.NEGOCIO) {
+                pedidos.filter { it.comercio == com.rescatapp.core.model.UsuarioDemo.NEGOCIO_DEMO }
+            } else {
+                pedidos
+            }
+            crearEstado(pedidosFiltrados, pestanaActual, msj)
+        }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
             initialValue = crearEstado(repositorioPedidos.pedidos.value, pestana.value, null)
