@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
@@ -23,41 +23,52 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.theme.Naranja
+import com.rescatapp.core.model.EstadoPedido
+import com.rescatapp.core.model.Pedido
+import com.rescatapp.core.util.formatearDinero
 
 @Composable
-fun InicioNegocioScreen() {
+fun InicioNegocioScreen(viewModel: InicioNegocioViewModel = hiltViewModel()) {
+    val estado by viewModel.uiState.collectAsStateWithLifecycle()
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 20.dp)
+        contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { EncabezadoNegocio() }
+        item { EncabezadoNegocio(nombreNegocio = estado.nombreNegocio) }
         item {
             Column(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                ResumenHoy()
+                ResumenHoy(estado = estado)
                 VentasSemana()
-                PedidosRecientes()
+                PedidosRecientes(pedidos = estado.pedidosRecientes)
             }
         }
     }
 }
 
 @Composable
-private fun EncabezadoNegocio() {
+private fun EncabezadoNegocio(nombreNegocio: String) {
     Column {
         Box(
-            modifier = Modifier.fillMaxWidth().height(24.dp).background(Naranja)
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(24.dp)
+                .background(Naranja)
         ) {
             Text(
-                text = "Panadería La Central",
+                text = nombreNegocio,
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
@@ -65,7 +76,9 @@ private fun EncabezadoNegocio() {
             )
         }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -76,7 +89,7 @@ private fun EncabezadoNegocio() {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Buenos días,\nPanadería La Central",
+                    text = "Buenos días,\n$nombreNegocio",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -86,7 +99,7 @@ private fun EncabezadoNegocio() {
 }
 
 @Composable
-private fun ResumenHoy() {
+private fun ResumenHoy(estado: InicioNegocioUiState) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "Resumen de hoy",
@@ -96,14 +109,14 @@ private fun ResumenHoy() {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TarjetaEstadistica(
                 icono = "💰",
-                valor = "Bs. 420",
+                valor = estado.ventasHoy,
                 etiqueta = "Ventas",
                 colorFondo = Color(0xFFFFF8F0),
                 modifier = Modifier.weight(1f)
             )
             TarjetaEstadistica(
                 icono = "🛍️",
-                valor = "18",
+                valor = estado.cantidadPedidos.toString(),
                 etiqueta = "Pedidos",
                 colorFondo = Color(0xFFFFF8F0),
                 modifier = Modifier.weight(1f)
@@ -112,14 +125,14 @@ private fun ResumenHoy() {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             TarjetaEstadistica(
                 icono = "🎁",
-                valor = "6",
+                valor = estado.ofertasActivas.toString(),
                 etiqueta = "Ofertas activas",
                 colorFondo = Color(0xFFF0F8EC),
                 modifier = Modifier.weight(1f)
             )
             TarjetaEstadistica(
                 icono = "🌱",
-                valor = "24",
+                valor = estado.rescatados.toString(),
                 etiqueta = "Rescatados",
                 colorFondo = Color(0xFFF0F8EC),
                 modifier = Modifier.weight(1f)
@@ -212,31 +225,45 @@ private fun VentasSemana() {
 }
 
 @Composable
-private fun PedidosRecientes() {
+private fun PedidosRecientes(pedidos: List<Pedido>) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "Pedidos recientes",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
-        TarjetaPedidoReciente(
-            id = "#APV-1024",
-            producto = "Pack Sorpresa",
-            cliente = "XXX.",
-            hora = "17:42",
-            precio = "Bs.25",
-            estado = "Pendiente",
-            colorEstado = Naranja
-        )
-        TarjetaPedidoReciente(
-            id = "#APV-1023",
-            producto = "Pack Sorpresa",
-            cliente = "XXX.",
-            hora = "17:30",
-            precio = "Bs.25",
-            estado = "Listo",
-            colorEstado = Color(0xFF4CAF50)
-        )
+        if (pedidos.isEmpty()) {
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
+                shape = RoundedCornerShape(12.dp),
+                shadowElevation = 1.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Aún no hay pedidos registrados para este negocio.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        } else {
+            pedidos.forEach { pedido ->
+                val colorEstado = when (pedido.estado) {
+                    EstadoPedido.LISTO, EstadoPedido.RECOGIDO -> Color(0xFF4CAF50)
+                    EstadoPedido.PREPARANDO, EstadoPedido.RESERVADO -> Naranja
+                    EstadoPedido.CANCELADO -> MaterialTheme.colorScheme.error
+                }
+                TarjetaPedidoReciente(
+                    id = "#APV-100${pedido.id}",
+                    producto = pedido.nombreOferta,
+                    cliente = "Cliente",
+                    hora = pedido.horaRetiroDesde,
+                    precio = pedido.precioPagado.formatearDinero(),
+                    estado = pedido.estado.etiqueta,
+                    colorEstado = colorEstado
+                )
+            }
+        }
     }
 }
 
@@ -311,7 +338,7 @@ private fun TarjetaPedidoReciente(
                     ) {
                         Box(modifier = Modifier.size(8.dp).background(colorEstado, CircleShape))
                         Text(
-                            estado,
+                            text = estado,
                             style = MaterialTheme.typography.labelSmall,
                             color = colorEstado,
                             fontWeight = FontWeight.Bold
