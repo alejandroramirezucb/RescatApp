@@ -43,33 +43,56 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
             Text(
                 text = "Mis pedidos",
                 style = MaterialTheme.typography.headlineSmall,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
                 modifier = Modifier.padding(vertical = 20.dp)
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                PestanaPedidos.entries.forEach { pestana ->
-                    ChipSeleccionable(
-                        etiqueta = pestana.titulo,
-                        seleccionado = estado.pestana == pestana,
-                        onClick = { viewModel.seleccionarPestana(pestana) }
-                    )
+            androidx.compose.material3.Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    PestanaPedidos.entries.forEach { pestana ->
+                        val seleccionado = estado.pestana == pestana
+                        val backgroundColor = if (seleccionado) {
+                            MaterialTheme.colorScheme.surface
+                        } else {
+                            androidx.compose.ui.graphics.Color.Transparent
+                        }
+                        val textColor = if (seleccionado) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                        androidx.compose.material3.Surface(
+                            color = backgroundColor,
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f),
+                            onClick = { viewModel.seleccionarPestana(pestana) }
+                        ) {
+                            Text(
+                                text = pestana.titulo,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                color = textColor,
+                                modifier = Modifier.padding(vertical = 12.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
-            ListaPedidos(
-                estado = estado,
-                onAvanzar = viewModel::avanzar,
-                onCancelar = viewModel::cancelar
-            )
+            ListaPedidos(estado = estado)
         }
         SnackbarHost(estadoSnackbar, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 
 @Composable
-private fun ListaPedidos(
-    estado: PedidosUiState,
-    onAvanzar: (Int) -> Unit,
-    onCancelar: (Int) -> Unit
-) {
+private fun ListaPedidos(estado: PedidosUiState) {
     if (estado.pestanaSinPedidos) {
         EstadoVacio(estado.pestana.mensajeSinPedidos)
         return
@@ -81,13 +104,8 @@ private fun ListaPedidos(
         when (estado.pestana) {
             PestanaPedidos.ACTIVOS -> items(estado.activos, key = { it.pedido.id }) { activo ->
                 TarjetaPedido(activo.pedido) {
-                    HorizontalDivider()
-                    BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(12.dp))
-                    AccionesPedido(
-                        estado = activo.pedido.estado,
-                        onAvanzar = { onAvanzar(activo.pedido.id) },
-                        onCancelar = { onCancelar(activo.pedido.id) }
-                    )
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
                 }
             }
 
@@ -97,28 +115,3 @@ private fun ListaPedidos(
         }
     }
 }
-
-@Composable
-private fun AccionesPedido(estado: EstadoPedido, onAvanzar: () -> Unit, onCancelar: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
-    ) {
-        if (estado == EstadoPedido.RESERVADO) {
-            TextButton(onClick = onCancelar) {
-                Text("Cancelar", color = MaterialTheme.colorScheme.error)
-            }
-        }
-        estado.textoParaAvanzar?.let { texto ->
-            Button(onClick = onAvanzar) { Text(texto) }
-        }
-    }
-}
-
-private val EstadoPedido.textoParaAvanzar: String?
-    get() = when (this) {
-        EstadoPedido.RESERVADO -> "Marcar como Preparando"
-        EstadoPedido.PREPARANDO -> "Marcar como Listo"
-        EstadoPedido.LISTO -> "Confirmar retiro"
-        EstadoPedido.RECOGIDO, EstadoPedido.CANCELADO -> null
-    }

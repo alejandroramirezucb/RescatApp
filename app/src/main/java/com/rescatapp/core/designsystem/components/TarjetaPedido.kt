@@ -34,20 +34,35 @@ fun TarjetaPedido(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(modifier = Modifier.height(IntrinsicSize.Min)) {
+        Row(modifier = Modifier.height(100.dp)) {
             ImagenCategoria(
                 categoria = pedido.categoria,
-                modifier = Modifier.width(88.dp).fillMaxHeight(),
+                modifier = Modifier.width(100.dp).fillMaxHeight(),
                 tamanoIcono = 32.dp
             )
             Column(
-                modifier = Modifier.weight(1f).padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                modifier = Modifier.weight(1f).padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = pedido.nombreOferta, style = MaterialTheme.typography.titleSmall)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = pedido.nombreOferta,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                    Text(
+                        text = pedido.precioPagado.formatearDinero(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    )
+                }
                 Text(
                     text = pedido.comercio,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (pedido.estaActivo) {
@@ -60,12 +75,6 @@ fun TarjetaPedido(
                     ChipEstado(pedido.estado)
                 }
             }
-            Text(
-                text = pedido.precioPagado.formatearDinero(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(12.dp)
-            )
         }
         Column(modifier = Modifier.fillMaxWidth(), content = contenidoInferior)
     }
