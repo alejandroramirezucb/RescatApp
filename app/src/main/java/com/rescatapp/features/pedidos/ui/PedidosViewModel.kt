@@ -14,10 +14,12 @@ import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
 import com.rescatapp.features.pedidos.domain.ConstruirProgresoPedidoUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PedidosViewModel @Inject constructor(
@@ -28,6 +30,7 @@ class PedidosViewModel @Inject constructor(
 ) : ViewModel() {
     private val pestana = MutableStateFlow(PestanaPedidos.ACTIVOS)
     private val mensaje = MutableStateFlow<String?>(null)
+    private var cancelacionEnCurso = false
 
     val uiState: StateFlow<PedidosUiState> =
         combine(
@@ -46,7 +49,7 @@ class PedidosViewModel @Inject constructor(
             scope = viewModelScope,
             started = suscripcionPantalla,
             initialValue = crearEstado(
-                seleccionarPedidosPorRol(repositorioPedidos.pedidos.value, UsuarioDemo.rol.value),
+                emptyList(),
                 pestana.value,
                 null,
                 UsuarioDemo.rol.value
@@ -57,9 +60,27 @@ class PedidosViewModel @Inject constructor(
         pestana.value = pestanaElegida
     }
 
-    fun avanzar(pedidoId: Int) = mostrarErrorSiFalla(avanzarPedido(pedidoId))
+    fun avanzar(pedidoId: Int) {
+        viewModelScope.launch {
+            mostrarErrorSiFalla(avanzarPedido(pedidoId))
+        }
+    }
 
-    fun cancelar(pedidoId: Int) = mostrarErrorSiFalla(cancelarPedido(pedidoId))
+    fun cancelar(pedidoId: Int) {
+        if (cancelacionEnCurso) return
+        cancelacionEnCurso = true
+        viewModelScope.launch {
+            try {
+                mostrarErrorSiFalla(cancelarPedido(pedidoId))
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                mensaje.value = "No se pudo cancelar el pedido. Intenta nuevamente."
+            } finally {
+                cancelacionEnCurso = false
+            }
+        }
+    }
 
     fun limpiarMensaje() {
         mensaje.value = null

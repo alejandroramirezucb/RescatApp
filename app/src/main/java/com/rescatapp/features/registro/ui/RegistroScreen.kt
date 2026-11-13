@@ -120,6 +120,7 @@ fun RegistroScreen(
 
             Button(
                 onClick = viewModel::publicar,
+                enabled = !estado.guardando && !estado.guardadoExitoso,
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Naranja),
                 modifier = Modifier
@@ -128,7 +129,7 @@ fun RegistroScreen(
                     .height(52.dp)
             ) {
                 Text(
-                    text = "Publicar oferta",
+                    text = if (estado.guardando) "Guardando..." else "Publicar oferta",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White
                 )

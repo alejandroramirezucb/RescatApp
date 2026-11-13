@@ -9,12 +9,14 @@ class ReservarOfertaUseCase @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas,
     private val repositorioPedidos: RepositorioPedidos
 ) {
-    operator fun invoke(ofertaId: Int): ResultadoOperacion {
+    suspend operator fun invoke(ofertaId: Int): ResultadoOperacion {
         val oferta = repositorioOfertas.buscarPorId(ofertaId)
             ?: return ResultadoOperacion.Error("Oferta no encontrada")
         if (oferta.estaAgotada) return ResultadoOperacion.Error("Esta oferta está agotada")
 
-        repositorioOfertas.cambiarUnidadesDisponibles(oferta.id, diferencia = -1)
+        if (!repositorioOfertas.cambiarUnidadesDisponibles(oferta.id, diferencia = -1)) {
+            return ResultadoOperacion.Error("Esta oferta está agotada o ya no está disponible")
+        }
         val pedido = repositorioPedidos.agregar(oferta.crearPedido(idPedido = 0))
         return ResultadoOperacion.Exito(pedido)
     }

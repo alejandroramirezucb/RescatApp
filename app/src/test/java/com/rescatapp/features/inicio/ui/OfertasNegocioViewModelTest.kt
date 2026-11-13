@@ -2,7 +2,11 @@ package com.rescatapp.features.inicio.ui
 
 import com.google.gson.JsonSyntaxException
 import com.rescatapp.ReglaDispatcherPrincipal
+import com.rescatapp.core.data.OfertaDaoFalso
 import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.data.crearRepositorioOfertas
+import com.rescatapp.core.data.local.OfertaDao
+import com.rescatapp.core.data.local.OfertaEntity
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.data.remote.FuenteOfertasRemotas
 import com.rescatapp.core.model.EstadoRemoto
@@ -12,6 +16,7 @@ import java.io.EOFException
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
@@ -29,7 +34,7 @@ class OfertasNegocioViewModelTest {
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
     private val oferta = ofertasDeEjemplo.first().copy(comercio = UsuarioDemo.NEGOCIO_DEMO)
-    private val local = RepositorioOfertas(listOf(oferta))
+    private val local = crearRepositorioOfertas(listOf(oferta))
     private val remoto = FuenteRemotaFalsa(mutableListOf(oferta.copy(id = 101)))
 
     @Test
@@ -99,7 +104,7 @@ class OfertasNegocioViewModelTest {
         vm.seleccionarPestana(PestanaOfertas.EN_LINEA)
 
         assertEquals(2, remoto.consultas)
-        assertEquals(listOf(oferta), local.ofertas.value)
+        assertEquals(listOf(oferta), local.ofertas.first())
         assertEquals(listOf(oferta), vm.uiState.value.activas)
     }
 
@@ -119,7 +124,7 @@ class OfertasNegocioViewModelTest {
 
         assertEquals(PestanaOfertas.EN_LINEA, vm.uiState.value.pestana)
         assertEquals(setOf(101, 999), ofertasEnLinea(vm).map { it.id }.toSet())
-        assertEquals(listOf(oferta), local.ofertas.value)
+        assertEquals(listOf(oferta), local.ofertas.first())
         assertFalse(vm.uiState.value.ocupado)
         assertNotNull(vm.uiState.value.mensaje)
     }
@@ -136,7 +141,7 @@ class OfertasNegocioViewModelTest {
         vm.eliminarOfertaRemota(editada)
         assertEquals(101, remoto.ultimoId)
         assertTrue(ofertasEnLinea(vm).isEmpty())
-        assertEquals(listOf(oferta), local.ofertas.value)
+        assertEquals(listOf(oferta), local.ofertas.first())
     }
 
     @Test
@@ -167,7 +172,7 @@ class OfertasNegocioViewModelTest {
             assertFalse(vm.uiState.value.ocupado)
             assertNotNull(vm.uiState.value.errorOperacion)
             assertEquals(tipo, vm.uiState.value.operacionFallida?.tipo)
-            assertEquals(listOf(oferta), local.ofertas.value)
+            assertEquals(listOf(oferta), local.ofertas.first())
 
             remoto.antesDeMutar = {}
             vm.reintentarOperacion()
@@ -208,6 +213,46 @@ class OfertasNegocioViewModelTest {
     }
 
     private fun crearViewModel() = OfertasNegocioViewModel(local, remoto)
+
+    @Test
+    fun guardarLocalEsperaLaEscrituraRoomAntesDeCerrarElDialogo() = runTest {
+        val respuesta = CompletableDeferred<Unit>()
+        val base = OfertaDaoFalso(listOf(oferta))
+        val dao = object : OfertaDao by base {
+            override suspend fun actualizar(oferta: OfertaEntity) {
+                respuesta.await()
+                base.actualizar(oferta)
+            }
+        }
+        val vm = OfertasNegocioViewModel(RepositorioOfertas(dao), remoto)
+        var guardadas = 0
+        vm.actualizarOferta(oferta.copy(precioRescate = 1.0)) { guardadas++ }
+        assertTrue(vm.uiState.value.guardandoLocal)
+        assertEquals(0, guardadas)
+
+        respuesta.complete(Unit)
+
+        assertFalse(vm.uiState.value.guardandoLocal)
+        assertEquals(1, guardadas)
+        assertEquals(1.0, vm.uiState.value.activas.first().precioRescate, 0.001)
+    }
+
+    @Test
+    fun unErrorRoomConservaElDialogoYLiberaElBloqueoLocal() = runTest {
+        val dao = object : OfertaDao by OfertaDaoFalso(listOf(oferta)) {
+            override suspend fun actualizar(oferta: OfertaEntity): Unit =
+                throw IOException("Error de escritura")
+        }
+        val vm = OfertasNegocioViewModel(RepositorioOfertas(dao), remoto)
+        var guardadas = 0
+        vm.actualizarOferta(oferta) { guardadas++ }
+
+        assertEquals(0, guardadas)
+        assertFalse(vm.uiState.value.guardandoLocal)
+        assertNotNull(vm.uiState.value.errorLocal)
+        vm.limpiarMensaje()
+        assertNull(vm.uiState.value.errorLocal)
+    }
 
     private fun ofertasEnLinea(vm: OfertasNegocioViewModel): List<Oferta> =
         (vm.uiState.value.estadoRemoto as EstadoRemoto.Exito).datos

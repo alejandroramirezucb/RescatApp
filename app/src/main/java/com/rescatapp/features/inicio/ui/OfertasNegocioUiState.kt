@@ -17,6 +17,8 @@ data class OfertasNegocioUiState(
     val pestana: PestanaOfertas = PestanaOfertas.ACTIVAS,
     val activas: List<Oferta> = emptyList(),
     val finalizadas: List<Oferta> = emptyList(),
+    val guardandoLocal: Boolean = false,
+    val errorLocal: String? = null,
     val estadoRemoto: EstadoRemoto<List<Oferta>> = EstadoRemoto.Exito(emptyList()),
     val operacionEnCurso: OperacionOferta? = null,
     val operacionFallida: OperacionOferta? = null,
@@ -24,5 +26,5 @@ data class OfertasNegocioUiState(
     val mensaje: String? = null
 ) {
     val ocupado: Boolean
-        get() = estadoRemoto is EstadoRemoto.Cargando || operacionEnCurso != null
+        get() = guardandoLocal || estadoRemoto is EstadoRemoto.Cargando || operacionEnCurso != null
 }

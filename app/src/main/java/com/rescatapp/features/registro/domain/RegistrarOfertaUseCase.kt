@@ -10,7 +10,7 @@ import javax.inject.Inject
 class RegistrarOfertaUseCase @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas
 ) {
-    operator fun invoke(campos: CamposRegistro): ResultadoOperacion {
+    suspend operator fun invoke(campos: CamposRegistro): ResultadoOperacion {
         val oferta = campos.aOfertaOrNull()
             ?: return ResultadoOperacion.Error("Revisa los datos de la oferta")
         return ResultadoOperacion.Exito(repositorioOfertas.agregar(oferta))

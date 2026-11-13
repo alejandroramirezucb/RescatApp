@@ -8,7 +8,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
@@ -134,7 +134,7 @@ class OfertasNegocioScreenTest {
 
     private fun guardarCaptura(nombre: String) {
         val archivo = File("build/reports/issue71/$nombre.png")
-        archivo.parentFile.mkdirs()
+        archivo.parentFile?.mkdirs()
         archivo.outputStream().use {
             compose.onRoot().captureToImage().asAndroidBitmap()
                 .compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
@@ -154,7 +154,7 @@ class OfertasNegocioScreenTest {
             onSeleccion = {},
             onReintentar = onReintentar,
             onPublicar = onPublicar,
-            onEditarLocal = {},
+            onEditarLocal = { _, _ -> },
             onEditarRemota = onEditar,
             onEliminar = onEliminar,
             onReintentarOperacion = {},

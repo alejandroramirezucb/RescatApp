@@ -1,8 +1,9 @@
 package com.rescatapp.features.inicio.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.crearRepositorioOfertas
+import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import com.rescatapp.observarDuranteLaPrueba
@@ -15,17 +16,19 @@ class InicioViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorioOfertas = RepositorioOfertas()
-    private val repositorioPedidos = RepositorioPedidos()
+    private val repositorioOfertas = crearRepositorioOfertas()
+    private val repositorioPedidos = RepositorioPedidos(FakePedidoDao())
 
     @Test
-    fun estadoInicialTieneUsuarioInvitado() {
+    fun estadoInicialTieneUsuarioInvitado() = runTest {
         assertEquals("Invitado", crearViewModel().uiState.value.usuario)
     }
 
     @Test
-    fun iniciaConElImpactoYLasSeccionesDelDiseno() {
-        val estado = crearViewModel().uiState.value
+    fun iniciaConElImpactoYLasSeccionesDelDiseno() = runTest {
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+        val estado = viewModel.uiState.value
 
         assertEquals(4, estado.impacto.rescates)
         assertEquals(14, estado.ofertas.disponibles.size)

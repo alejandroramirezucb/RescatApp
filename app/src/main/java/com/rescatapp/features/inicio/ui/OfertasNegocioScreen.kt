@@ -34,7 +34,7 @@ internal fun OfertasNegocioContenido(
     onSeleccion: (PestanaOfertas) -> Unit,
     onReintentar: () -> Unit,
     onPublicar: (Oferta) -> Unit,
-    onEditarLocal: (Oferta) -> Unit,
+    onEditarLocal: (Oferta, () -> Unit) -> Unit,
     onEditarRemota: (Oferta) -> Unit,
     onEliminar: (Oferta) -> Unit,
     onReintentarOperacion: () -> Unit,
@@ -47,8 +47,12 @@ internal fun OfertasNegocioContenido(
         DialogoEditarOferta(
             oferta = oferta,
             onGuardar = { actualizada ->
-                if (esRemota) onEditarRemota(actualizada) else onEditarLocal(actualizada)
-                ofertaParaEditar = null
+                if (esRemota) {
+                    onEditarRemota(actualizada)
+                    ofertaParaEditar = null
+                } else {
+                    onEditarLocal(actualizada) { ofertaParaEditar = null }
+                }
             },
             onDescartar = { ofertaParaEditar = null }
         )

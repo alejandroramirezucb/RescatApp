@@ -3,6 +3,7 @@ package com.rescatapp.core.data.local
 import com.rescatapp.core.data.pedidosDeEjemplo
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -11,7 +12,9 @@ class PedidoEntityTest {
 
     @Test
     fun mapeaTodosLosCamposEntreEntidadYModeloDeDominio() {
-        val original = pedidosDeEjemplo.first()
+        val original = pedidosDeEjemplo.first().copy(
+            fecha = LocalDate.of(2026, 11, 5)
+        )
         val entidad = original.toEntity()
 
         assertEquals(original.id, entidad.id)
@@ -26,13 +29,15 @@ class PedidoEntityTest {
         assertEquals(original.horaRetiroHasta, entidad.horaRetiroHasta)
         assertEquals(original.estado, entidad.estado)
         assertEquals(original.imagenUri, entidad.imagenUri)
+        assertEquals(original.fecha, entidad.fecha)
 
         val reconstruido = entidad.toDomain()
         assertEquals(original, reconstruido)
+        assertEquals(LocalDate.of(2026, 11, 5), reconstruido.fecha)
     }
 
     @Test
-    fun entidadConValoresPorDefectoGeneraIdCeroEImagenNula() {
+    fun entidadConValoresPorDefectoGeneraIdCeroEImagenNulaYFechaActual() {
         val entidad = PedidoEntity(
             ofertaId = 10,
             nombreOferta = "Canasta",
@@ -48,5 +53,6 @@ class PedidoEntityTest {
 
         assertEquals(0, entidad.id)
         assertNull(entidad.imagenUri)
+        assertEquals(LocalDate.now(), entidad.fecha)
     }
 }

@@ -49,7 +49,24 @@ class OfertasNegocioViewModel @Inject constructor(
         if (pestana == PestanaOfertas.EN_LINEA && anterior != pestana) cargarOfertasRemotas()
     }
 
-    fun actualizarOferta(oferta: Oferta) = repositorioOfertas.actualizar(oferta)
+    fun actualizarOferta(oferta: Oferta, onGuardada: () -> Unit = {}) {
+        if (estado.value.ocupado) return
+        estado.update { it.copy(guardandoLocal = true, errorLocal = null) }
+        viewModelScope.launch {
+            try {
+                repositorioOfertas.actualizar(oferta)
+                onGuardada()
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                estado.update {
+                    it.copy(errorLocal = "No se pudieron guardar los cambios. Intenta nuevamente.")
+                }
+            } finally {
+                estado.update { it.copy(guardandoLocal = false) }
+            }
+        }
+    }
 
     fun cargarOfertasRemotas() {
         if (estado.value.ocupado) return
@@ -82,7 +99,7 @@ class OfertasNegocioViewModel @Inject constructor(
     }
 
     fun limpiarMensaje() {
-        estado.update { it.copy(mensaje = null) }
+        estado.update { it.copy(mensaje = null, errorLocal = null) }
     }
 
     private fun ejecutarOperacion(operacion: OperacionOferta) {

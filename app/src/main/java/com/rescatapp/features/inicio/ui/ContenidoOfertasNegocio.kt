@@ -102,6 +102,12 @@ internal fun ListaOfertasNegocio(
         estado.mensaje?.let { mensaje ->
             item { MensajeOfertas(mensaje, "Entendido", onLimpiarMensaje) }
         }
+        estado.errorLocal?.let { mensaje ->
+            item { MensajeOfertas(mensaje, "Entendido", onLimpiarMensaje, error = true) }
+        }
+        if (estado.guardandoLocal) {
+            item { ProgresoOfertas("Guardando cambios locales…") }
+        }
         estado.errorOperacion?.let { mensaje ->
             item {
                 MensajeOfertas(

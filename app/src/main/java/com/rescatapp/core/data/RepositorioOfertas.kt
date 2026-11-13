@@ -1,39 +1,43 @@
 package com.rescatapp.core.data
 
+import com.rescatapp.core.data.local.OfertaDao
+import com.rescatapp.core.data.local.filtrar
+import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Oferta
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 
 @Singleton
-class RepositorioOfertas(ofertasIniciales: List<Oferta>) {
-    @Inject
-    constructor() : this(ofertasDeEjemplo)
-
-    private val ofertasEditables = MutableStateFlow(ofertasIniciales)
-    val ofertas: StateFlow<List<Oferta>> = ofertasEditables.asStateFlow()
-
-    fun obtenerPorId(id: Int): Flow<Oferta?> = ofertas.map { lista -> lista.find { it.id == id } }
-
-    fun buscarPorId(id: Int): Oferta? = ofertas.value.find { it.id == id }
-
-    fun agregar(oferta: Oferta): Oferta {
-        val ofertaNueva = oferta.copy(id = generarSiguienteId(ofertas.value.map { it.id }))
-        ofertasEditables.update { listOf(ofertaNueva) + it }
-        return ofertaNueva
+class RepositorioOfertas @Inject constructor(private val ofertaDao: OfertaDao) {
+    val ofertas: Flow<List<Oferta>> = ofertaDao.observarTodas().map { entidades ->
+        entidades.map { it.toDomain() }
     }
 
-    fun actualizar(oferta: Oferta) {
-        ofertasEditables.update { lista -> lista.map { if (it.id == oferta.id) oferta else it } }
+    fun obtenerPorId(id: Int): Flow<Oferta?> = ofertaDao.observarPorId(id).map { it?.toDomain() }
+
+    suspend fun buscarPorId(id: Int): Oferta? = ofertaDao.buscarPorId(id)?.toDomain()
+
+    suspend fun agregar(oferta: Oferta): Oferta {
+        val id = ofertaDao.insertar(oferta.copy(id = 0).toEntity())
+        return oferta.copy(id = id.toInt())
     }
 
-    fun cambiarUnidadesDisponibles(ofertaId: Int, diferencia: Int) {
-        val oferta = buscarPorId(ofertaId) ?: return
-        actualizar(oferta.copy(cantidadDisponible = oferta.cantidadDisponible + diferencia))
+    suspend fun actualizar(oferta: Oferta) {
+        ofertaDao.actualizar(oferta.toEntity())
     }
+
+    suspend fun eliminar(ofertaId: Int) {
+        ofertaDao.eliminarPorId(ofertaId)
+    }
+
+    suspend fun cambiarUnidadesDisponibles(ofertaId: Int, diferencia: Int): Boolean =
+        ofertaDao.cambiarUnidadesDisponibles(ofertaId, diferencia) > 0
+
+    fun filtrar(categoria: Categoria?, texto: String): Flow<List<Oferta>> =
+        ofertaDao.filtrar(categoria, texto.trim()).map { entidades ->
+            entidades.map { it.toDomain() }
+        }
 }

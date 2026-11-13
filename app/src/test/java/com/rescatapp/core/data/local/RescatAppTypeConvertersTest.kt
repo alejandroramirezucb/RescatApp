@@ -2,6 +2,7 @@ package com.rescatapp.core.data.local
 
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
+import java.time.LocalDate
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -45,5 +46,20 @@ class RescatAppTypeConvertersTest {
     fun cadenaDesconocidaParaCategoriaUsaValorPorDefecto() {
         val categoria = conversores.toCategoria("OTRA_COSA")
         assertEquals(Categoria.COMIDA, categoria)
+    }
+
+    @Test
+    fun convierteLocalDateACadenaYViceversa() {
+        val fecha = LocalDate.of(2026, 11, 13)
+        val serializado = conversores.fromLocalDate(fecha)
+        assertEquals("2026-11-13", serializado)
+        val deserializado = conversores.toLocalDate(serializado)
+        assertEquals(fecha, deserializado)
+    }
+
+    @Test
+    fun cadenaInvalidaParaLocalDateUsaFechaActualPorDefecto() {
+        val fecha = conversores.toLocalDate("FECHA_INVALIDA")
+        assertEquals(LocalDate.now(), fecha)
     }
 }

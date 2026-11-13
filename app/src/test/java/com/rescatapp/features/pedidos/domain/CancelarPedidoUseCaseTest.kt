@@ -1,19 +1,21 @@
 package com.rescatapp.features.pedidos.domain
 
-import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.crearRepositorioOfertas
+import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.ResultadoOperacion
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class CancelarPedidoUseCaseTest {
-    private val repositorioOfertas = RepositorioOfertas()
-    private val repositorioPedidos = RepositorioPedidos()
+    private val repositorioOfertas = crearRepositorioOfertas()
+    private val repositorioPedidos = RepositorioPedidos(FakePedidoDao())
     private val cancelarPedido = CancelarPedidoUseCase(repositorioPedidos, repositorioOfertas)
 
     @Test
-    fun cancelarUnPedidoReservadoDevuelveLaUnidadALaOferta() {
+    fun cancelarUnPedidoReservadoDevuelveLaUnidadALaOferta() = runTest {
         val packCroissants = repositorioOfertas.buscarPorId(13)!!
         repositorioOfertas.cambiarUnidadesDisponibles(packCroissants.id, diferencia = -1)
         val pedido = repositorioPedidos.agregar(packCroissants.crearPedido(idPedido = 0))
@@ -25,7 +27,7 @@ class CancelarPedidoUseCaseTest {
     }
 
     @Test
-    fun noCancelaUnPedidoQueYaSeEstaPreparando() {
+    fun noCancelaUnPedidoQueYaSeEstaPreparando() = runTest {
         val resultado = cancelarPedido(4)
 
         val errorEsperado = ResultadoOperacion.Error("Solo puedes cancelar un pedido reservado")

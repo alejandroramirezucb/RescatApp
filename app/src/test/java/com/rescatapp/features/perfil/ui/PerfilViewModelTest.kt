@@ -2,6 +2,7 @@ package com.rescatapp.features.perfil.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.observarDuranteLaPrueba
@@ -14,12 +15,15 @@ class PerfilViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorioPedidos = RepositorioPedidos()
+    private val fakePedidoDao = FakePedidoDao()
+    private val repositorioPedidos = RepositorioPedidos(fakePedidoDao)
 
     @Test
-    fun muestraElImpactoDeLosPedidosDeEjemplo() {
-        val impacto = crearViewModel().uiState.value.impacto
+    fun muestraElImpactoDeLosPedidosDeEjemplo() = runTest {
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
 
+        val impacto = viewModel.uiState.value.impacto
         assertEquals(4, impacto.rescates)
         assertEquals(102.0, impacto.ahorrado, 0.001)
         assertEquals(3.6, impacto.kgAprovechados, 0.001)

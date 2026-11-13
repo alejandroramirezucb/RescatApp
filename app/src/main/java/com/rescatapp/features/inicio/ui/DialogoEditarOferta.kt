@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.CampoConError
@@ -29,6 +30,7 @@ internal fun DialogoEditarOferta(
     onGuardar: (Oferta) -> Unit,
     onDescartar: () -> Unit
 ) {
+    val gestorFoco = LocalFocusManager.current
     var cantidad by remember { mutableStateOf(oferta.cantidadDisponible.toString()) }
     var precioRescate by remember { mutableStateOf(oferta.precioRescate.toString()) }
     var horaDesde by remember { mutableStateOf(oferta.horaRetiroDesde) }
@@ -45,6 +47,7 @@ internal fun DialogoEditarOferta(
         textoConfirmar = "Guardar cambios",
         textoDescartar = "Cancelar",
         onConfirmar = {
+            gestorFoco.clearFocus()
             mostrarErrores = true
             if (cantidadValida != null && precioValido != null && horarioValido) {
                 onGuardar(

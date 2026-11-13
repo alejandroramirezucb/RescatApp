@@ -5,6 +5,7 @@ import androidx.room.PrimaryKey
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
+import java.time.LocalDate
 
 @Entity(tableName = "pedidos")
 data class PedidoEntity(
@@ -20,7 +21,8 @@ data class PedidoEntity(
     val horaRetiroDesde: String,
     val horaRetiroHasta: String,
     val estado: EstadoPedido,
-    val imagenUri: String? = null
+    val imagenUri: String? = null,
+    val fecha: LocalDate = LocalDate.now()
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,
@@ -34,7 +36,8 @@ data class PedidoEntity(
         horaRetiroDesde = horaRetiroDesde,
         horaRetiroHasta = horaRetiroHasta,
         estado = estado,
-        imagenUri = imagenUri
+        imagenUri = imagenUri,
+        fecha = fecha
     )
 }
 
@@ -50,5 +53,6 @@ fun Pedido.toEntity(): PedidoEntity = PedidoEntity(
     horaRetiroDesde = horaRetiroDesde,
     horaRetiroHasta = horaRetiroHasta,
     estado = estado,
-    imagenUri = imagenUri
+    imagenUri = imagenUri,
+    fecha = fecha
 )
