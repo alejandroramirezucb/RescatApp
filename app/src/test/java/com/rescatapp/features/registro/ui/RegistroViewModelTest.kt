@@ -108,7 +108,10 @@ class RegistroViewModelTest {
 
         assertFalse(registro.uiState.value.guardando)
         assertFalse(registro.uiState.value.guardadoExitoso)
-        assertEquals("No se pudo guardar la oferta. Intenta nuevamente.", registro.uiState.value.mensaje)
+        assertEquals(
+            "No se pudo guardar la oferta. Intenta nuevamente.",
+            registro.uiState.value.mensaje
+        )
         assertEquals(14, repo.ofertas.first().size)
 
         falla = false

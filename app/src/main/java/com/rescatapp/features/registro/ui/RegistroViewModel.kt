@@ -43,12 +43,17 @@ class RegistroViewModel @Inject constructor(
             try {
                 when (val resultado = registrarOferta(campos)) {
                     is ResultadoOperacion.Exito -> estado.update { it.copy(guardadoExitoso = true) }
-                    is ResultadoOperacion.Error -> estado.update { it.copy(mensaje = resultado.mensaje) }
+
+                    is ResultadoOperacion.Error -> estado.update {
+                        it.copy(mensaje = resultado.mensaje)
+                    }
                 }
             } catch (cancelacion: CancellationException) {
                 throw cancelacion
             } catch (_: Exception) {
-                estado.update { it.copy(mensaje = "No se pudo guardar la oferta. Intenta nuevamente.") }
+                estado.update {
+                    it.copy(mensaje = "No se pudo guardar la oferta. Intenta nuevamente.")
+                }
             } finally {
                 estado.update { it.copy(guardando = false) }
             }

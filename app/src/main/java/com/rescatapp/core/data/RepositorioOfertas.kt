@@ -16,8 +16,7 @@ class RepositorioOfertas @Inject constructor(private val ofertaDao: OfertaDao) {
         entidades.map { it.toDomain() }
     }
 
-    fun obtenerPorId(id: Int): Flow<Oferta?> =
-        ofertaDao.observarPorId(id).map { it?.toDomain() }
+    fun obtenerPorId(id: Int): Flow<Oferta?> = ofertaDao.observarPorId(id).map { it?.toDomain() }
 
     suspend fun buscarPorId(id: Int): Oferta? = ofertaDao.buscarPorId(id)?.toDomain()
 

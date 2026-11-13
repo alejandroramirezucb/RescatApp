@@ -62,6 +62,9 @@ class DetalleViewModelTest {
     private fun crearViewModel(ofertaId: Int) = DetalleViewModel(
         savedStateHandle = SavedStateHandle(mapOf(ArgumentosRuta.OFERTA_ID to ofertaId)),
         repositorioOfertas = repositorioOfertas,
-        reservarOferta = ReservarOfertaUseCase(repositorioOfertas, RepositorioPedidos(FakePedidoDao()))
+        reservarOferta = ReservarOfertaUseCase(
+            repositorioOfertas,
+            RepositorioPedidos(FakePedidoDao())
+        )
     )
 }

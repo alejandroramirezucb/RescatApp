@@ -46,8 +46,7 @@ class OfertaDaoFalso(ofertasIniciales: List<Oferta> = ofertasDeEjemplo) : Oferta
     override fun observarPorId(id: Int): Flow<OfertaEntity?> =
         entidades.map { lista -> lista.find { it.id == id } }
 
-    override suspend fun buscarPorId(id: Int): OfertaEntity? =
-        entidades.value.find { it.id == id }
+    override suspend fun buscarPorId(id: Int): OfertaEntity? = entidades.value.find { it.id == id }
 
     override suspend fun cambiarUnidadesDisponibles(id: Int, diferencia: Int): Int {
         val oferta = buscarPorId(id) ?: return 0
@@ -60,8 +59,10 @@ class OfertaDaoFalso(ofertasIniciales: List<Oferta> = ofertasDeEjemplo) : Oferta
         observarTodas().map { lista ->
             lista.filter { oferta ->
                 (categoria == null || oferta.categoria.name == categoria) &&
-                    (texto.isNullOrEmpty() || oferta.nombre.contains(texto, ignoreCase = true) ||
-                        oferta.comercio.contains(texto, ignoreCase = true))
+                    (
+                        texto.isNullOrEmpty() || oferta.nombre.contains(texto, ignoreCase = true) ||
+                            oferta.comercio.contains(texto, ignoreCase = true)
+                        )
             }
         }
 }

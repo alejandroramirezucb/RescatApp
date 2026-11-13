@@ -43,7 +43,9 @@ class DetalleViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
-                    is ResultadoOperacion.Exito -> "Reservaste $nombreOferta. Puedes verlo en Pedidos."
+                    is ResultadoOperacion.Exito ->
+                        "Reservaste $nombreOferta. Puedes verlo en Pedidos."
+
                     is ResultadoOperacion.Error -> resultado.mensaje
                 }
             } catch (cancelacion: CancellationException) {

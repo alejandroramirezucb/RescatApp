@@ -73,8 +73,7 @@ class RepositorioOfertasTest {
     @Test
     fun unaEscrituraFallidaNoPublicaUnaOfertaEnMemoria() = runTest {
         val daoConError = object : OfertaDao by dao {
-            override suspend fun insertar(oferta: OfertaEntity): Long =
-                error("No se pudo escribir")
+            override suspend fun insertar(oferta: OfertaEntity): Long = error("No se pudo escribir")
         }
         val repo = RepositorioOfertas(daoConError)
 
