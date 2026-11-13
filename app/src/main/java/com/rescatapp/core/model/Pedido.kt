@@ -1,5 +1,7 @@
 package com.rescatapp.core.model
 
+import java.time.LocalDate
+
 data class Pedido(
     val id: Int,
     val ofertaId: Int,
@@ -12,7 +14,8 @@ data class Pedido(
     val horaRetiroDesde: String,
     val horaRetiroHasta: String,
     val estado: EstadoPedido,
-    val imagenUri: String? = null
+    val imagenUri: String? = null,
+    val fecha: LocalDate = LocalDate.now()
 ) {
     val estaActivo: Boolean
         get() = !estado.esFinal

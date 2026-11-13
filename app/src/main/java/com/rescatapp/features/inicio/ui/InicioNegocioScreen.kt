@@ -27,7 +27,7 @@ fun InicioNegocioScreen(viewModel: InicioNegocioViewModel = hiltViewModel()) {
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 ResumenNegocio(estado)
-                VentasSemanaNegocio()
+                VentasSemanaNegocio(estado.ventasSemana, estado.indiceDiaActual)
                 PedidosRecientesNegocio(estado.pedidosRecientes)
             }
         }

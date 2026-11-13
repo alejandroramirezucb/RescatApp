@@ -13,10 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,8 +37,6 @@ internal fun InformacionCuenta(estado: PerfilUiState) {
             valor = estado.nombre
         )
         FilaDatoPerfil(Icons.Default.Email, "Correo", estado.correo)
-        FilaDatoPerfil(Icons.Default.LocationOn, "Ubicación", "Santa Cruz de la Sierra, Bolivia")
-        FilaDatoPerfil(Icons.Default.Phone, "Teléfono de contacto", "+591 700-12345")
     }
 }
 

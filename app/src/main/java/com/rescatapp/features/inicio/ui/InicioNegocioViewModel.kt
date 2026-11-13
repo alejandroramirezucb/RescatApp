@@ -10,6 +10,7 @@ import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.suscripcionPantalla
+import com.rescatapp.features.inicio.domain.CalcularVentasSemanaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,8 @@ import kotlinx.coroutines.flow.stateIn
 @HiltViewModel
 class InicioNegocioViewModel @Inject constructor(
     repositorioOfertas: RepositorioOfertas,
-    repositorioPedidos: RepositorioPedidos
+    repositorioPedidos: RepositorioPedidos,
+    calcularVentasSemana: CalcularVentasSemanaUseCase
 ) : ViewModel() {
 
     val uiState: StateFlow<InicioNegocioUiState> =
@@ -44,7 +46,8 @@ class InicioNegocioViewModel @Inject constructor(
                 cantidadPedidos = pedidosNegocio.size,
                 ofertasActivas = ofertasNegocio.count { !it.estaAgotada },
                 rescatados = rescatadosTotal,
-                pedidosRecientes = pedidosNegocio.sortedByDescending { it.id }
+                pedidosRecientes = pedidosNegocio.sortedByDescending { it.id },
+                ventasSemana = calcularVentasSemana(pedidosNegocio)
             )
         }.stateIn(
             scope = viewModelScope,

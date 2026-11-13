@@ -22,7 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
 
 @Composable
-internal fun VentasSemanaNegocio() {
+internal fun VentasSemanaNegocio(ventasSemana: List<Double>, indiceDiaActual: Int) {
+    val ventaMaxima = ventasSemana.max().coerceAtLeast(1.0)
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp),
@@ -41,7 +42,8 @@ internal fun VentasSemanaNegocio() {
                 verticalAlignment = Alignment.Bottom
             ) {
                 listOf("L", "M", "X", "J", "V", "S", "D").forEachIndexed { indice, dia ->
-                    BarraDiaVenta(dia, indice == 5)
+                    val proporcion = (ventasSemana[indice] / ventaMaxima).toFloat()
+                    BarraDiaVenta(dia, proporcion, indice == indiceDiaActual)
                 }
             }
         }
@@ -49,11 +51,11 @@ internal fun VentasSemanaNegocio() {
 }
 
 @Composable
-private fun BarraDiaVenta(dia: String, esHoy: Boolean) {
+private fun BarraDiaVenta(dia: String, proporcion: Float, esHoy: Boolean) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .size(width = 32.dp, height = if (esHoy) 40.dp else 20.dp)
+                .size(width = 32.dp, height = 4.dp + 36.dp * proporcion)
                 .background(
                     color = if (esHoy) Naranja else Naranja.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
