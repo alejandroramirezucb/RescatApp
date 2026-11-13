@@ -14,7 +14,9 @@ class ReservarOfertaUseCase @Inject constructor(
             ?: return ResultadoOperacion.Error("Oferta no encontrada")
         if (oferta.estaAgotada) return ResultadoOperacion.Error("Esta oferta está agotada")
 
-        repositorioOfertas.cambiarUnidadesDisponibles(oferta.id, diferencia = -1)
+        if (!repositorioOfertas.cambiarUnidadesDisponibles(oferta.id, diferencia = -1)) {
+            return ResultadoOperacion.Error("Esta oferta está agotada o ya no está disponible")
+        }
         val pedido = repositorioPedidos.agregar(oferta.crearPedido(idPedido = 0))
         return ResultadoOperacion.Exito(pedido)
     }

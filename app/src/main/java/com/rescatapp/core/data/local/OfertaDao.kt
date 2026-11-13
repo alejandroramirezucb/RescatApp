@@ -38,9 +38,19 @@ interface OfertaDao {
 
     @Query(
         """
-        SELECT * FROM ofertas 
-        WHERE (:categoria IS NULL OR categoria = :categoria) 
-          AND (:texto IS NULL OR :texto = '' OR nombre LIKE '%' || :texto || '%') 
+        UPDATE ofertas SET cantidadDisponible = cantidadDisponible + :diferencia
+        WHERE id = :id AND cantidadDisponible + :diferencia >= 0
+        """
+    )
+    suspend fun cambiarUnidadesDisponibles(id: Int, diferencia: Int): Int
+
+    @Query(
+        """
+        SELECT * FROM ofertas
+        WHERE (:categoria IS NULL OR categoria = :categoria)
+          AND (:texto IS NULL OR :texto = ''
+               OR nombre LIKE '%' || :texto || '%'
+               OR comercio LIKE '%' || :texto || '%')
         ORDER BY id DESC
         """
     )

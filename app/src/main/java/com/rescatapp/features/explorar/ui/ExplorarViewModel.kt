@@ -5,11 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.core.util.suscripcionPantalla
-import com.rescatapp.features.explorar.domain.FiltrarOfertasUseCase
 import com.rescatapp.features.explorar.domain.FiltrosOfertas
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -25,8 +23,7 @@ import kotlinx.coroutines.flow.update
 @HiltViewModel
 class ExplorarViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repositorioOfertas: RepositorioOfertas,
-    private val filtrarOfertas: FiltrarOfertasUseCase
+    repositorioOfertas: RepositorioOfertas
 ) : ViewModel() {
     private val filtros = MutableStateFlow(
         FiltrosOfertas(categoria = savedStateHandle.categoriaSolicitada())
@@ -50,7 +47,7 @@ class ExplorarViewModel @Inject constructor(
         }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
-            initialValue = crearEstado(repositorioOfertas.ofertas.value, filtros.value)
+            initialValue = ExplorarUiState(filtros = filtros.value)
         )
 
     fun buscar(texto: String) = filtros.update { it.copy(texto = texto) }
@@ -59,12 +56,6 @@ class ExplorarViewModel @Inject constructor(
         filtros.update { it.copy(categoria = categoria) }
 
     fun seleccionarOrden(orden: OrdenOfertas) = filtros.update { it.copy(orden = orden) }
-
-    private fun crearEstado(ofertas: List<Oferta>, filtrosActuales: FiltrosOfertas) =
-        ExplorarUiState(
-            filtros = filtrosActuales,
-            ofertas = filtrarOfertas(ofertas, filtrosActuales)
-        )
 
     private fun SavedStateHandle.categoriaSolicitada(): Categoria? {
         val nombreCategoria: String? = get(ArgumentosRuta.CATEGORIA)

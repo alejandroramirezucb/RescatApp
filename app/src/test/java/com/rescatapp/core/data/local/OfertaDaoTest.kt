@@ -179,4 +179,28 @@ class OfertaDaoTest {
         val lista = ofertaDao.observarTodas().first()
         assertEquals(ofertasDeEjemplo.size, lista.size)
     }
+
+    @Test
+    fun filtrarBuscaTambienEnElComercioYRespetaLaCategoria() = runTest {
+        ofertaDao.insertar(
+            crearOferta(id = 1, nombre = "Sandwich", categoria = Categoria.COMIDA)
+                .copy(comercio = "Café Aroma")
+        )
+        ofertaDao.insertar(crearOferta(id = 2, nombre = "Tarta", categoria = Categoria.POSTRES))
+
+        val resultado = ofertaDao.filtrar(Categoria.COMIDA, "café").first()
+        assertEquals(listOf(1), resultado.map { it.id })
+        assertEquals(0, ofertaDao.filtrar(Categoria.POSTRES, "café").first().size)
+    }
+
+    @Test
+    fun cambiarDisponibilidadNoPermiteSobrevenderLaUltimaUnidad() = runTest {
+        ofertaDao.insertar(crearOferta(id = 1).copy(cantidadDisponible = 1))
+
+        assertEquals(1, ofertaDao.cambiarUnidadesDisponibles(1, -1))
+        assertEquals(0, ofertaDao.cambiarUnidadesDisponibles(1, -1))
+        assertEquals(0, ofertaDao.buscarPorId(1)?.cantidadDisponible)
+        assertEquals(1, ofertaDao.cambiarUnidadesDisponibles(1, 1))
+        assertEquals(1, ofertaDao.buscarPorId(1)?.cantidadDisponible)
+    }
 }
