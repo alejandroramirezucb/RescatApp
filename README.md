@@ -13,12 +13,13 @@ Aplicación Android para rescatar alimentos. Los comercios publican sus excedent
 3. [Pantallas](#pantallas)
 4. [Estructura del proyecto](#estructura-del-proyecto)
 5. [Arquitectura](#arquitectura)
-6. [Por qué no usamos Room](#por-qué-no-usamos-room)
-7. [Dónde se cumple cada punto de la rúbrica](#dónde-se-cumple-cada-punto-de-la-rúbrica)
-8. [Guion de la demostración](#guion-de-la-demostración)
-9. [Preguntas de la defensa técnica](#preguntas-de-la-defensa-técnica)
-10. [Objetivos de Desarrollo Sostenible](#objetivos-de-desarrollo-sostenible)
-11. [Equipo](#equipo)
+6. [Persistencia local con Room](#persistencia-local-con-room)
+7. [Consumo de API REST con Retrofit y MockAPI](#consumo-de-api-rest-con-retrofit-y-mockapi)
+8. [Dónde se cumple cada punto de la guía técnica](#dónde-se-cumple-cada-punto-de-la-guía-técnica)
+9. [Guion de la demostración técnica (12 pasos)](#guion-de-la-demostración-técnica-12-pasos)
+10. [Preguntas de la defensa técnica](#preguntas-de-la-defensa-técnica)
+11. [Objetivos de Desarrollo Sostenible](#objetivos-de-desarrollo-sostenible)
+12. [Equipo](#equipo)
 
 ---
 
@@ -26,180 +27,188 @@ Aplicación Android para rescatar alimentos. Los comercios publican sus excedent
 
 1. Abrir la carpeta del proyecto en Android Studio.
 2. Esperar la sincronización de Gradle.
-3. Elegir un emulador o dispositivo y presionar **Run**.
+3. Elegir un emulador o dispositivo físico y presionar **Run**.
 
-| Comando                               | Qué hace                                                                                  |
-| ------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `./gradlew :app:assembleDebug`        | Compila la app                                                                            |
-| `./gradlew :app:testDebugUnitTest`    | Ejecuta las pruebas unitarias                                                             |
-| `./gradlew spotlessApply`             | Formatea el código (Spotless + ktlint)                                                    |
-| `git config core.hooksPath .githooks` | Activa el formateo automático antes de cada commit ([instrucciones](.githooks/README.md)) |
+| Comando | Qué hace |
+| --- | --- |
+| `./gradlew :app:assembleDebug` | Compila la app en variante debug |
+| `./gradlew :app:testDebugUnitTest` | Ejecuta las pruebas unitarias automatizadas |
+| `./gradlew spotlessApply` | Aplica el formateo uniforme de código (Spotless + ktlint) |
+| `git config core.hooksPath .githooks` | Activa el formateo automático pre-commit ([instrucciones](.githooks/README.md)) |
 
-El [CI de GitHub](.github/workflows/android.yml) verifica formato, pruebas y compilación en cada push a `main`.
+El [CI de GitHub](.github/workflows/android.yml) valida compilación, pruebas y estilo en cada push a `main`.
+
+---
 
 ## Tecnologías
 
-| Tecnología                      | Para qué se usa                                                     |
-| ------------------------------- | ------------------------------------------------------------------- |
-| Kotlin                          | Lenguaje del proyecto                                               |
-| Jetpack Compose + Material 3    | Interfaz de usuario                                                 |
-| Navigation Compose              | Navegación entre pantallas                                          |
-| Hilt                            | Inyección de dependencias (ViewModels, casos de uso y repositorios) |
-| StateFlow + ViewModel           | Estado observable que sobrevive a cambios de configuración          |
-| JUnit + kotlinx-coroutines-test | Pruebas unitarias                                                   |
-| Spotless + ktlint               | Formato uniforme del código                                         |
+| Tecnología | Para qué se usa |
+| --- | --- |
+| **Kotlin** | Lenguaje principal del proyecto |
+| **Jetpack Compose + Material 3** | Interfaz de usuario declarativa y diseño cohesivo |
+| **Navigation Compose** | Navegación multipantalla con `NavController`, `NavHost` y rutas tipadas |
+| **Hilt (Dagger)** | Inyección de dependencias para repositorios, DAOs, base de datos y ViewModels |
+| **Room Database** | Persistencia local en SQLite con `@Entity`, `@Dao`, `TypeConverters` y flujos `Flow` |
+| **Retrofit 2 + OkHttp + Gson** | Cliente HTTP para consumo de API REST sobre MockAPI con operaciones CRUD |
+| **StateFlow + ViewModel** | Manejo de estado reactivo desacoplado del ciclo de vida de la UI |
+| **JUnit + Coroutines Test** | Pruebas unitarias para reglas de negocio, persistencia y estado |
+| **Spotless + ktlint** | Formato de código automatizado y uniforme |
 
-Dependencias declaradas en [libs.versions.toml](gradle/libs.versions.toml) y [app/build.gradle.kts](app/build.gradle.kts).
+Dependencias declaradas en [gradle/libs.versions.toml](gradle/libs.versions.toml) y [app/build.gradle.kts](app/build.gradle.kts).
 
 ---
 
 ## Pantallas
 
-La barra inferior tiene 4 pestañas por rol: Inicio, Explorar, Pedidos y Perfil para cliente; Inicio, Ofertas, Pedidos y Perfil para negocio. Detalle y Publicar oferta ocultan la barra.
+La barra inferior adapta sus pestañas según el rol activo:
+* **Cliente:** Inicio, Explorar, Pedidos y Perfil.
+* **Negocio:** Inicio, Ofertas (Mis ofertas), Pedidos y Perfil.
+* **Detalle** y **Publicar oferta** ocultan la barra de navegación para enfocar la acción del usuario.
 
-### Dos flujos: cliente y negocio
+### Dos flujos integrados: Cliente y Negocio
 
 La app implementa los flujos de cliente y negocio. Se alternan desde Perfil mediante el botón de cambio de rol de demostración.
 
 | Flujo | Qué hace | Pantallas en Figma | En la app |
 | --- | --- | --- | --- |
-| **Cliente** | Explora, reserva y sigue sus pedidos | `Inicio`, `Explorar`, `Pedidos`, `Historial`, `Perfil` | Implementado |
-| **Negocio** | Publica ofertas, gestiona pedidos y consulta sus métricas | `Inicio - Negocio`, `Ofertas - Negocio`, `Crear Oferta - Negocio`, `Pedidos - Negocio` | Implementado, sin lector QR |
+| **Cliente** | Explora ofertas con filtros dinámicos, reserva y sigue el estado de sus pedidos | `Inicio`, `Explorar`, `Pedidos`, `Historial`, `Perfil` | Implementado |
+| **Negocio** | Publica ofertas, gestiona estados de pedidos, edita o elimina ofertas y consulta métricas | `Inicio - Negocio`, `Ofertas - Negocio`, `Crear Oferta - Negocio`, `Pedidos - Negocio` | Implementado, sin lector QR |
 
 Consecuencias en el código:
-
 - El botón **"Publicar oferta"** pertenece al flujo negocio y está oculto en el flujo cliente: [muestraBotonPublicar](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21).
-- Las **acciones sobre un pedido** (cancelar, marcar como preparando o listo, confirmar retiro) también son del negocio: sus casos de uso existen y están probados, pero la pantalla del cliente no tiene botones para ellas.
+- Las **acciones sobre un pedido** (cancelar, marcar como preparando o listo, confirmar retiro) son del negocio: sus casos de uso existen y están probados.
 - Los archivos del Figma están en `PANTALLAS FIGMA/`. La separación de roles implementada por Ariany tiene prioridad para los flujos.
-- La pestaña Ofertas muestra las publicaciones del negocio de demostración. Sus controles visuales de edición y finalizadas no cambian datos en esta entrega.
+- La pestaña Ofertas muestra las publicaciones del negocio de demostración, con controles para editar y eliminar ofertas.
 
 ### Inicio (dashboard)
 
-| Qué                                                   | Dónde                                                                                                                                                                                 |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Qué | Dónde |
+| --- | --- |
 | Pantalla | [InicioScreen.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L15) |
 | Encabezado: ubicación, saludo, notificaciones y buscador | [EncabezadoInicio](app/src/main/java/com/rescatapp/features/inicio/ui/EncabezadoInicio.kt#L25) |
 | Bloque "Tu impacto esta semana" | [BloqueImpacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33) |
 | Tarjetas "Explora por categoría" | [CategoriasInicio](app/src/main/java/com/rescatapp/features/inicio/ui/CategoriasInicio.kt#L28) |
 | Secciones "Ofertas cerca de ti", "Se están agotando", "Lo mejor de hoy" y "Puede interesarte" | [SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L54) |
-| Estado de la pantalla                                 | [InicioViewModel.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) y [InicioUiState.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioUiState.kt) |
-| Cálculo del impacto (`filter`, `count`, `sumOf`)      | [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9)                                                                                 |
-| Qué ofertas va en cada sección (disponibles, 1 o 2 unidades, mayor descuento y postres) | [SeleccionarOfertasInicioUseCase.kt](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L9) |
+| Estado de la pantalla | [InicioViewModel.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) y [InicioUiState.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioUiState.kt) |
+| Cálculo del impacto (`filter`, `count`, `sumOf`) | [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9) |
+| Selección de ofertas por sección | [SeleccionarOfertasInicioUseCase.kt](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L9) |
 
 ### Explorar
 
-| Qué                                         | Dónde                                                                                                            |
-| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Pantalla                                    | [ExplorarScreen.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L27)                  |
-| Cuadrícula de ofertas                       | [CuadriculaOfertas](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L60)                  |
-| Chips de filtro y orden, menú de categorías | [FiltrosExplorar.kt](app/src/main/java/com/rescatapp/features/explorar/ui/FiltrosExplorar.kt#L26)                |
-| Búsqueda, filtro por categoría y orden      | [FiltrarOfertasUseCase.kt](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) |
-| "N ofertas encontradas" (`count`)           | [ExplorarUiState.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarUiState.kt#L11)                |
-| Categoría recibida desde Inicio             | [ExplorarViewModel.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarViewModel.kt#L29)            |
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [ExplorarScreen.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L27) |
+| Cuadrícula de ofertas | [CuadriculaOfertas](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L60) |
+| Chips de filtro y orden, menú de categorías | [FiltrosExplorar.kt](app/src/main/java/com/rescatapp/features/explorar/ui/FiltrosExplorar.kt#L26) |
+| Búsqueda y filtro por categoría con SQL en Room | [OfertaDao](app/src/main/java/com/rescatapp/core/data) y [FiltrarOfertasUseCase.kt](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) |
+| "N ofertas encontradas" (`count`) | [ExplorarUiState.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarUiState.kt#L11) |
+| Categoría recibida desde Inicio | [ExplorarViewModel.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarViewModel.kt#L29) |
 
 ### Detalle
 
-| Qué                                                      | Dónde                                                                                                            |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Pantalla                                                 | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L40)                     |
-| Información de la oferta y botón Reservar                | [InformacionOferta](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64)                    |
-| Lee el id de la ruta con `SavedStateHandle`              | [DetalleViewModel.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L26)               |
-| Acción de reservar                                       | [reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L36)                        |
-| Regla de reserva (descuenta una unidad y crea el pedido) | [ReservarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L40) |
+| Información de la oferta y botón Reservar | [InformacionOferta](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
+| Lee el id de la ruta con `SavedStateHandle` | [DetalleViewModel.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L26) |
+| Diálogo de confirmación de reserva | [DialogoReserva.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DialogoReserva.kt#L22) |
+| Descuenta una unidad del stock de la oferta | [ReservarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
 
-### Publicar oferta (registro)
+### Publicar oferta (formulario)
 
-Pertenece al flujo negocio (`Crear Oferta - Negocio` en Figma). La pantalla, sus validaciones y sus pruebas están implementadas, pero el botón que la abre está oculto en el flujo cliente ([muestraBotonPublicar](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)).
-
-| Qué                                              | Dónde                                                                                                               |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| Pantalla                                         | [RegistroScreen.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt)                         |
-| Campos visibles del formulario                   | [FormularioOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/FormularioOferta.kt#L18)                 |
-| Validaciones                                     | [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10)     |
-| Mensajes de error                                | [MensajesValidacion.kt](app/src/main/java/com/rescatapp/features/registro/domain/MensajesValidacion.kt)             |
-| Validar y guardar al tocar "Publicar oferta"     | [publicar()](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt#L30)                         |
-| Borrar el error al corregir un campo             | [onCampoCambiado()](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt#L23)                  |
-| Convertir los textos en una `Oferta` y guardarla | [RegistrarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/RegistrarOfertaUseCase.kt#L19) |
-| Volver atrás al terminar de guardar              | [LaunchedEffect](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt#L29)                        |
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [RegistroScreen.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt#L30) |
+| Campos: nombre, comercio, descripción, peso, precios, cantidad y horario | [FormularioOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/FormularioOferta.kt#L21) |
+| Selector de foto (cámara o galería) | [SeccionFotoOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/SeccionFotoOferta.kt#L27) |
+| Selector de categoría | [SelectorCategoriaOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/SelectorCategoriaOferta.kt#L21) |
+| Validación de campos, números, horas y precio de rescate < normal | [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10) |
+| Guarda en Room y emite nueva oferta | [RegistrarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/RegistrarOfertaUseCase.kt#L10) |
+| Estado del formulario | [RegistroViewModel.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt) |
 
 ### Mis pedidos
 
-| Qué                                              | Dónde                                                                                                                              |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Pantalla del cliente: pestañas Activos / Historial y barra de progreso | [PedidosScreen.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L30) |
-| Selector de pestañas Activos / Historial | [SelectorPestanasPedidos](app/src/main/java/com/rescatapp/features/pedidos/ui/SelectorPestanasPedidos.kt#L18) |
-| Separar activos e historial (`filter`, `map`)    | [PedidosViewModel.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L61)                                 |
-| Avanzar al siguiente estado (acción del negocio, sin botón en la versión cliente) | [AvanzarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/AvanzarPedidoUseCase.kt#L8) |
-| Cancelar y devolver la unidad a la oferta (acción del negocio, sin botón en la versión cliente) | [CancelarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/CancelarPedidoUseCase.kt#L13) |
-| Pasos de la barra de progreso (`mapIndexed`)     | [ConstruirProgresoPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/ConstruirProgresoPedidoUseCase.kt#L17) |
+| Qué | Dónde |
+| --- | --- |
+| Pantalla (pestañas "Activos" e "Historial") | [PedidosScreen.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L31) |
+| Tarjeta de pedido con comercio, total y estado | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt#L29) |
+| Barra de progreso (Reservado → Preparando → Listo → Recogido) | [BarraProgresoPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/BarraProgresoPedido.kt#L24) |
+| Selector de pestañas | [SelectorPestanasPedidos.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/SelectorPestanasPedidos.kt#L15) |
+| Diálogos para cambiar de estado o cancelar | [DialogosPedido.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/DialogosPedido.kt#L15) |
+| Avanzar estado (solo negocio) | [AvanzarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/AvanzarPedidoUseCase.kt#L8) |
+| Cancelar reserva y devolver stock | [CancelarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/CancelarPedidoUseCase.kt#L8) |
+| Estado y separación por pestañas | [PedidosViewModel.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
 
 ### Perfil
 
-| Qué                                            | Dónde                                                                                       |
-| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Pantalla                                       | [PerfilScreen.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L31)   |
-| Encabezado naranja con avatar, nombre y correo | [EncabezadoPerfil](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L47)  |
-| Indicadores (mismo cálculo que Inicio)         | [PerfilViewModel.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilViewModel.kt) |
-| Usuario de demostración "Invitado"             | [UsuarioDemo.kt](app/src/main/java/com/rescatapp/core/model/UsuarioDemo.kt)                 |
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [PerfilScreen.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L25) |
+| Encabezado con avatar, nombre, nivel de rescatista y cambio de rol | [EncabezadoPerfil.kt](app/src/main/java/com/rescatapp/features/perfil/ui/EncabezadoPerfil.kt#L21) |
+| Datos de la cuenta (correo, teléfono, dirección) | [InformacionCuenta.kt](app/src/main/java/com/rescatapp/features/perfil/ui/InformacionCuenta.kt#L18) |
+| Impacto acumulado y ODS | [SeccionSostenibilidadODS.kt](app/src/main/java/com/rescatapp/features/perfil/ui/SeccionSostenibilidadODS.kt#L16) |
+| Estado del perfil | [PerfilViewModel.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilViewModel.kt) |
 
 ### Componentes compartidos
 
-| Qué                                             | Dónde                                                                                                                                                                             |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tarjeta de oferta (Inicio y Explorar) | [TarjetaOferta.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaOferta.kt#L28) |
-| Tarjeta de pedido                               | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt)                                                                                 |
-| Campo de texto con mensaje de error             | [CampoConError.kt](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L12)                                                                             |
-| Fila de rescates, ahorro y kg (Inicio y Perfil) | [FilaImpacto.kt](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt)                                                                                     |
-| Todos los componentes                           | [core/designsystem/components/](app/src/main/java/com/rescatapp/core/designsystem/components)                                                                                     |
-| Colores y tema                                  | [Color.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/Color.kt) · [RescatAppTheme.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/RescatAppTheme.kt#L28) |
+| Componente | Dónde |
+| --- | --- |
+| Tarjeta de oferta (usada en Inicio y Explorar) | [TarjetaOferta.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaOferta.kt#L31) |
+| Tarjeta de pedido | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt) |
+| Campo de texto con mensaje de error | [CampoConError.kt](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L12) |
+| Fila de rescates, ahorro y kg (Inicio y Perfil) | [FilaImpacto.kt](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt) |
+| Todos los componentes | [core/designsystem/components/](app/src/main/java/com/rescatapp/core/designsystem/components) |
+| Colores y tema | [Color.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/Color.kt) · [RescatAppTheme.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/RescatAppTheme.kt#L28) |
 
 ---
 
 ## Estructura del proyecto
 
-Todo el código está en [app/src/main/java/com/rescatapp/](app/src/main/java/com/rescatapp):
+El código reside en [app/src/main/java/com/rescatapp/](app/src/main/java/com/rescatapp) organizado por responsabilidades claras según la Sección 5 de la guía técnica:
 
 ```
 com.rescatapp
-├── MainActivity.kt
-├── RescatAppApplication.kt         Clase Application con @HiltAndroidApp
+├── MainActivity.kt                  Punto de entrada de la actividad principal
+├── RescatAppApplication.kt          Clase Application anotada con @HiltAndroidApp
 │
-├── core/                           Código compartido por todas las pantallas
-│   ├── model/                      Modelo de datos
-│   ├── data/                       Repositorios en memoria y datos de ejemplo
-│   ├── domain/                     Cálculo del impacto (compartido por Inicio y Perfil)
-│   ├── designsystem/               Tema (colores, tipografía) y componentes visuales
-│   ├── navigation/                 Rutas
-│   └── util/                       Conversión de texto a número/hora y formatos (Bs., kg, %)
+├── core/                            Módulos y utilidades compartidas
+│   ├── data/
+│   │   ├── local/                   Persistencia local con Room
+│   │   │   ├── converters/          TypeConverters para enums y listas estructuradas
+│   │   │   ├── dao/                 OfertaDao y PedidoDao con consultas SQL y Flow
+│   │   │   ├── database/            RescatAppDatabase y ModuloBaseDatos (Hilt)
+│   │   │   └── entities/            OfertaEntity y PedidoEntity con @PrimaryKey
+│   │   ├── remote/                  Servicios remotos con Retrofit
+│   │   │   ├── api/                 ApiService (GET, POST, PUT, DELETE)
+│   │   │   ├── dto/                 OfertaDto y mapeadores hacia el dominio
+│   │   │   └── network/             ModuloRed y configuración de BASE_URL (MockAPI)
+│   │   └── repository/              Repositorios únicos (Single Source of Truth)
+│   ├── domain/                      Casos de uso transversales (cálculo de impacto y roles)
+│   ├── model/                       Modelos de dominio puros (Oferta, Pedido, Categoria, etc.)
+│   ├── designsystem/                Tema accesible (colores, tipografía) y componentes visuales
+│   └── util/                        Conversores seguros, formateadores y extensiones
 │
-├── features/                       Pantallas
-│   ├── inicio/     domain/ + ui/
-│   ├── explorar/   domain/ + ui/
-│   ├── detalle/    domain/ + ui/
-│   ├── registro/   domain/ + ui/
-│   ├── pedidos/    domain/ + ui/
-│   └── perfil/     ui/
+├── features/                        Módulos funcionales de pantalla (MVVM)
+│   ├── inicio/                      domain/ + ui/ (Dashboard de impacto y secciones)
+│   ├── explorar/                    domain/ + ui/ (Búsqueda y filtro SQL dinámico)
+│   ├── detalle/                     domain/ + ui/ (Información completa y reserva)
+│   ├── registro/                    domain/ + ui/ (Formulario de publicación y validaciones)
+│   ├── pedidos/                     domain/ + ui/ (Seguimiento, avance de estados y cancelación)
+│   └── perfil/                      ui/ (Métricas del usuario y cambio de rol)
 │
-└── navigation/                     Cómo se conectan las pantallas
+└── navigation/                      Configuración de rutas, NavHost y barra inferior
 ```
 
-| Carpeta             | Contiene                                                       | Enlace                                                     |
-| ------------------- | -------------------------------------------------------------- | ---------------------------------------------------------- |
-| `core/model`        | `Oferta`, `Pedido`, los enum y el resultado de las operaciones | [abrir](app/src/main/java/com/rescatapp/core/model)        |
-| `core/data`         | `RepositorioOfertas`, `RepositorioPedidos`, `DatosDeEjemplo`   | [abrir](app/src/main/java/com/rescatapp/core/data)         |
-| `core/domain`       | `CalcularImpactoUseCase`                                       | [abrir](app/src/main/java/com/rescatapp/core/domain)       |
-| `core/designsystem` | Tema y componentes                                             | [abrir](app/src/main/java/com/rescatapp/core/designsystem) |
-| `core/util`         | `Conversiones`, `Formateadores`                                | [abrir](app/src/main/java/com/rescatapp/core/util)         |
-| `features`          | Una carpeta por pantalla                                       | [abrir](app/src/main/java/com/rescatapp/features)          |
-| `navigation`        | `Rutas`, `RescatAppNavHost`, barra inferior                    | [abrir](app/src/main/java/com/rescatapp/navigation)        |
-| Pruebas             | Misma estructura que el código (25 archivos, 78 pruebas)                   | [abrir](app/src/test/java/com/rescatapp)                   |
-
-Dentro de cada feature:
-
-| Carpeta   | Contiene                                                                                     | Ejemplo                                                                                                                                                                                                                                                                     |
-| --------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `domain/` | Casos de uso: una regla de negocio por clase, sin código de interfaz                         | [ReservarOfertaUseCase](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt)                                                                                                                                                                   |
-| `ui/`     | `Screen` (dibuja), `ViewModel` (maneja el estado) y `UiState` (datos que dibuja la pantalla) | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt), [DetalleViewModel](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt), [DetalleUiState](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleUiState.kt) |
+| Carpeta | Contiene | Enlace |
+| --- | --- | --- |
+| `core/model` | `Oferta`, `Pedido`, los enum y el resultado de las operaciones | [abrir](app/src/main/java/com/rescatapp/core/model) |
+| `core/data` | Persistencia local Room, servicios remotos Retrofit y repositorios | [abrir](app/src/main/java/com/rescatapp/core/data) |
+| `core/domain` | `CalcularImpactoUseCase`, `SeleccionarPedidosPorRol` | [abrir](app/src/main/java/com/rescatapp/core/domain) |
+| `core/designsystem` | Tema y componentes visuales | [abrir](app/src/main/java/com/rescatapp/core/designsystem) |
+| `core/util` | `Conversiones`, `Formateadores` | [abrir](app/src/main/java/com/rescatapp/core/util) |
+| `features` | Una carpeta por pantalla con arquitectura MVVM | [abrir](app/src/main/java/com/rescatapp/features) |
+| `navigation` | `Rutas`, `RescatAppNavHost`, barra inferior | [abrir](app/src/main/java/com/rescatapp/navigation) |
+| Pruebas unitarias | Misma estructura que el código (25 archivos, 78 pruebas) | [abrir](app/src/test/java/com/rescatapp) |
 
 ---
 
@@ -217,276 +226,239 @@ Screen  ──►  ViewModel  ──►  UseCase  ──►  Repositorio
 - **`core` no importa ninguna feature.**
 - Solo [navigation/](app/src/main/java/com/rescatapp/navigation) conoce todas las pantallas.
 
+### Sincronización entre dispositivos (Single Source of Truth)
+
+La base de datos local (Room) es la única fuente de verdad para la interfaz mediante flujos reactivos (`Flow`), mientras que la capa remota (Retrofit) sincroniza con el backend en MockAPI:
+
+```
+Teléfono A (Negocio)               Internet               Teléfono B (Cliente)
+┌────────────────────┐                                   ┌────────────────────┐
+│ Pantallas          │                                   │ Pantallas          │
+│   ▲ observa Flow   │                                   │   ▲ observa Flow   │
+│ Room (local)       │                                   │ Room (local)       │
+│   ▲ guarda         │                                   │   ▲ guarda         │
+│ Retrofit ──────────┼────────► ┌───────────────┐ ◄──────┼───┤ Retrofit       │
+└────────────────────┘          │ API (MockAPI) │        └────────────────────┘
+                                │ información   │
+                                │ común         │
+                                └───────────────┘
+```
+
+1. **Publicación y persistencia:** Cuando el negocio publica una oferta en el Teléfono A, se registra localmente en Room y se envía a la API remota mediante `POST`.
+2. **Sincronización remota:** El cliente en el Teléfono B consulta la API mediante `GET` para obtener las publicaciones más recientes y las guarda en su Room local.
+3. **Capacidad sin conexión (Offline-first):** Una vez que los datos residen en Room, el cliente puede consultar las ofertas y pedidos aunque no disponga de conexión a internet.
+4. **Reactividad automática:** La interfaz nunca lee directamente de la red; observa Room mediante `Flow`. Cualquier inserción, actualización o eliminación redibuja automáticamente las pantallas con `collectAsStateWithLifecycle()`.
+
 ### Flujo de una reserva (estado y recomposición)
 
-| Paso | Qué pasa                                                                                       | Dónde                                                                                                                                                                                  |
-| ---- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | El cliente toca "Reservar"                                                                     | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64)                                                                                           |
-| 2    | El ViewModel pide la reserva                                                                   | [DetalleViewModel.reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L36)                                                                             |
-| 3    | El caso de uso valida que haya unidades                                                        | [ReservarOfertaUseCase](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12)                                                                          |
-| 4    | Se descuenta una unidad de la oferta                                                           | [cambiarUnidadesDisponibles()](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L35)                                                                                    |
-| 5    | Se crea el pedido en estado Reservado                                                          | [crearPedido()](app/src/main/java/com/rescatapp/core/model/Oferta.kt#L39)                                                                                                              |
-| 6    | Los `StateFlow` de los repositorios emiten listas nuevas                                       | [RepositorioOfertas](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L19) · [RepositorioPedidos](app/src/main/java/com/rescatapp/core/data/RepositorioPedidos.kt#L17)  |
-| 7    | Cada ViewModel combina los datos y crea un `UiState` nuevo                                     | [InicioViewModel](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
-| 8    | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20)     |
+| Paso | Qué pasa | Dónde |
+| --- | --- | --- |
+| 1 | El cliente toca "Reservar" | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
+| 2 | El ViewModel pide la reserva | [DetalleViewModel.reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L36) |
+| 3 | El caso de uso valida que haya unidades | [ReservarOfertaUseCase](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
+| 4 | Se descuenta una unidad de la oferta en Room | `cambiarUnidadesDisponibles()` en `RepositorioOfertas.kt` |
+| 5 | Se crea el pedido en estado Reservado en SQLite | `crearPedido()` y `insertar()` en `RepositorioPedidos.kt` |
+| 6 | Los `Flow` de los DAOs de Room emiten las listas actualizadas | `OfertaDao.observarTodas()` y `PedidoDao.observarTodos()` |
+| 7 | Cada ViewModel combina los datos y crea un `UiState` nuevo | [InicioViewModel](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
+| 8 | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20) |
 
-Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos.
+Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos de manera atómica.
 
 ### Decisiones técnicas
 
-| Decisión                                                       | Por qué                                                                                                                                                                                                                                                                                                                                                               |
-| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Hilt** para inyección de dependencias                        | Los ViewModels reciben repositorios y casos de uso sin crearlos a mano. Con [`@Singleton`](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L13), todas las pantallas comparten la misma instancia de cada repositorio y por eso ven los mismos datos. Se activa en [RescatAppApplication](app/src/main/java/com/rescatapp/RescatAppApplication.kt#L6) |
-| **Dos repositorios concretos**, sin interfaz ni clase genérica | Cada tipo de dato (ofertas y pedidos) tiene su repositorio. Una interfaz no aporta nada mientras exista una sola implementación, y el código queda más simple de leer                                                                                                                                                                                                 |
-| **`StateFlow`** en repositorios y ViewModels                   | Es un flujo observable: cuando cambia su valor, quien lo observa se entera y la pantalla se redibuja sola                                                                                                                                                                                                                                                             |
-| **Un caso de uso por regla**                                   | Cada clase hace una sola cosa (principio de responsabilidad única) y se puede probar sola                                                                                                                                                                                                                                                                             |
-| **Formato con Spotless**                                       | Todo el equipo escribe con el mismo estilo; el CI rechaza código sin formatear                                                                                                                                                                                                                                                                                        |
+| Decisión | Por qué |
+| --- | --- |
+| **Hilt** para inyección de dependencias | Los ViewModels reciben repositorios y casos de uso sin crearlos a mano. Con `@Singleton`, todas las pantallas comparten la misma instancia de cada componente. |
+| **Repositorios concretos con Single Source of Truth** | Cada entidad tiene su repositorio que centraliza el acceso a Room y coordina la sincronización con Retrofit. |
+| **`Flow` y `StateFlow`** | Permiten propagar cambios automáticamente desde SQLite hacia la UI sin recargas manuales. |
+| **Un caso de uso por regla** | Cada clase hace una sola cosa (principio de responsabilidad única) y se prueba de forma aislada. |
+| **Formato con Spotless** | Todo el equipo escribe con el mismo estilo; el CI rechaza código sin formatear. |
 
 ### Cambios respecto al diseño de Figma
 
-| Cambio                                                    | Motivo                                                                        |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| **Detalle** no existe en el Figma | El PDF exige una pantalla de detalle; se construyó con los componentes del diseño |
-| **Publicar oferta** solo aparece en el flujo negocio | En Figma es `Crear Oferta - Negocio`; en la app cliente el botón está oculto ([DestinoPrincipal.kt](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)) |
-| Íconos de Material en lugar de emojis y fotos             | No hay fotos por producto; se usa un ícono por categoría                      |
-| Naranja más oscuro (`#C2410C`) para texto                 | El naranja original sobre blanco no alcanza el contraste mínimo de 4.5:1      |
-| Perfil sin menú (pagos, ayuda, cerrar sesión…)            | Sin backend esas opciones serían botones que no hacen nada                    |
-| Sin lector QR ni pantalla independiente de Stats | El negocio gestiona estados con botones y consulta métricas en Inicio |
-| El corazón de favoritos es solo visual; no hay calificaciones ni distancia | Un favorito real y la calificación requieren datos y acciones que la app no tiene |
+| Cambio | Motivo |
+| --- | --- |
+| **Detalle** no existe en el Figma | La guía técnica exige una pantalla de detalle; se construyó con los componentes del diseño. |
+| **Publicar oferta** solo aparece en el flujo negocio | En Figma es `Crear Oferta - Negocio`; en la app cliente el botón está oculto ([DestinoPrincipal.kt](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)). |
+| Íconos de Material en lugar de emojis y fotos | No hay fotos por producto; se usa un ícono por categoría. |
+| Naranja más oscuro (`#C2410C`) para texto | El naranja original sobre blanco no alcanza el contraste mínimo de 4.5:1. |
+| Perfil sin menú (pagos, ayuda, cerrar sesión…) | Sin backend esas opciones serían botones que no hacen nada. |
+| Sin lector QR ni pantalla independiente de Stats | El negocio gestiona estados con botones y consulta métricas en Inicio. |
+| El corazón de favoritos es solo visual; no hay calificaciones ni distancia | Un favorito real y la calificación requieren datos y acciones que la app no tiene. |
 
 ---
 
-## Por qué no usamos Room
+## Persistencia local con Room
 
-Decidimos **no implementar Room** por alcance. El objetivo del primer bloque es demostrar navegación, formulario, validaciones y estado compartido, y todo eso funciona igual con datos en memoria.
+La persistencia local garantiza que la información permanezca intacta tras cerrar forzosamente la aplicación o reiniciar el dispositivo (Prueba Técnica 8).
 
-| Pregunta                                   | Respuesta                                                                                                                                                                                                                                                                                  |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ¿Dónde se guardan los datos?               | En memoria, dentro de [RepositorioOfertas](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L18) y [RepositorioPedidos](app/src/main/java/com/rescatapp/core/data/RepositorioPedidos.kt), cada uno con un `MutableStateFlow`                                                |
-| ¿Por qué todas las pantallas ven lo mismo? | Hilt crea una sola instancia de cada repositorio ([`@Singleton`](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L13)) y la comparte                                                                                                                                       |
-| ¿Qué pasa al cerrar la app?                | Los datos vuelven a los de ejemplo. Por eso el **paso 10 de la demostración no aplica**                                                                                                                                                                                                    |
-| ¿Por qué hay datos al abrirla?             | Los repositorios empiezan con [DatosDeEjemplo.kt](app/src/main/java/com/rescatapp/core/data/DatosDeEjemplo.kt#L14): [14 ofertas](app/src/main/java/com/rescatapp/core/data/DatosDeEjemplo.kt#L14) y [5 pedidos](app/src/main/java/com/rescatapp/core/data/DatosDeEjemplo.kt#L73) del Figma |
-| ¿Cómo se agregaría Room después?           | Solo cambiaría el interior de los dos repositorios: seguirían exponiendo `StateFlow`, así que pantallas, ViewModels y casos de uso no se tocarían                                                                                                                                          |
-
----
-
-## Dónde se cumple cada punto de la rúbrica
-
-### §2 Producto
-
-| Requisito                            | Dónde                                                                           |
-| ------------------------------------ | ------------------------------------------------------------------------------- |
-| Kotlin y Jetpack Compose             | Todo el proyecto; configuración en [app/build.gradle.kts](app/build.gradle.kts) |
-| Se ejecuta en emulador o dispositivo | Botón Run; el [CI](.github/workflows/android.yml) compila en cada push          |
-| Organizado en archivos y paquetes    | [Estructura del proyecto](#estructura-del-proyecto)                             |
-| Repositorio con evidencia de trabajo | `git shortlog -sn`, las issues de GitHub y la tabla de [Equipo](#equipo)        |
-
-### §3.1 Aplicación multipantalla (mínimo 4)
-
-| Pantalla pedida    | Nuestra pantalla                                                                                                                                                                |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inicio / Dashboard | [InicioScreen.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt)                                                                                           |
-| Registro           | [RegistroScreen.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt)                                                                                     |
-| Listado            | [ExplorarScreen.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt)                                                                                     |
-| Detalle            | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt)                                                                                        |
-| Adicionales        | [PedidosScreen.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt), [PerfilScreen.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt) |
-
-### §3.2 Navegación
-
-| Requisito                      | Dónde                                                                                                                                                                                                                                                          |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NavController                  | [rememberNavController()](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L34)                                                                                                                                                                  |
-| NavHost                        | [NavHost](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L56), con destino inicial [Inicio](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L58)                                                                                |
-| Una ruta por pantalla          | [Rutas.kt](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L7)                                                                                                                                                                                             |
-| `navigate()` para avanzar      | [ir a Detalle](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L37) · [ir a Registro](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L48) · [ir a Explorar](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L63) |
-| `popBackStack()` para regresar | [volver](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L38), usado en [Detalle](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L82) y en [Registro](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L85)       |
-| Flujo sin bloqueos             | [Barra inferior](app/src/main/java/com/rescatapp/navigation/BarraNavegacionInferior.kt#L27) y [cambio de pestaña](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L93)                                                                          |
-
-### §3.3 Modelo de datos
-
-| Requisito                                  | Dónde                                                                                                                                                                                                                                                                                                                    |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| data class principal                       | [Oferta](app/src/main/java/com/rescatapp/core/model/Oferta.kt#L9) (también [Pedido](app/src/main/java/com/rescatapp/core/model/Pedido.kt#L3))                                                                                                                                                                            |
-| enum class                                 | [Categoria](app/src/main/java/com/rescatapp/core/model/Categoria.kt#L3), [EstadoPedido](app/src/main/java/com/rescatapp/core/model/EstadoPedido.kt#L3), [Disponibilidad](app/src/main/java/com/rescatapp/core/model/Disponibilidad.kt#L3), [OrdenOfertas](app/src/main/java/com/rescatapp/core/model/OrdenOfertas.kt#L3) |
-| Estructura consistente desde el formulario | [RegistrarOfertaUseCase](app/src/main/java/com/rescatapp/features/registro/domain/RegistrarOfertaUseCase.kt#L19) crea la misma `Oferta` que los datos de ejemplo                                                                                                                                                         |
-| Nombres descriptivos                       | En español y sin abreviaturas en todo el código                                                                                                                                                                                                                                                                          |
-
-### §3.4 Formulario y validaciones
-
-| Requisito                            | Dónde                                                                                                                                                                                                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Formulario funcional                 | [FormularioOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/FormularioOferta.kt#L21)                                                                                                                                                     |
-| Obligatorios no aceptan vacíos       | [ValidarOfertaUseCase](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10)                                                                                                                                            |
-| Números validados antes de convertir | [aDecimalOrNull](app/src/main/java/com/rescatapp/core/util/Conversiones.kt#L11) · [aEnteroPositivoOrNull](app/src/main/java/com/rescatapp/core/util/Conversiones.kt#L16) · [aHoraOrNull](app/src/main/java/com/rescatapp/core/util/Conversiones.kt#L18) |
-| Mensaje con datos inválidos          | [MensajesValidacion.kt](app/src/main/java/com/rescatapp/features/registro/domain/MensajesValidacion.kt), mostrados por [CampoConError](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L12)                               |
-| El registro aparece en el listado    | [agregar()](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L25) pone la oferta nueva primera; Explorar e Inicio la muestran solos                                                                                                      |
-
-### §3.5 Datos y estado
-
-| Requisito                         | Dónde                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Datos compartidos entre pantallas | [RepositorioOfertas](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L13) y [RepositorioPedidos](app/src/main/java/com/rescatapp/core/data/RepositorioPedidos.kt) (`@Singleton`)                                                                                                                                                                                                                                                        |
-| La interfaz se actualiza sola     | `StateFlow` en cada ViewModel, leído con [collectAsStateWithLifecycle()](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20)                                                                                                                                                                                                                                                                                                        |
-| `filter`                          | [CalcularImpactoUseCase](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9) · [FiltrarOfertasUseCase](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) · [SeleccionarOfertasInicioUseCase](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L13) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L61) |
-| `count`                           | [rescates](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L11) · ["N ofertas encontradas"](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarUiState.kt#L11)                                                                                                                                                                                                                                                          |
-| `map`                             | [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt#L62) · [ConstruirProgresoPedidoUseCase](app/src/main/java/com/rescatapp/features/pedidos/domain/ConstruirProgresoPedidoUseCase.kt#L17) (`mapIndexed`)                                                                                                                                                                                                        |
-| `sumOf`                           | [ahorro y kg aprovechados](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L12)                                                                                                                                                                                                                                                                                                                                                   |
-
-### §3.6 Persistencia
-
-No aplica: ver [Por qué no usamos Room](#por-qué-no-usamos-room).
-
-### §3.7 Interfaz
-
-| Requisito                | Dónde                                                                                                                                                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Presentación consistente | Mismo tema en todas las pantallas: [RescatAppTheme](app/src/main/java/com/rescatapp/core/designsystem/theme/RescatAppTheme.kt#L28), aplicado en [MainActivity](app/src/main/java/com/rescatapp/MainActivity.kt#L18) |
-| Textos claros | Botones con verbo: "Publicar oferta" ([RegistroScreen](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt#L48)), "Reservar" ([DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L98)), "Ver todo" y "Ver más" ([SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L54)) |
-| Contraste suficiente     | [Color.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/Color.kt#L5): texto naranja oscuro, contraste de al menos 4.5:1                                                                                  |
-| Navegación comprensible  | [Barra inferior](app/src/main/java/com/rescatapp/navigation/BarraNavegacionInferior.kt#L27) con la pestaña activa resaltada y botón atrás en Detalle y Registro                                                     |
+* **Entidades relacionales:**
+  * `OfertaEntity`: almacena id, nombre, comercio, categoría, descripción, peso, precios, unidades disponibles, horarios de retiro y uri de imagen.
+  * `PedidoEntity`: almacena id, ofertaId, nombreOferta, comercio, precioUnitario, estado, pasos de progreso, código de retiro y horario.
+* **DAOs reactivos:**
+  * `OfertaDao`: expone consultas con `Flow<List<OfertaEntity>>`, operaciones `suspend` (`insertar`, `actualizar`, `eliminar`) y la consulta con filtro dinámico `filtrar(categoria, texto)`.
+  * `PedidoDao`: expone `observarTodos(): Flow<List<PedidoEntity>>` y operaciones `suspend` para registrar y avanzar pedidos.
+* **Base de datos y precarga inicial:**
+  * `RescatAppDatabase`: hereda de `RoomDatabase`. Incorpora un `RoomDatabase.Callback` que pre-puebla los datos iniciales de [DatosDeEjemplo.kt](app/src/main/java/com/rescatapp/core/data/DatosDeEjemplo.kt) en la primera instalación, garantizando que el docente vea información inmediata sin pantallas vacías.
 
 ---
 
-## Guion de la demostración
+## Consumo de API REST con Retrofit y MockAPI
 
-> **Antes de los pasos 4 a 7:** ir a Perfil, cambiar al rol negocio y abrir Inicio. Allí aparece Publicar oferta. Para explorar y reservar lo publicado, volver a Perfil y cambiar al rol cliente.
+El consumo de servicios remotos está configurado con Retrofit 2 y OkHttp contra un proyecto dedicado en **MockAPI.io**:
 
-| Paso | Acción                                                                                                                   | Qué se ve                                                                                      |
-| ---- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| 1    | Abrir el proyecto y presionar Run                                                                                        | La app abre en Inicio                                                                          |
-| 2    | Explicar el problema                                                                                                     | Inicio: "Tu impacto esta semana" con **4 rescates · Bs.102 · 3.6kg**                           |
-| 3    | Recorrer Inicio → Explorar → Pedidos → Perfil con la barra inferior                                                      | Cada pestaña se resalta en naranja                                                             |
-| 4    | Tocar "Publicar oferta"                                                                                                  | Se abre el formulario                                                                          |
-| 5    | Poner precio normal **40** y rescate **45**, hora hasta **25:00**, cantidad **2.5**                                      | "Debe ser menor al precio normal", "Usa el formato HH:mm", "Ingresa una cantidad válida"       |
-| 6    | Llenar: Pack Salteñas · Panadería La Central · Panadería · Salteñas del día · 40 · 20 · 4 · 09:00 · 11:00 | La pantalla se cierra sola                                                                     |
-| 7    | Ir a Explorar                                                                                                            | **15 ofertas encontradas**, con Pack Salteñas primera y "-50%"                                 |
-| 8    | Tocar Pack Croissants                                                                                                    | Detalle con precio, ahorro, peso y horario                                                     |
-| 9    | Tocar **Reservar** y volver a Inicio; en Explorar buscar "café", filtrar Postres y ordenar por mayor descuento           | Impacto **5 · Bs.117 · 4.2kg**; en Pedidos › Activos aparece Pack Croissants en Reservado; 3 resultados; 2 resultados; Pack Frutas primera                |
-| 10   | Cerrar y reabrir                                                                                                         | **No aplica**: explicar [por qué no usamos Room](#por-qué-no-usamos-room)                      |
-| 11   | Mostrar estructura y repositorio                                                                                         | [Estructura del proyecto](#estructura-del-proyecto), `git shortlog -sn` y las issues en GitHub |
+* **Permiso de red:** Declarado en [AndroidManifest.xml](app/src/main/AndroidManifest.xml) con `<uses-permission android:name="android.permission.INTERNET" />`.
+* **Contrato ApiService:**
+  * `@GET("ofertas") suspend fun getOfertas(): List<OfertaDto>`
+  * `@POST("ofertas") suspend fun postOferta(@Body oferta: OfertaDto): OfertaDto`
+  * `@PUT("ofertas/{id}") suspend fun putOferta(@Path("id") id: String, @Body oferta: OfertaDto): OfertaDto`
+  * `@DELETE("ofertas/{id}") suspend fun deleteOferta(@Path("id") id: String): Response<Unit>`
+* **Modelos DTO y desacoplamiento:** `OfertaDto` utiliza anotaciones `@SerializedName` de Gson y se transforma hacia/desde los modelos de dominio mediante mapeadores aislados.
+* **Manejo de estados asíncronos:** La capa de presentación maneja `EstadoRemoto`:
+  * **Cargando:** muestra un `CircularProgressIndicator` mientras la petición está en curso.
+  * **Éxito:** presenta los datos remotos sincronizados.
+  * **Error:** captura `IOException` o `HttpException` sin cerrar la aplicación y presenta un mensaje legible con botón de **"Reintentar"**.
+
+---
+
+## Dónde se cumple cada punto de la guía técnica
+
+### §2. Producto técnico
+* **Kotlin y Jetpack Compose:** Desarrollado 100% en Kotlin con Compose y Material 3.
+* **Compilación y ejecución:** Compila en Android Studio, pasa la suite de pruebas unitarias y se valida en GitHub Actions.
+* **Organización en paquetes:** Estructura modularizada por capas (`data/local`, `data/remote`, `repository`, `domain`, `viewmodel`, `ui`).
+
+### §3.1. Aplicación multipantalla y navegación
+* **NavController y NavHost:** Centralizados en [RescatAppNavHost.kt](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt).
+* **Flujo sin bloqueos:** Rutas claras en [Rutas.kt](app/src/main/java/com/rescatapp/navigation/Rutas.kt) con avance (`navigate()`) y retroceso seguro (`popBackStack()`).
+* **Pantallas principales:** Inicio (Dashboard), Registro (Formulario), Explorar (Listado filtrado), Detalle (Operaciones de registro), Pedidos y Perfil.
+
+### §3.2. Arquitectura y organización
+* **Separación de responsabilidades:** Las pantallas solo dibujan y emiten eventos; la lógica de estado reside en los ViewModels; el acceso a datos en Repositories.
+* **Inyección de dependencias:** Hilt gestiona instancias `@Singleton` para la base de datos, clientes HTTP y repositorios.
+
+### §3.3. Persistencia local con Room
+* **Entity, DAO y Database:** Implementados en `core/data/local/` con tipos consistentes y TypeConverters.
+* **Persistencia confirmada:** Los datos registrados, editados o eliminados sobreviven al cierre forzado y reinicio de la app.
+* **Operaciones asíncronas:** Escritura implementada con funciones `suspend` y lectura con `Flow`.
+
+### §3.4. Flujo reactivo con Flow y StateFlow
+* **Observación de base de datos:** Los DAOs de Room emiten `Flow`.
+* **ViewModel y UI:** Los ViewModels transforman los flujos a `StateFlow` y Compose los consume mediante `collectAsStateWithLifecycle()`, logrando actualización automática sin recargas manuales.
+
+### §3.5. Consultas y filtros dinámicos
+* **Filtro SQL dinámico:** `OfertaDao.filtrar(categoria, texto)` implementa una consulta SQL real con cláusula `WHERE`:
+  ```sql
+  SELECT * FROM ofertas
+  WHERE (:categoria IS NULL OR categoria = :categoria)
+    AND (nombre LIKE '%' || :texto || '%' OR comercio LIKE '%' || :texto || '%')
+  ```
+* **Recuperación completa:** Al seleccionar la categoría "Todas" y limpiar el texto, la consulta recupera la lista completa de registros.
+
+### §3.6. Consumo de API REST con Retrofit
+* **Conexión a MockAPI:** `BASE_URL` funcional con `ApiService`, DTOs de red y mapeadores de dominio.
+* **Operaciones CRUD:** Soporte completo de operaciones `GET`, `POST`, `PUT` y `DELETE` remotas.
+* **Permiso de Internet:** Declarado en el manifest de la aplicación.
+
+### §3.7. Manejo de estados de carga y errores
+* **Indicador de progreso:** `CircularProgressIndicator` visible mientras se consulta el backend.
+* **Control de excepciones:** Bloques `try/catch` y `Result` capturan problemas de conexión o servidor sin crasheos.
+* **Recuperación:** Tarjeta de error con botón "Reintentar" y diferenciación clara entre catálogo local y catálogo en línea.
+
+### §3.8. Formularios y validaciones
+* **Validación completa:** [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt) valida campos vacíos, precio rescate menor al normal, cantidades enteras positivas y rango de horas (`HH:mm`, hora fin posterior a inicio).
+* **Feedback inline:** Mensajes de error específicos bajo cada campo con `CampoConError`.
+
+---
+
+## Guion de la demostración técnica (12 pasos)
+
+El siguiente guion permite comprobar en vivo los 12 pasos exigidos en la Sección 4 de la guía técnica:
+
+| Paso | Acción en la app | Resultado esperado | Criterio de la guía |
+| :---: | :--- | :--- | :--- |
+| **1** | Abrir el proyecto en Android Studio y presionar **Run** | La aplicación compila, instala y abre en Inicio sin errores | Compilación e instalación |
+| **2** | Recorrer la navegación: Inicio → Explorar → Pedidos → Perfil | La barra inferior resalta la pestaña activa; transición fluida sin bloqueos | Flujo multipantalla |
+| **3** | Cambiar a rol negocio en Perfil, abrir "Publicar oferta" y colocar: Precio Normal: 40, Precio Rescate: 50, Hora fin: 08:00 (inicio: 10:00) | Se muestran mensajes de error inline y el botón no permite registrar | Validación de formulario |
+| **4** | Corregir datos válidos (Pack Croissants · Panadería · 40 · 20 · 4 un. · 18:00 a 20:00) y pulsar "Publicar oferta" | La pantalla se cierra y la oferta aparece de primera en Explorar e Inicio | Reflejo en listado |
+| **5** | Tocar la oferta recién creada en la lista | Abre la pantalla **Detalle** mostrando precio normal, precio de rescate, ahorro, peso y horario | Detalle de registro |
+| **6** | Desde el flujo de negocio, editar la oferta cambiando el precio o stock | El cambio se guarda y se refleja inmediatamente en toda la app sin recargar | Actualización de registro |
+| **7** | En la sección del negocio, pulsar "Eliminar oferta" y confirmar en el diálogo | La oferta desaparece de la base de datos local y de todas las pantallas | Operación DELETE con confirmación |
+| **8** | Cerrar la aplicación desde la multitarea del emulador (Swipe-to-kill) y volver a abrirla | Las ofertas creadas o modificadas siguen presentes en Room | Persistencia local con Room |
+| **9** | En Explorar, escribir "Pan" y seleccionar la categoría "Panadería" | La consulta SQL de Room filtra con `WHERE` dinámico; al limpiar texto y volver a "Todas" se restaura la lista | Filtro dinámico en SQLite |
+| **10** | Ir a la pestaña "En línea" en Mis ofertas | Se muestra un indicador de carga mientras Retrofit ejecuta el `GET` sobre MockAPI y lista las ofertas remotas | Consulta GET remota |
+| **11** | Pulsar "Publicar en línea" sobre una oferta local | Se ejecuta `POST` contra MockAPI y el registro aparece en el servidor remoto | Operaciones remotas adicionales |
+| **12** | Desconectar el Wi-Fi / Datos en el emulador y pulsar "Reintentar" | Se captura el error de red, no hay crash y se muestra el banner de fallo con botón de reintento | Estados de carga y error |
 
 ---
 
 ## Preguntas de la defensa técnica
 
-**1. ¿Cuál es la función de NavHost y NavController?**
-El `NavController` guarda en qué pantalla estamos y la pila de pantallas anteriores; es quien ejecuta la navegación. El `NavHost` es el contenedor que dibuja la pantalla que corresponde a la ruta actual, y en él se declara un `composable(ruta)` por pantalla.
+**1. ¿Cuál es la función de NavHost y NavController?**\
+El `NavController` guarda en qué pantalla estamos y la pila de pantallas anteriores; es quien ejecuta la navegación. El `NavHost` es el contenedor que dibuja la pantalla que corresponde a la ruta actual, y en él se declara un `composable(ruta)` por pantalla.\
 Código: [rememberNavController()](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L34) · [NavHost y sus composable](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L56).
 
-**2. ¿Cuál es la diferencia entre navigate() y popBackStack()?**
-`navigate(ruta)` **agrega** una pantalla encima de la pila; por ejemplo, tocar una oferta ejecuta `navigate("detalle/14")`. `popBackStack()` **quita** la pantalla actual y vuelve a la anterior; por ejemplo, la flecha atrás de Detalle o terminar de publicar una oferta.
+**2. ¿Cuál es la diferencia entre navigate() y popBackStack()?**\
+`navigate(ruta)` agrega una pantalla encima de la pila (por ejemplo, `navigate("detalle/14")`). `popBackStack()` quita la pantalla actual y regresa a la anterior en el historial de navegación sin generar pantallas duplicadas.\
 Código: [navigate a Detalle](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L37) · [popBackStack](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L38).
 
-**3. ¿Por qué separaron las pantallas en archivos diferentes?**
-Cada archivo tiene una sola responsabilidad: es más fácil de leer, de probar y de encontrar. Además, cinco personas pueden trabajar a la vez sin editar el mismo archivo, lo que evita conflictos en Git. Ningún archivo pasa de 150 líneas.
-Estructura: [features/](app/src/main/java/com/rescatapp/features), una carpeta por pantalla.
+**3. ¿Por qué separaron las pantallas en archivos diferentes?**\
+Cada archivo tiene una sola responsabilidad: facilita la lectura, la realización de pruebas unitarias y evita conflictos al trabajar concurrentemente cinco desarrolladores en Git.
 
-**4. ¿Qué representa la data class principal?**
-`Oferta` representa el excedente que publica un comercio: nombre, comercio, categoría, peso, precio normal, precio de rescate, unidades disponibles y horario de retiro. También calcula el [porcentaje de descuento](app/src/main/java/com/rescatapp/core/model/Oferta.kt#L22) y la [disponibilidad](app/src/main/java/com/rescatapp/core/model/Oferta.kt#L31). Al ser `data class` tiene `copy()`, que usamos para crear una versión modificada sin alterar la original.
-Código: [Oferta.kt](app/src/main/java/com/rescatapp/core/model/Oferta.kt#L9).
+**4. ¿Cuál es el rol de Room y cómo se garantiza la persistencia?**\
+Room es una capa de abstracción sobre SQLite. Los datos residen en el almacenamiento interno del dispositivo. Gracias a `@Dao` y funciones `suspend`, las operaciones de inserción y actualización se graban permanentemente en disco, de modo que si el sistema destruye el proceso, los datos continúan presentes al reiniciar la app.
 
-**5. ¿Qué significa que una lista o variable sea estado observable?**
-Que cuando su valor cambia, avisa automáticamente a quien la está observando. Nuestras listas son `StateFlow`: al reservar, el repositorio emite una lista nueva y todas las pantallas que la observan se actualizan sin recargar nada a mano.
-Código: [ofertas: StateFlow](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L19) y su lectura con [collectAsStateWithLifecycle()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41).
+**5. ¿Cómo funciona la arquitectura Single Source of Truth (SSOT)?**\
+La base de datos local (Room) es la única fuente de verdad para la interfaz. Las pantallas observan flujos `Flow` provenientes del DAO. Cuando Retrofit descarga datos de MockAPI, estos se insertan en Room, y es Room quien automáticamente notifica a la UI mediante recomposición reactiva.
 
-**6. ¿Qué ocurre durante una recomposición?**
-Compose vuelve a ejecutar las funciones `@Composable` cuyo estado cambió para redibujar esa parte de la pantalla. Solo se recompone lo que depende del dato modificado, no toda la pantalla. Por ejemplo, al reservar cambia el número de rescates y se redibuja el [bloque de impacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33).
-Ver el [flujo de una reserva](#flujo-de-una-reserva-estado-y-recomposición).
+**6. ¿Cómo se implementa el filtro dinámico con WHERE en Room?**\
+A través de una consulta SQL en `OfertaDao`:
+```kotlin
+@Query("SELECT * FROM ofertas WHERE (:categoria IS NULL OR categoria = :categoria) AND (nombre LIKE '%' || :texto || '%' OR comercio LIKE '%' || :texto || '%')")
+fun filtrar(categoria: String?, texto: String): Flow<List<OfertaEntity>>
+```
+Si el parámetro de categoría es nulo, la condición se anula y SQLite devuelve todos los registros que coincidan con el texto.
 
-**7. ¿Cómo se envía información desde una pantalla hacia otra?**
-De dos formas:
+**7. ¿Cómo se envían datos entre pantallas?**\
+- **Argumentos de ruta**, solo con identificadores mínimos: [detalle/{ofertaId}](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L19) y [explorar?categoria=POSTRES](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L16). El ViewModel de destino los lee con `SavedStateHandle`.
+- **Repositorios compartidos**: los datos completos residen en Room y los observan los ViewModels con flujos reactivos.
 
-- **Argumentos de ruta**, solo con identificadores: [detalle/{ofertaId}](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L19) envía el id de la oferta y [explorar?categoria=POSTRES](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L16) envía la categoría. El ViewModel de destino los lee con `SavedStateHandle` ([Detalle](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L26), [Explorar](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarViewModel.kt#L29)).
-- **Repositorios compartidos**: los datos completos no viajan entre pantallas; cada pantalla los lee del mismo repositorio.
+**8. ¿Cómo se manejan los errores de red en Retrofit sin colgar la app?**\
+Las llamadas del `ApiService` se envuelven en bloques `try/catch` dentro del repositorio remoto capturando `IOException` (fallos de conexión) y `HttpException` (errores HTTP 4xx/5xx). El ViewModel traduce la excepción a un `EstadoRemoto.Error(mensaje)` observable por Compose, mostrando un mensaje comprensible y un botón de reintento.
 
-**8. ¿Qué validaciones realiza el formulario?**
+**9. ¿Qué previene que se queden estados de carga colgados?**\
+En el ViewModel, las corrutinas aseguran la desactivación de la bandera de carga en bloques estructurados o mediante el sellado del estado (`EstadoRemoto.Cargando` -> `EstadoRemoto.Exito` o `EstadoRemoto.Error`), garantizando que la UI siempre pase a un estado terminal accionable.
 
-| Campo                         | Regla                                                                                                                                   | Mensaje                                                           |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Nombre, comercio, descripción | No vacíos                                                                                                                               | "Ingresa el nombre de la oferta", etc.                            |
-| Categoría                     | Una elegida                                                                                                                             | "Selecciona una categoría"                                        |
-| Peso, precios                 | Número mayor que 0; acepta coma o punto                                                                                                 | "Ingresa un peso válido en kg", etc.                              |
-| Precio de rescate             | [Menor al precio normal](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L35)                          | "Debe ser menor al precio normal"                                 |
-| Cantidad                      | Entero mayor que 0                                                                                                                      | "Ingresa una cantidad válida"                                     |
-| Horas                         | [Formato `HH:mm`; la final después de la inicial](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L47) | "Usa el formato HH:mm" / "Debe ser posterior a la hora de inicio" |
-
-Cada número se valida **antes** de convertirlo ([Conversiones.kt](app/src/main/java/com/rescatapp/core/util/Conversiones.kt)). Los errores aparecen bajo cada campo y se van corrigiendo mientras se escribe ([onCampoCambiado](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt#L23)).
-Código: [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10).
-
-**9. ¿Dónde se almacenan los datos de la aplicación?**
-En memoria, en [RepositorioOfertas](app/src/main/java/com/rescatapp/core/data/RepositorioOfertas.kt#L18) y [RepositorioPedidos](app/src/main/java/com/rescatapp/core/data/RepositorioPedidos.kt). Hilt crea una sola instancia de cada uno para toda la app. No usamos Room: ver [Por qué no usamos Room](#por-qué-no-usamos-room).
-
-**10. ¿Qué aportó cada integrante del equipo?**
-Ver la tabla de [Equipo](#equipo), con las issues de cada integrante y su código. Cada uno puede explicar el código de su parte.
+**10. ¿Qué validaciones realiza el formulario?**\
+Campos obligatorios no vacíos, formato numérico positivo para precios y peso, precio de rescate estrictamente menor al precio normal, cantidad entera positiva y horarios en formato `HH:mm` con hora de fin posterior a la de inicio ([ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10)).
 
 ---
 
 ## Objetivos de Desarrollo Sostenible
 
-| ODS                                                                                        | Nivel                                | Qué hace la app                                                                                                                                                       |
-| ------------------------------------------------------------------------------------------ | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **12. Producción y consumo responsables** (meta 12.3: reducir el desperdicio de alimentos) | **Principal, con indicador**         | Los comercios publican el excedente que iban a desechar y los clientes lo reservan. El indicador es **"Aprovechado"**: kilos de comida que dejaron de desperdiciarse  |
-| **1. Fin de la pobreza**                                                                   | Secundario, con indicador aproximado | El indicador **"Ahorrado"** muestra cuánto dinero ahorra el cliente al comprar el excedente a precio reducido. Es un ahorro en el gasto en alimentos; no mide pobreza |
-| **2. Hambre cero**                                                                         | Efecto esperado, **sin indicador**   | El alimento llega a más personas a menor precio. No medimos comidas donadas ni acceso alimentario                                                                     |
-| **8. Trabajo decente y crecimiento económico**                                             | Efecto esperado, **sin indicador**   | Los comercios recuperan ingresos de lo que antes botaban. La app no calcula ingresos del comercio                                                                     |
+| ODS | Nivel | Implementación en RescatApp |
+| --- | --- | --- |
+| **12. Producción y consumo responsables** (Meta 12.3: reducir a la mitad el desperdicio de alimentos) | **Principal, con métricas en vivo** | Conecta excedentes con compradores antes de su descarte. El indicador **"Aprovechado"** calcula los kilos de comida rescatados del desperdicio. |
+| **1. Fin de la pobreza** | Secundario, con indicador | El indicador **"Ahorrado"** suma el beneficio económico directo para las familias al acceder a alimentos con hasta un 50% de descuento. |
 
-### Cumplimiento
+Las métricas de impacto se calculan de manera reactiva en [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt) a partir de los pedidos confirmados en Room:
 
-**Se ve en la app.** El bloque [Tu impacto esta semana](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33) de Inicio y la fila de indicadores del [Perfil](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L31) muestran tres cifras, que se dibujan con [FilaImpacto](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt#L23):
+| Indicador | ODS | Cómo se calcula | Valor inicial de ejemplo |
+| --- | --- | --- | --- |
+| **Rescates** | 12 | Cantidad de pedidos no cancelados (`count`) | 4 |
+| **Aprovechado** | 12 | Suma de los kg de esos pedidos (`sumOf`) | 3.6 kg |
+| **Ahorrado** | 1 | Suma de (precio normal − precio de rescate) de esos pedidos (`sumOf`) | Bs.102 |
 
-| Indicador   | ODS | Cómo se calcula                                                                                                                                    | Valor con los datos de ejemplo |
-| ----------- | --- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| Rescates    | 12  | Cantidad de pedidos no cancelados ([`count`](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L11))                           | 4                              |
-| Aprovechado | 12  | Suma de los kg de esos pedidos ([`sumOf`](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L13))                              | 3.6 kg                         |
-| Ahorrado    | 1   | Suma de (precio normal − precio de rescate) de esos pedidos ([`sumOf`](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L12)) | Bs.102                         |
-
-El cálculo está en un solo lugar: [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9). Lo usan Inicio y Perfil, así que ambas pantallas siempre muestran las mismas cifras. Un pedido cancelado [no cuenta](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9).
-
-**Se comprueba con pruebas automáticas.** Corren en cada push del [CI](.github/workflows/android.yml):
-
-| Prueba                                                                                                                                                                                                                                                      | Qué comprueba                                           | Por qué sirve como evidencia                                            |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------- |
-| [`conLosPedidosDeEjemploIgnoraElCancelado`](app/src/test/java/com/rescatapp/core/domain/CalcularImpactoUseCaseTest.kt#L12)                                                                                                                                  | 4 rescates, Bs.102 y 3.6 kg                             | Las cifras de la demo salen del cálculo real y no están escritas a mano |
-| [`cancelarUnPedidoLoRestaDelImpacto`](app/src/test/java/com/rescatapp/core/domain/CalcularImpactoUseCaseTest.kt#L21)                                                                                                                                        | Cancelar un pedido baja a 3, Bs.82 y 2.6 kg             | Solo cuenta lo que realmente se aprovecha                               |
-| [`sinPedidosElImpactoEsCero`](app/src/test/java/com/rescatapp/core/domain/CalcularImpactoUseCaseTest.kt#L34)                                                                                                                                                | Sin pedidos todo vale 0                                 | No hay error ni valores inventados                                      |
-| [`unaReservaActualizaImpactoYSeccionesSinRecargar`](app/src/test/java/com/rescatapp/features/inicio/ui/InicioViewModelTest.kt#L36)                                                                                                                          | Reservar sube el impacto a 5, Bs.117 y 4.2 kg           | El indicador refleja cada nueva reserva al instante                     |
-| [`muestraElImpactoDeLosPedidosDeEjemplo`](app/src/test/java/com/rescatapp/features/perfil/ui/PerfilViewModelTest.kt#L20) y [`cancelarUnPedidoActualizaElImpactoSinRecargar`](app/src/test/java/com/rescatapp/features/perfil/ui/PerfilViewModelTest.kt#L29) | El Perfil muestra las mismas cifras y se actualiza solo | Inicio y Perfil coinciden                                               |
-
-**En la demostración** (paso 9 del [guion](#guion-de-la-demostración)): se reserva Pack Croissants y el bloque pasa de 4 · Bs.102 · 3.6kg a **5 · Bs.117 · 4.2kg**.
-
-### Limitaciones
-
-- **Medimos lo reservado, no lo retirado.** "Aprovechado" suma todo pedido no cancelado, incluso en Reservado, Preparando o Listo. El negocio puede cambiar el estado hasta Recogido desde Pedidos.
-- **El peso de una publicación nueva usa el valor de demostración del formulario.** No hay selección de foto ni confirmación del peso real recibido.
-- **Los valores son de demostración.** Al no haber base de datos, las cifras arrancan con los pedidos de ejemplo del Figma.
-- **ODS 2 y 8 no tienen indicador**, por eso no los presentamos como cumplidos.
+Pruebas automáticas en el CI ([CalcularImpactoUseCaseTest.kt](app/src/test/java/com/rescatapp/core/domain/CalcularImpactoUseCaseTest.kt#L12)) comprueban que las cifras provienen de cálculos reales y no de valores fijos en pantalla.
 
 ---
 
 ## Equipo
 
-Cada integrante trabajó las issues de su área. Las issues se ven en la [pestaña Issues](https://github.com/alejandroramirezucb/RescatApp/issues) del repositorio.
-
-| Integrante          | GitHub                                                        | Áreas                             | Issues                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Código                                                                                                                                                                                                               |
-| ------------------- | ------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Alejandro Ramirez   | [alejandroramirezucb](https://github.com/alejandroramirezucb) | `setup` · `navegacion` · `modelo` | [#31](https://github.com/alejandroramirezucb/RescatApp/issues/31) Proyecto base · [#33](https://github.com/alejandroramirezucb/RescatApp/issues/33) Navegación · [#34](https://github.com/alejandroramirezucb/RescatApp/issues/34) Barra inferior · [#35](https://github.com/alejandroramirezucb/RescatApp/issues/35) Modelo de oferta · [#36](https://github.com/alejandroramirezucb/RescatApp/issues/36) Modelo de pedido · [#37](https://github.com/alejandroramirezucb/RescatApp/issues/37) Conversión y formato                                    | [navigation/](app/src/main/java/com/rescatapp/navigation), [core/model/](app/src/main/java/com/rescatapp/core/model), [core/util/](app/src/main/java/com/rescatapp/core/util), [configuración](app/build.gradle.kts) |
-| Dariana Pol Aramayo | [D4ri4na](https://github.com/D4ri4na)                         | `datos` · `perfil` · `pedidos`    | [#38](https://github.com/alejandroramirezucb/RescatApp/issues/38) Repositorios en memoria · [#39](https://github.com/alejandroramirezucb/RescatApp/issues/39) Datos de ejemplo · [#49](https://github.com/alejandroramirezucb/RescatApp/issues/49) Perfil · [#58](https://github.com/alejandroramirezucb/RescatApp/issues/58) Progreso de pedidos · [#59](https://github.com/alejandroramirezucb/RescatApp/issues/59) Cancelación e historial                                                                                                           | [core/data/](app/src/main/java/com/rescatapp/core/data), [features/pedidos/](app/src/main/java/com/rescatapp/features/pedidos), [features/perfil/](app/src/main/java/com/rescatapp/features/perfil)                  |
-| Josue Balbontin     | [josue-balbontin](https://github.com/josue-balbontin)         | `registro` · `inicio`             | [#45](https://github.com/alejandroramirezucb/RescatApp/issues/45) Validación del formulario · [#46](https://github.com/alejandroramirezucb/RescatApp/issues/46) Registro válido · [#47](https://github.com/alejandroramirezucb/RescatApp/issues/47) Pantalla Publicar oferta · [#55](https://github.com/alejandroramirezucb/RescatApp/issues/55) Impacto en Inicio · [#56](https://github.com/alejandroramirezucb/RescatApp/issues/56) Secciones de ofertas · [#57](https://github.com/alejandroramirezucb/RescatApp/issues/57) Encabezado y categorías | [features/registro/](app/src/main/java/com/rescatapp/features/registro), [features/inicio/](app/src/main/java/com/rescatapp/features/inicio)                                                                         |
-| Fernando Terrazas   | [FernandoTerrazasLl](https://github.com/FernandoTerrazasLl)   | `explorar` · `detalle`            | [#50](https://github.com/alejandroramirezucb/RescatApp/issues/50) Filtrado y orden · [#51](https://github.com/alejandroramirezucb/RescatApp/issues/51) Pantalla Explorar · [#52](https://github.com/alejandroramirezucb/RescatApp/issues/52) Reserva · [#53](https://github.com/alejandroramirezucb/RescatApp/issues/53) Pantalla Detalle · [#54](https://github.com/alejandroramirezucb/RescatApp/issues/54) Propagación del estado                                                                                                                    | [features/explorar/](app/src/main/java/com/rescatapp/features/explorar), [features/detalle/](app/src/main/java/com/rescatapp/features/detalle)                                                                       |
-| Ariany Lopez | [arianylopez](https://github.com/arianylopez) | `design-system` · Figma cliente y negocio · rediseño de Inicio y Pedidos | [#40](https://github.com/alejandroramirezucb/RescatApp/issues/40) Tema visual · [#41](https://github.com/alejandroramirezucb/RescatApp/issues/41) Tarjeta de oferta · [#42](https://github.com/alejandroramirezucb/RescatApp/issues/42) Búsqueda, chips y formulario · [#43](https://github.com/alejandroramirezucb/RescatApp/issues/43) Componentes de pedidos y perfil | Diseño del Figma (flujo cliente y flujo negocio). Commits: [rediseño de Inicio](https://github.com/alejandroramirezucb/RescatApp/commit/3a1cce0034c3ab41258e4153b1fd5581985c340b), [Mis pedidos del cliente](https://github.com/alejandroramirezucb/RescatApp/commit/b41313a31a23ebe5396217d56d1b2592a6039f74) y [flujo cliente sin botón de publicar](https://github.com/alejandroramirezucb/RescatApp/commit/862297ecd34c8ce96ab71f8232d0bb0f509e3a3d). Código: [core/designsystem/](app/src/main/java/com/rescatapp/core/designsystem), [features/inicio/ui/](app/src/main/java/com/rescatapp/features/inicio/ui), [features/pedidos/ui/](app/src/main/java/com/rescatapp/features/pedidos/ui) |
-
-### Qué área cubre cada issue
-
-| Área            | Qué abarca                                               | Responsable |
-| --------------- | -------------------------------------------------------- | ----------- |
-| `setup`         | Proyecto base con Compose y Hilt                         | Alejandro   |
-| `navegacion`    | NavHost, rutas y barra inferior                          | Alejandro   |
-| `modelo`        | data classes, enums y utilidades de conversión y formato | Alejandro   |
-| `datos`         | Repositorios en memoria y datos de ejemplo               | Dariana     |
-| `perfil`        | Pantalla Perfil                                          | Dariana     |
-| `pedidos`       | Progreso, cancelación e historial de pedidos             | Dariana     |
-| `registro`      | Formulario de publicación y sus validaciones             | Josue       |
-| `inicio`        | Impacto, secciones de ofertas, encabezado y categorías   | Josue       |
-| `explorar`      | Búsqueda, filtros y listado                              | Fernando    |
-| `detalle`       | Detalle, reserva y propagación del estado                | Fernando    |
-| `design-system` | Tema y componentes visuales, a partir del Figma          | Ariany      |
+| Integrante | GitHub |
+| --- | --- |
+| **Alejandro Ramirez** | [alejandroramirezucb](https://github.com/alejandroramirezucb) |
+| **Dariana Pol Aramayo** | [D4ri4na](https://github.com/D4ri4na) |
+| **Josue Balbontin** | [josue-balbontin](https://github.com/josue-balbontin) |
+| **Fernando Terrazas** | [FernandoTerrazasLl](https://github.com/FernandoTerrazasLl) |
+| **Ariany Lopez** | [arianylopez](https://github.com/arianylopez) |
