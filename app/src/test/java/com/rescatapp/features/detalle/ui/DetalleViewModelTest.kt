@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import com.rescatapp.observarDuranteLaPrueba
@@ -58,6 +59,9 @@ class DetalleViewModelTest {
     private fun crearViewModel(ofertaId: Int) = DetalleViewModel(
         savedStateHandle = SavedStateHandle(mapOf(ArgumentosRuta.OFERTA_ID to ofertaId)),
         repositorioOfertas = repositorioOfertas,
-        reservarOferta = ReservarOfertaUseCase(repositorioOfertas, RepositorioPedidos())
+        reservarOferta = ReservarOfertaUseCase(
+            repositorioOfertas,
+            RepositorioPedidos(FakePedidoDao())
+        )
     )
 }
