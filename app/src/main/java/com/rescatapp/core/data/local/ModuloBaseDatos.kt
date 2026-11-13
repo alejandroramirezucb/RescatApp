@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.data.pedidosDeEjemplo
 import dagger.Module
 import dagger.Provides
@@ -33,13 +34,22 @@ object ModuloBaseDatos {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             CoroutineScope(Dispatchers.IO).launch {
-                databaseProvider.get().pedidoDao().insertarTodos(
+                val database = databaseProvider.get()
+                database.ofertaDao().insertarTodas(
+                    ofertasDeEjemplo.map { it.toEntity() }
+                )
+                database.pedidoDao().insertarTodos(
                     pedidosDeEjemplo.map { it.toEntity() }
                 )
             }
         }
-    }).build()
+    })
+        .fallbackToDestructiveMigration(dropAllTables = true)
+        .build()
 
     @Provides
     fun proveerPedidoDao(database: RescatAppDatabase): PedidoDao = database.pedidoDao()
+
+    @Provides
+    fun proveerOfertaDao(database: RescatAppDatabase): OfertaDao = database.ofertaDao()
 }

@@ -13,16 +13,19 @@ import com.rescatapp.features.explorar.domain.FiltrarOfertasUseCase
 import com.rescatapp.features.explorar.domain.FiltrosOfertas
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class ExplorarViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    repositorioOfertas: RepositorioOfertas,
+    private val repositorioOfertas: RepositorioOfertas,
     private val filtrarOfertas: FiltrarOfertasUseCase
 ) : ViewModel() {
     private val filtros = MutableStateFlow(
@@ -30,7 +33,21 @@ class ExplorarViewModel @Inject constructor(
     )
 
     val uiState: StateFlow<ExplorarUiState> =
-        combine(repositorioOfertas.ofertas, filtros, ::crearEstado).stateIn(
+        filtros.flatMapLatest { filtrosActuales ->
+            repositorioOfertas.filtrar(filtrosActuales.categoria, filtrosActuales.texto)
+                .map { ofertasFiltradas ->
+                    val ofertasOrdenadas = when (filtrosActuales.orden) {
+                        OrdenOfertas.RECOMENDADAS -> ofertasFiltradas
+
+                        OrdenOfertas.MAYOR_DESCUENTO ->
+                            ofertasFiltradas.sortedByDescending { it.porcentajeDescuento }
+                    }
+                    ExplorarUiState(
+                        filtros = filtrosActuales,
+                        ofertas = ofertasOrdenadas
+                    )
+                }
+        }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
             initialValue = crearEstado(repositorioOfertas.ofertas.value, filtros.value)
