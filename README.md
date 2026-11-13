@@ -10,16 +10,16 @@ Aplicación Android para rescatar alimentos. Los comercios publican sus excedent
 
 1. [Cómo ejecutar](#cómo-ejecutar)
 2. [Tecnologías](#tecnologías)
-3. [Pantallas y flujos](#pantallas-y-flujos)
+3. [Pantallas](#pantallas)
 4. [Estructura del proyecto](#estructura-del-proyecto)
-5. [Arquitectura del sistema](#arquitectura-del-sistema)
+5. [Arquitectura](#arquitectura)
 6. [Persistencia local con Room](#persistencia-local-con-room)
 7. [Consumo de API REST con Retrofit y MockAPI](#consumo-de-api-rest-con-retrofit-y-mockapi)
 8. [Dónde se cumple cada punto de la guía técnica](#dónde-se-cumple-cada-punto-de-la-guía-técnica)
 9. [Guion de la demostración técnica (12 pasos)](#guion-de-la-demostración-técnica-12-pasos)
 10. [Preguntas de la defensa técnica](#preguntas-de-la-defensa-técnica)
 11. [Objetivos de Desarrollo Sostenible](#objetivos-de-desarrollo-sostenible)
-12. [Equipo e Issues del proyecto](#equipo-e-issues-del-proyecto)
+12. [Equipo](#equipo)
 
 ---
 
@@ -58,27 +58,113 @@ Dependencias declaradas en [gradle/libs.versions.toml](gradle/libs.versions.toml
 
 ---
 
-## Pantallas y flujos
+## Pantallas
 
 La barra inferior adapta sus pestañas según el rol activo:
 * **Cliente:** Inicio, Explorar, Pedidos y Perfil.
-* **Negocio:** Inicio, Mis ofertas, Pedidos y Perfil.
+* **Negocio:** Inicio, Ofertas (Mis ofertas), Pedidos y Perfil.
 * **Detalle** y **Publicar oferta** ocultan la barra de navegación para enfocar la acción del usuario.
 
 ### Dos flujos integrados: Cliente y Negocio
 
-La app cuenta con ambos flujos funcionales, alternables en cualquier momento desde **Perfil** mediante el selector de rol demostrativo.
+La app implementa los flujos de cliente y negocio. Se alternan desde Perfil mediante el botón de cambio de rol de demostración.
 
-| Flujo | Funcionalidad principal | Pantallas asociadas | Estado en la app |
+| Flujo | Qué hace | Pantallas en Figma | En la app |
 | --- | --- | --- | --- |
-| **Cliente** | Explora ofertas con filtros dinámicos, reserva y sigue el estado de sus pedidos | `Inicio`, `Explorar`, `Detalle`, `Pedidos`, `Perfil` | Funcional |
-| **Negocio** | Publica ofertas, gestiona estados de pedidos, edita o elimina ofertas y consulta métricas | `Inicio`, `Ofertas (Mis ofertas)`, `Registro (Crear oferta)`, `Pedidos`, `Perfil` | Funcional |
+| **Cliente** | Explora ofertas con filtros dinámicos, reserva y sigue el estado de sus pedidos | `Inicio`, `Explorar`, `Pedidos`, `Historial`, `Perfil` | Implementado |
+| **Negocio** | Publica ofertas, gestiona estados de pedidos, edita o elimina ofertas y consulta métricas | `Inicio - Negocio`, `Ofertas - Negocio`, `Crear Oferta - Negocio`, `Pedidos - Negocio` | Implementado, sin lector QR |
+
+Consecuencias en el código:
+- El botón **"Publicar oferta"** pertenece al flujo negocio y está oculto en el flujo cliente: [muestraBotonPublicar](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21).
+- Las **acciones sobre un pedido** (cancelar, marcar como preparando o listo, confirmar retiro) son del negocio: sus casos de uso existen y están probados.
+- Los archivos del Figma están en `PANTALLAS FIGMA/`. La separación de roles implementada por Ariany tiene prioridad para los flujos.
+- La pestaña Ofertas muestra las publicaciones del negocio de demostración, con controles para editar y eliminar ofertas.
+
+### Inicio (dashboard)
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [InicioScreen.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L15) |
+| Encabezado: ubicación, saludo, notificaciones y buscador | [EncabezadoInicio](app/src/main/java/com/rescatapp/features/inicio/ui/EncabezadoInicio.kt#L25) |
+| Bloque "Tu impacto esta semana" | [BloqueImpacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33) |
+| Tarjetas "Explora por categoría" | [CategoriasInicio](app/src/main/java/com/rescatapp/features/inicio/ui/CategoriasInicio.kt#L28) |
+| Secciones "Ofertas cerca de ti", "Se están agotando", "Lo mejor de hoy" y "Puede interesarte" | [SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L54) |
+| Estado de la pantalla | [InicioViewModel.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) y [InicioUiState.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioUiState.kt) |
+| Cálculo del impacto (`filter`, `count`, `sumOf`) | [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt#L9) |
+| Selección de ofertas por sección | [SeleccionarOfertasInicioUseCase.kt](app/src/main/java/com/rescatapp/features/inicio/domain/SeleccionarOfertasInicioUseCase.kt#L9) |
+
+### Explorar
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [ExplorarScreen.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L27) |
+| Cuadrícula de ofertas | [CuadriculaOfertas](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L60) |
+| Chips de filtro y orden, menú de categorías | [FiltrosExplorar.kt](app/src/main/java/com/rescatapp/features/explorar/ui/FiltrosExplorar.kt#L26) |
+| Búsqueda y filtro por categoría con SQL en Room | [OfertaDao](app/src/main/java/com/rescatapp/core/data) y [FiltrarOfertasUseCase.kt](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) |
+| "N ofertas encontradas" (`count`) | [ExplorarUiState.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarUiState.kt#L11) |
+| Categoría recibida desde Inicio | [ExplorarViewModel.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarViewModel.kt#L29) |
+
+### Detalle
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L40) |
+| Información de la oferta y botón Reservar | [InformacionOferta](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
+| Lee el id de la ruta con `SavedStateHandle` | [DetalleViewModel.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L26) |
+| Diálogo de confirmación de reserva | [DialogoReserva.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DialogoReserva.kt#L22) |
+| Descuenta una unidad del stock de la oferta | [ReservarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
+
+### Publicar oferta (formulario)
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [RegistroScreen.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroScreen.kt#L30) |
+| Campos: nombre, comercio, descripción, peso, precios, cantidad y horario | [FormularioOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/FormularioOferta.kt#L21) |
+| Selector de foto (cámara o galería) | [SeccionFotoOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/SeccionFotoOferta.kt#L27) |
+| Selector de categoría | [SelectorCategoriaOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/SelectorCategoriaOferta.kt#L21) |
+| Validación de campos, números, horas y precio de rescate < normal | [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10) |
+| Guarda en Room y emite nueva oferta | [RegistrarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/RegistrarOfertaUseCase.kt#L10) |
+| Estado del formulario | [RegistroViewModel.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt) |
+
+### Mis pedidos
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla (pestañas "Activos" e "Historial") | [PedidosScreen.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosScreen.kt#L31) |
+| Tarjeta de pedido con comercio, total y estado | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt#L29) |
+| Barra de progreso (Reservado → Preparando → Listo → Recogido) | [BarraProgresoPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/BarraProgresoPedido.kt#L24) |
+| Selector de pestañas | [SelectorPestanasPedidos.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/SelectorPestanasPedidos.kt#L15) |
+| Diálogos para cambiar de estado o cancelar | [DialogosPedido.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/DialogosPedido.kt#L15) |
+| Avanzar estado (solo negocio) | [AvanzarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/AvanzarPedidoUseCase.kt#L8) |
+| Cancelar reserva y devolver stock | [CancelarPedidoUseCase.kt](app/src/main/java/com/rescatapp/features/pedidos/domain/CancelarPedidoUseCase.kt#L8) |
+| Estado y separación por pestañas | [PedidosViewModel.kt](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
+
+### Perfil
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla | [PerfilScreen.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L25) |
+| Encabezado con avatar, nombre, nivel de rescatista y cambio de rol | [EncabezadoPerfil.kt](app/src/main/java/com/rescatapp/features/perfil/ui/EncabezadoPerfil.kt#L21) |
+| Datos de la cuenta (correo, teléfono, dirección) | [InformacionCuenta.kt](app/src/main/java/com/rescatapp/features/perfil/ui/InformacionCuenta.kt#L18) |
+| Impacto acumulado y ODS | [SeccionSostenibilidadODS.kt](app/src/main/java/com/rescatapp/features/perfil/ui/SeccionSostenibilidadODS.kt#L16) |
+| Estado del perfil | [PerfilViewModel.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilViewModel.kt) |
+
+### Componentes compartidos
+
+| Componente | Dónde |
+| --- | --- |
+| Tarjeta de oferta (usada en Inicio y Explorar) | [TarjetaOferta.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaOferta.kt#L31) |
+| Tarjeta de pedido | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt) |
+| Campo de texto con mensaje de error | [CampoConError.kt](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L12) |
+| Fila de rescates, ahorro y kg (Inicio y Perfil) | [FilaImpacto.kt](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt) |
+| Todos los componentes | [core/designsystem/components/](app/src/main/java/com/rescatapp/core/designsystem/components) |
+| Colores y tema | [Color.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/Color.kt) · [RescatAppTheme.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/RescatAppTheme.kt#L28) |
 
 ---
 
 ## Estructura del proyecto
 
-El proyecto organiza sus paquetes por responsabilidades claras según la Sección 5 de la guía técnica, manteniendo separados los orígenes de datos local y remoto:
+El código reside en [app/src/main/java/com/rescatapp/](app/src/main/java/com/rescatapp) organizado por responsabilidades claras según la Sección 5 de la guía técnica:
 
 ```
 com.rescatapp
@@ -99,7 +185,7 @@ com.rescatapp
 │   │   └── repository/              Repositorios únicos (Single Source of Truth)
 │   ├── domain/                      Casos de uso transversales (cálculo de impacto y roles)
 │   ├── model/                       Modelos de dominio puros (Oferta, Pedido, Categoria, etc.)
-│   ├── designsystem/                Tema accesible (colores, tipografía) y componentes reutilizables
+│   ├── designsystem/                Tema accesible (colores, tipografía) y componentes visuales
 │   └── util/                        Conversores seguros, formateadores y extensiones
 │
 ├── features/                        Módulos funcionales de pantalla (MVVM)
@@ -113,11 +199,36 @@ com.rescatapp
 └── navigation/                      Configuración de rutas, NavHost y barra inferior
 ```
 
+| Carpeta | Contiene | Enlace |
+| --- | --- | --- |
+| `core/model` | `Oferta`, `Pedido`, los enum y el resultado de las operaciones | [abrir](app/src/main/java/com/rescatapp/core/model) |
+| `core/data` | Persistencia local Room, servicios remotos Retrofit y repositorios | [abrir](app/src/main/java/com/rescatapp/core/data) |
+| `core/domain` | `CalcularImpactoUseCase`, `SeleccionarPedidosPorRol` | [abrir](app/src/main/java/com/rescatapp/core/domain) |
+| `core/designsystem` | Tema y componentes visuales | [abrir](app/src/main/java/com/rescatapp/core/designsystem) |
+| `core/util` | `Conversiones`, `Formateadores` | [abrir](app/src/main/java/com/rescatapp/core/util) |
+| `features` | Una carpeta por pantalla con arquitectura MVVM | [abrir](app/src/main/java/com/rescatapp/features) |
+| `navigation` | `Rutas`, `RescatAppNavHost`, barra inferior | [abrir](app/src/main/java/com/rescatapp/navigation) |
+| Pruebas unitarias | Misma estructura que el código (25 archivos, 78 pruebas) | [abrir](app/src/test/java/com/rescatapp) |
+
 ---
 
-## Arquitectura del sistema
+## Arquitectura
 
-La aplicación implementa el patrón **Single Source of Truth (Fuente Única de Verdad)** donde la base de datos local (Room) es la única fuente que alimenta a la interfaz mediante flujos reactivos (`Flow`), mientras que la capa remota (Retrofit) sincroniza con el backend (MockAPI).
+### Capas y reglas de dependencia
+
+```
+Screen  ──►  ViewModel  ──►  UseCase  ──►  Repositorio
+(dibuja)     (estado)        (regla)       (datos)
+```
+
+- `features/*/ui` usa `features/*/domain`, y ambos usan `core`.
+- **Una feature nunca importa a otra.** Lo que se comparte está en `core` (por ejemplo, [CalcularImpactoUseCase](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt) lo usan Inicio y Perfil).
+- **`core` no importa ninguna feature.**
+- Solo [navigation/](app/src/main/java/com/rescatapp/navigation) conoce todas las pantallas.
+
+### Sincronización entre dispositivos (Single Source of Truth)
+
+La base de datos local (Room) es la única fuente de verdad para la interfaz mediante flujos reactivos (`Flow`), mientras que la capa remota (Retrofit) sincroniza con el backend en MockAPI:
 
 ```
 Teléfono A (Negocio)               Internet               Teléfono B (Cliente)
@@ -133,18 +244,53 @@ Teléfono A (Negocio)               Internet               Teléfono B (Cliente)
                                 └───────────────┘
 ```
 
-### Principios del flujo de datos
-
 1. **Publicación y persistencia:** Cuando el negocio publica una oferta en el Teléfono A, se registra localmente en Room y se envía a la API remota mediante `POST`.
 2. **Sincronización remota:** El cliente en el Teléfono B consulta la API mediante `GET` para obtener las publicaciones más recientes y las guarda en su Room local.
 3. **Capacidad sin conexión (Offline-first):** Una vez que los datos residen en Room, el cliente puede consultar las ofertas y pedidos aunque no disponga de conexión a internet.
 4. **Reactividad automática:** La interfaz nunca lee directamente de la red; observa Room mediante `Flow`. Cualquier inserción, actualización o eliminación redibuja automáticamente las pantallas con `collectAsStateWithLifecycle()`.
 
+### Flujo de una reserva (estado y recomposición)
+
+| Paso | Qué pasa | Dónde |
+| --- | --- | --- |
+| 1 | El cliente toca "Reservar" | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
+| 2 | El ViewModel pide la reserva | [DetalleViewModel.reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L36) |
+| 3 | El caso de uso valida que haya unidades | [ReservarOfertaUseCase](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
+| 4 | Se descuenta una unidad de la oferta en Room | `cambiarUnidadesDisponibles()` en `RepositorioOfertas.kt` |
+| 5 | Se crea el pedido en estado Reservado en SQLite | `crearPedido()` y `insertar()` en `RepositorioPedidos.kt` |
+| 6 | Los `Flow` de los DAOs de Room emiten las listas actualizadas | `OfertaDao.observarTodas()` y `PedidoDao.observarTodos()` |
+| 7 | Cada ViewModel combina los datos y crea un `UiState` nuevo | [InicioViewModel](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
+| 8 | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20) |
+
+Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos de manera atómica.
+
+### Decisiones técnicas
+
+| Decisión | Por qué |
+| --- | --- |
+| **Hilt** para inyección de dependencias | Los ViewModels reciben repositorios y casos de uso sin crearlos a mano. Con `@Singleton`, todas las pantallas comparten la misma instancia de cada componente. |
+| **Repositorios concretos con Single Source of Truth** | Cada entidad tiene su repositorio que centraliza el acceso a Room y coordina la sincronización con Retrofit. |
+| **`Flow` y `StateFlow`** | Permiten propagar cambios automáticamente desde SQLite hacia la UI sin recargas manuales. |
+| **Un caso de uso por regla** | Cada clase hace una sola cosa (principio de responsabilidad única) y se prueba de forma aislada. |
+| **Formato con Spotless** | Todo el equipo escribe con el mismo estilo; el CI rechaza código sin formatear. |
+
+### Cambios respecto al diseño de Figma
+
+| Cambio | Motivo |
+| --- | --- |
+| **Detalle** no existe en el Figma | La guía técnica exige una pantalla de detalle; se construyó con los componentes del diseño. |
+| **Publicar oferta** solo aparece en el flujo negocio | En Figma es `Crear Oferta - Negocio`; en la app cliente el botón está oculto ([DestinoPrincipal.kt](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)). |
+| Íconos de Material en lugar de emojis y fotos | No hay fotos por producto; se usa un ícono por categoría. |
+| Naranja más oscuro (`#C2410C`) para texto | El naranja original sobre blanco no alcanza el contraste mínimo de 4.5:1. |
+| Perfil sin menú (pagos, ayuda, cerrar sesión…) | Sin backend esas opciones serían botones que no hacen nada. |
+| Sin lector QR ni pantalla independiente de Stats | El negocio gestiona estados con botones y consulta métricas en Inicio. |
+| El corazón de favoritos es solo visual; no hay calificaciones ni distancia | Un favorito real y la calificación requieren datos y acciones que la app no tiene. |
+
 ---
 
 ## Persistencia local con Room
 
-La persistencia local garantiza que la información permanezca intacta tras cerrar forzosamente la aplicación o reiniciar el emulador.
+La persistencia local garantiza que la información permanezca intacta tras cerrar forzosamente la aplicación o reiniciar el dispositivo (Prueba Técnica 8).
 
 * **Entidades relacionales:**
   * `OfertaEntity`: almacena id, nombre, comercio, categoría, descripción, peso, precios, unidades disponibles, horarios de retiro y uri de imagen.
@@ -248,13 +394,24 @@ El siguiente guion permite comprobar en vivo los 12 pasos exigidos en la Secció
 
 ## Preguntas de la defensa técnica
 
-**1. ¿Cuál es el rol de Room y cómo se garantiza la persistencia?**  
+**1. ¿Cuál es la función de NavHost y NavController?**  
+El `NavController` guarda en qué pantalla estamos y la pila de pantallas anteriores; es quien ejecuta la navegación. El `NavHost` es el contenedor que dibuja la pantalla que corresponde a la ruta actual, y en él se declara un `composable(ruta)` por pantalla.  
+Código: [rememberNavController()](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L34) · [NavHost y sus composable](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L56).
+
+**2. ¿Cuál es la diferencia entre navigate() y popBackStack()?**  
+`navigate(ruta)` agrega una pantalla encima de la pila (por ejemplo, `navigate("detalle/14")`). `popBackStack()` quita la pantalla actual y regresa a la anterior en el historial de navegación sin generar pantallas duplicadas.  
+Código: [navigate a Detalle](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L37) · [popBackStack](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L38).
+
+**3. ¿Por qué separaron las pantallas en archivos diferentes?**  
+Cada archivo tiene una sola responsabilidad: facilita la lectura, la realización de pruebas unitarias y evita conflictos al trabajar concurrentemente cinco desarrolladores en Git.
+
+**4. ¿Cuál es el rol de Room y cómo se garantiza la persistencia?**  
 Room es una capa de abstracción sobre SQLite. Los datos residen en el almacenamiento interno del dispositivo. Gracias a `@Dao` y funciones `suspend`, las operaciones de inserción y actualización se graban permanentemente en disco, de modo que si el sistema destruye el proceso, los datos continúan presentes al reiniciar la app.
 
-**2. ¿Cómo funciona la arquitectura Single Source of Truth (SSOT)?**  
+**5. ¿Cómo funciona la arquitectura Single Source of Truth (SSOT)?**  
 La base de datos local (Room) es la única fuente de verdad para la interfaz. Las pantallas observan flujos `Flow` provenientes del DAO. Cuando Retrofit descarga datos de MockAPI, estos se insertan en Room, y es Room quien automáticamente notifica a la UI mediante recomposición reactiva.
 
-**3. ¿Cómo se implementa el filtro dinámico con WHERE en Room?**  
+**6. ¿Cómo se implementa el filtro dinámico con WHERE en Room?**  
 A través de una consulta SQL en `OfertaDao`:
 ```kotlin
 @Query("SELECT * FROM ofertas WHERE (:categoria IS NULL OR categoria = :categoria) AND (nombre LIKE '%' || :texto || '%' OR comercio LIKE '%' || :texto || '%')")
@@ -262,11 +419,18 @@ fun filtrar(categoria: String?, texto: String): Flow<List<OfertaEntity>>
 ```
 Si el parámetro de categoría es nulo, la condición se anula y SQLite devuelve todos los registros que coincidan con el texto.
 
-**4. ¿Cómo se manejan los errores de red en Retrofit sin colgar la app?**  
+**7. ¿Cómo se envían datos entre pantallas?**  
+- **Argumentos de ruta**, solo con identificadores mínimos: [detalle/{ofertaId}](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L19) y [explorar?categoria=POSTRES](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L16). El ViewModel de destino los lee con `SavedStateHandle`.
+- **Repositorios compartidos**: los datos completos residen en Room y los observan los ViewModels con flujos reactivos.
+
+**8. ¿Cómo se manejan los errores de red en Retrofit sin colgar la app?**  
 Las llamadas del `ApiService` se envuelven en bloques `try/catch` dentro del repositorio remoto capturando `IOException` (fallos de conexión) y `HttpException` (errores HTTP 4xx/5xx). El ViewModel traduce la excepción a un `EstadoRemoto.Error(mensaje)` observable por Compose, mostrando un mensaje comprensible y un botón de reintento.
 
-**5. ¿Qué previene que se queden estados de carga colgados?**  
+**9. ¿Qué previene que se queden estados de carga colgados?**  
 En el ViewModel, las corrutinas aseguran la desactivación de la bandera de carga en bloques estructurados o mediante el sellado del estado (`EstadoRemoto.Cargando` -> `EstadoRemoto.Exito` o `EstadoRemoto.Error`), garantizando que la UI siempre pase a un estado terminal accionable.
+
+**10. ¿Qué validaciones realiza el formulario?**  
+Campos obligatorios no vacíos, formato numérico positivo para precios y peso, precio de rescate estrictamente menor al precio normal, cantidad entera positiva y horarios en formato `HH:mm` con hora de fin posterior a la de inicio ([ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10)).
 
 ---
 
@@ -277,28 +441,24 @@ En el ViewModel, las corrutinas aseguran la desactivación de la bandera de carg
 | **12. Producción y consumo responsables** (Meta 12.3: reducir a la mitad el desperdicio de alimentos) | **Principal, con métricas en vivo** | Conecta excedentes con compradores antes de su descarte. El indicador **"Aprovechado"** calcula los kilos de comida rescatados del desperdicio. |
 | **1. Fin de la pobreza** | Secundario, con indicador | El indicador **"Ahorrado"** suma el beneficio económico directo para las familias al acceder a alimentos con hasta un 50% de descuento. |
 
-Las métricas de impacto se calculan de manera reactiva en [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt) a partir de los pedidos confirmados en Room.
+Las métricas de impacto se calculan de manera reactiva en [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt) a partir de los pedidos confirmados en Room:
+
+| Indicador | ODS | Cómo se calcula | Valor inicial de ejemplo |
+| --- | --- | --- | --- |
+| **Rescates** | 12 | Cantidad de pedidos no cancelados (`count`) | 4 |
+| **Aprovechado** | 12 | Suma de los kg de esos pedidos (`sumOf`) | 3.6 kg |
+| **Ahorrado** | 1 | Suma de (precio normal − precio de rescate) de esos pedidos (`sumOf`) | Bs.102 |
+
+Pruebas automáticas en el CI ([CalcularImpactoUseCaseTest.kt](app/src/test/java/com/rescatapp/core/domain/CalcularImpactoUseCaseTest.kt#L12)) comprueban que las cifras provienen de cálculos reales y no de valores fijos en pantalla.
 
 ---
 
-## Equipo e Issues del proyecto
+## Equipo
 
-El equipo distribuyó las responsabilidades técnicas de la predefensa en 5 roles (Persona 1 a 5) con 2 issues por integrante, cubriendo los requisitos de persistencia local, consumo remoto, filtros SQL, validaciones, CRUD y métricas:
-
-| Rol | Integrante | GitHub | Labels | Issues asignadas para la predefensa |
-| :---: | --- | --- | --- | --- |
-| **Persona 1** | **Alejandro Ramirez** | [alejandroramirezucb](https://github.com/alejandroramirezucb) | `retrofit` · `indicadores` | [#70](https://github.com/alejandroramirezucb/RescatApp/issues/70) Cliente Retrofit y CRUD remoto de ofertas<br>[#79](https://github.com/alejandroramirezucb/RescatApp/issues/79) Indicadores del negocio calculados con datos reales |
-| **Persona 2** | **Josue Balbontin** | [josue-balbontin](https://github.com/josue-balbontin) | `room` · `pedidos` | [#74](https://github.com/alejandroramirezucb/RescatApp/issues/74) Entidad y DAO de pedidos<br>[#75](https://github.com/alejandroramirezucb/RescatApp/issues/75) Repositorio de pedidos sobre Room |
-| **Persona 3** | **Dariana Pol Aramayo** | [D4ri4na](https://github.com/D4ri4na) | `room` | [#72](https://github.com/alejandroramirezucb/RescatApp/issues/72) Entidad y DAO de ofertas con filtro SQL<br>[#73](https://github.com/alejandroramirezucb/RescatApp/issues/73) Base de datos Room con datos iniciales |
-| **Persona 4** | **Fernando Terrazas** | [FernandoTerrazasLl](https://github.com/FernandoTerrazasLl) | `validaciones` · `estado-remoto` | [#78](https://github.com/alejandroramirezucb/RescatApp/issues/78) Validaciones en la edición de ofertas<br>[#71](https://github.com/alejandroramirezucb/RescatApp/issues/71) Estados de carga y error para ofertas en línea |
-| **Persona 5** | **Ariany Lopez** | [arianylopez](https://github.com/arianylopez) | `explorar` · `room` | [#76](https://github.com/alejandroramirezucb/RescatApp/issues/76) Repositorio de ofertas sobre Room y filtro SQL en Explorar<br>[#77](https://github.com/alejandroramirezucb/RescatApp/issues/77) Eliminar oferta del negocio |
-
-### Historial de entregas anteriores (Base del prototipo)
-
-| Integrante | Áreas históricas | Issues base completadas |
-| --- | --- | --- |
-| **Alejandro Ramirez** | `setup` · `navegacion` · `modelo` | [#31](https://github.com/alejandroramirezucb/RescatApp/issues/31) Proyecto base · [#33](https://github.com/alejandroramirezucb/RescatApp/issues/33) Navegación · [#34](https://github.com/alejandroramirezucb/RescatApp/issues/34) Barra inferior · [#35](https://github.com/alejandroramirezucb/RescatApp/issues/35) Modelo oferta · [#36](https://github.com/alejandroramirezucb/RescatApp/issues/36) Modelo pedido · [#37](https://github.com/alejandroramirezucb/RescatApp/issues/37) Conversión y formato |
-| **Dariana Pol Aramayo** | `datos` · `perfil` · `pedidos` | [#38](https://github.com/alejandroramirezucb/RescatApp/issues/38) Repositorios en memoria · [#39](https://github.com/alejandroramirezucb/RescatApp/issues/39) Datos de ejemplo · [#49](https://github.com/alejandroramirezucb/RescatApp/issues/49) Perfil · [#58](https://github.com/alejandroramirezucb/RescatApp/issues/58) Progreso pedidos · [#59](https://github.com/alejandroramirezucb/RescatApp/issues/59) Cancelación e historial |
-| **Josue Balbontin** | `registro` · `inicio` | [#45](https://github.com/alejandroramirezucb/RescatApp/issues/45) Validación formulario · [#46](https://github.com/alejandroramirezucb/RescatApp/issues/46) Registro válido · [#47](https://github.com/alejandroramirezucb/RescatApp/issues/47) Publicar oferta · [#55](https://github.com/alejandroramirezucb/RescatApp/issues/55) Impacto Inicio · [#56](https://github.com/alejandroramirezucb/RescatApp/issues/56) Secciones ofertas · [#57](https://github.com/alejandroramirezucb/RescatApp/issues/57) Encabezado y categorías |
-| **Fernando Terrazas** | `explorar` · `detalle` | [#50](https://github.com/alejandroramirezucb/RescatApp/issues/50) Filtrado y orden · [#51](https://github.com/alejandroramirezucb/RescatApp/issues/51) Explorar · [#52](https://github.com/alejandroramirezucb/RescatApp/issues/52) Reserva · [#53](https://github.com/alejandroramirezucb/RescatApp/issues/53) Detalle · [#54](https://github.com/alejandroramirezucb/RescatApp/issues/54) Propagación estado |
-| **Ariany Lopez** | `design-system` · Figma | [#40](https://github.com/alejandroramirezucb/RescatApp/issues/40) Tema visual · [#41](https://github.com/alejandroramirezucb/RescatApp/issues/41) Tarjeta oferta · [#42](https://github.com/alejandroramirezucb/RescatApp/issues/42) Búsqueda y chips · [#43](https://github.com/alejandroramirezucb/RescatApp/issues/43) Componentes pedidos y perfil |
+| Integrante | GitHub |
+| --- | --- |
+| **Alejandro Ramirez** | [alejandroramirezucb](https://github.com/alejandroramirezucb) |
+| **Dariana Pol Aramayo** | [D4ri4na](https://github.com/D4ri4na) |
+| **Josue Balbontin** | [josue-balbontin](https://github.com/josue-balbontin) |
+| **Fernando Terrazas** | [FernandoTerrazasLl](https://github.com/FernandoTerrazasLl) |
+| **Ariany Lopez** | [arianylopez](https://github.com/arianylopez) |
