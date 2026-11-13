@@ -30,7 +30,6 @@ fun EncabezadoSeccion(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
             subtitulo?.let {

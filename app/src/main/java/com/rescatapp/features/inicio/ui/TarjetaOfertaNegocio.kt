@@ -78,7 +78,6 @@ private fun EncabezadoOferta(nombre: String, estaAgotada: Boolean) {
         Text(
             text = nombre,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(8.dp))
@@ -96,7 +95,6 @@ private fun PieOferta(precio: String, onEditar: () -> Unit) {
         Text(
             text = precio,
             style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
             color = Naranja
         )
         Surface(
@@ -108,7 +106,6 @@ private fun PieOferta(precio: String, onEditar: () -> Unit) {
             Text(
                 text = "Editar",
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
             )
         }

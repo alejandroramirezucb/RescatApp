@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
 
@@ -36,7 +35,6 @@ internal fun EncabezadoNegocio(nombre: String) {
                 text = nombre,
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
             )
         }
@@ -48,8 +46,7 @@ internal fun EncabezadoNegocio(nombre: String) {
             )
             Text(
                 text = "Buenos días,\n$nombre",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.ExtraBold
+                style = MaterialTheme.typography.headlineSmall
             )
         }
     }
@@ -60,8 +57,7 @@ internal fun ResumenNegocio(estado: InicioNegocioUiState) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "Resumen de hoy",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium
         )
         FilaEstadisticasNegocio(
             TarjetaEstadisticaInfo(
@@ -123,7 +119,6 @@ private fun TarjetaEstadisticaNegocio(info: TarjetaEstadisticaInfo, modifier: Mo
             Text(
                 text = info.valor,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
                 color = Naranja
             )
             Text(

@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -38,7 +37,6 @@ fun SelectorPestanas(titulos: List<String>, indiceSeleccionado: Int, onSeleccion
                     Text(
                         text = titulo,
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
                         color = if (seleccionada) esquema.primary else esquema.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(vertical = 12.dp)

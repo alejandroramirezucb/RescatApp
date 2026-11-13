@@ -69,8 +69,7 @@ private fun DatosEncabezadoPerfil(nombre: String, correo: String, esNegocio: Boo
         Text(
             text = nombre,
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
-            fontWeight = FontWeight.Bold
+            color = Color.White
         )
         Text(
             text = correo,

@@ -30,8 +30,7 @@ internal fun TarjetaAhorroCliente(porcentaje: Int) {
         ) {
             Text(
                 text = "El cliente ahorra:",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium
             )
             Text(
                 text = if (porcentaje > 0) "$porcentaje%" else "--%",

@@ -72,7 +72,6 @@ fun RegistroScreen(
             Text(
                 text = UsuarioDemo.NEGOCIO_DEMO,
                 style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
                 color = Color.White
             )
         }
@@ -131,7 +130,6 @@ fun RegistroScreen(
                 Text(
                     text = "Publicar oferta",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
             }

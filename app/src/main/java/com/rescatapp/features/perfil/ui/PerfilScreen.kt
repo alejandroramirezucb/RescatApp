@@ -28,12 +28,10 @@ import com.rescatapp.core.model.UsuarioDemo
 fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
-    val scrollState = rememberScrollState()
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
+            .verticalScroll(rememberScrollState())
     ) {
         EncabezadoPerfil(estado.nombre, estado.correo, estado.inicial, estado.esNegocio)
         IndicadoresPerfil(estado)

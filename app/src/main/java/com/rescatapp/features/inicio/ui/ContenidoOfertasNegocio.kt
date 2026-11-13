@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.SelectorPestanas
 import com.rescatapp.core.designsystem.theme.Naranja
@@ -30,7 +29,6 @@ internal fun EncabezadoOfertasNegocio() {
     Text(
         text = UsuarioDemo.NEGOCIO_DEMO,
         style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.Bold,
         color = Color.White,
         modifier = Modifier
             .fillMaxWidth()
@@ -47,8 +45,7 @@ internal fun SelectorOfertasNegocio(
     Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)) {
         Text(
             text = "Mis ofertas",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.ExtraBold
+            style = MaterialTheme.typography.headlineSmall
         )
         Spacer(Modifier.height(16.dp))
         SelectorPestanas(
@@ -64,7 +61,7 @@ internal fun ListaOfertasNegocio(
     pestana: PestanaOfertas,
     onSeleccion: (PestanaOfertas) -> Unit,
     ofertas: List<Oferta>,
-    onEditar: (Oferta) -> Unit = {}
+    onEditar: (Oferta) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),

@@ -32,8 +32,7 @@ internal fun VentasSemanaNegocio() {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Ventas · Semana actual",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleSmall
             )
             Spacer(Modifier.height(32.dp))
             Row(

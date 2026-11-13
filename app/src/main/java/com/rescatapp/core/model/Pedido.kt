@@ -16,4 +16,7 @@ data class Pedido(
 ) {
     val estaActivo: Boolean
         get() = !estado.esFinal
+
+    val codigoRescate: String
+        get() = "#APV-100$id"
 }

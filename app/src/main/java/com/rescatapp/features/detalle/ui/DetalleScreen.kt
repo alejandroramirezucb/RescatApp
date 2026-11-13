@@ -9,15 +9,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -51,49 +47,17 @@ fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewMo
 
     var mostrarDialogoReserva by remember { mutableStateOf(false) }
 
-    if (mostrarDialogoReserva && estado.oferta != null) {
-        val oferta = estado.oferta!!
-        AlertDialog(
-            onDismissRequest = { mostrarDialogoReserva = false },
-            title = {
-                Text(
-                    text = "Confirmar reserva",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "¿Deseas reservar \"${oferta.nombre}\" por " +
-                            "${oferta.precioRescate.formatearDinero()}?",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Comercio: ${oferta.comercio}\n" +
-                            "Horario de retiro: " +
-                            formatearHorario(oferta.horaRetiroDesde, oferta.horaRetiroHasta),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        mostrarDialogoReserva = false
-                        viewModel.reservar()
-                    }
-                ) {
-                    Text("Confirmar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { mostrarDialogoReserva = false }) {
-                    Text("Volver")
-                }
-            }
-        )
+    if (mostrarDialogoReserva) {
+        estado.oferta?.let { oferta ->
+            DialogoReserva(
+                oferta = oferta,
+                onConfirmar = {
+                    mostrarDialogoReserva = false
+                    viewModel.reservar()
+                },
+                onDescartar = { mostrarDialogoReserva = false }
+            )
+        }
     }
 
     Scaffold(
@@ -107,17 +71,23 @@ fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewMo
                 BotonPrincipal(texto = "Volver", onClick = onVolver)
             }
         } else {
-            Column(modifier = Modifier.padding(espacioInterno)) {
-                InformacionOferta(oferta = oferta, onReservar = { mostrarDialogoReserva = true })
-            }
+            InformacionOferta(
+                oferta = oferta,
+                onReservar = { mostrarDialogoReserva = true },
+                modifier = Modifier.padding(espacioInterno)
+            )
         }
     }
 }
 
 @Composable
-private fun InformacionOferta(oferta: Oferta, onReservar: () -> Unit) {
+private fun InformacionOferta(
+    oferta: Oferta,
+    onReservar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(bottom = 32.dp)

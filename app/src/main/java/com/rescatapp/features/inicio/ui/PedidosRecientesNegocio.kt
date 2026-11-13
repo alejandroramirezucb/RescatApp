@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.model.Pedido
@@ -30,8 +29,7 @@ internal fun PedidosRecientesNegocio(pedidos: List<Pedido>) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "Pedidos recientes",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleMedium
         )
         if (pedidos.isEmpty()) {
             EstadoSinPedidos()
@@ -76,8 +74,7 @@ private fun TarjetaPedidoRecienteNegocio(pedido: Pedido) {
             Text(
                 text = pedido.precioPagado.formatearDinero(),
                 style = MaterialTheme.typography.titleMedium,
-                color = Naranja,
-                fontWeight = FontWeight.Bold
+                color = Naranja
             )
         }
     }
@@ -87,9 +84,8 @@ private fun TarjetaPedidoRecienteNegocio(pedido: Pedido) {
 private fun DatosPedidoReciente(pedido: Pedido, colorEstado: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = "#APV-100${pedido.id} · ${pedido.nombreOferta}",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold
+            text = "${pedido.codigoRescate} · ${pedido.nombreOferta}",
+            style = MaterialTheme.typography.titleSmall
         )
         DetallePedidoReciente(pedido.horaRetiroDesde)
         Spacer(Modifier.size(0.dp, 4.dp))
