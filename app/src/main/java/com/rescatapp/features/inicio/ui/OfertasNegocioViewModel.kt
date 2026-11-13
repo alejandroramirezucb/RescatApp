@@ -1,19 +1,156 @@
 package com.rescatapp.features.inicio.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.gson.JsonParseException
+import com.google.gson.stream.MalformedJsonException
 import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.data.remote.FuenteOfertasRemotas
+import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.model.UsuarioDemo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.EOFException
+import java.io.IOException
 import javax.inject.Inject
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @HiltViewModel
 class OfertasNegocioViewModel @Inject constructor(
-    private val repositorioOfertas: RepositorioOfertas
+    private val repositorioOfertas: RepositorioOfertas,
+    private val repositorioRemoto: FuenteOfertasRemotas
 ) : ViewModel() {
-    val ofertas: StateFlow<List<Oferta>> = repositorioOfertas.ofertas
+    private val estado = MutableStateFlow(OfertasNegocioUiState())
+    val uiState = estado.asStateFlow()
+    private var ofertasRemotas = emptyList<Oferta>()
 
-    fun actualizarOferta(oferta: Oferta) {
-        repositorioOfertas.actualizar(oferta)
+    init {
+        viewModelScope.launch {
+            repositorioOfertas.ofertas.collect { ofertas ->
+                val propias = ofertas.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
+                estado.update {
+                    it.copy(
+                        activas = propias.filterNot(Oferta::estaAgotada),
+                        finalizadas = propias.filter(Oferta::estaAgotada)
+                    )
+                }
+            }
+        }
+    }
+
+    fun seleccionarPestana(pestana: PestanaOfertas) {
+        val anterior = estado.value.pestana
+        estado.update { it.copy(pestana = pestana) }
+        if (pestana == PestanaOfertas.EN_LINEA && anterior != pestana) cargarOfertasRemotas()
+    }
+
+    fun actualizarOferta(oferta: Oferta) = repositorioOfertas.actualizar(oferta)
+
+    fun cargarOfertasRemotas() {
+        if (estado.value.ocupado) return
+        estado.update { it.copy(estadoRemoto = EstadoRemoto.Cargando) }
+        viewModelScope.launch {
+            try {
+                ofertasRemotas = repositorioRemoto.obtenerOfertasRemotas()
+                    .filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
+                estado.update { it.copy(estadoRemoto = EstadoRemoto.Exito(ofertasRemotas)) }
+            } catch (cancelacion: CancellationException) {
+                estado.update { it.copy(estadoRemoto = EstadoRemoto.Exito(ofertasRemotas)) }
+                throw cancelacion
+            } catch (error: Exception) {
+                estado.update { it.copy(estadoRemoto = EstadoRemoto.Error(mensajeDeError(error))) }
+            }
+        }
+    }
+
+    fun publicarEnLinea(oferta: Oferta) =
+        ejecutarOperacion(OperacionOferta(TipoOperacionOferta.PUBLICAR, oferta))
+
+    fun editarOfertaRemota(oferta: Oferta) =
+        ejecutarOperacion(OperacionOferta(TipoOperacionOferta.EDITAR, oferta))
+
+    fun eliminarOfertaRemota(oferta: Oferta) =
+        ejecutarOperacion(OperacionOferta(TipoOperacionOferta.ELIMINAR, oferta))
+
+    fun reintentarOperacion() {
+        estado.value.operacionFallida?.let(::ejecutarOperacion)
+    }
+
+    fun limpiarMensaje() {
+        estado.update { it.copy(mensaje = null) }
+    }
+
+    private fun ejecutarOperacion(operacion: OperacionOferta) {
+        if (estado.value.ocupado) return
+        estado.update {
+            it.copy(
+                operacionEnCurso = operacion,
+                operacionFallida = null,
+                errorOperacion = null,
+                mensaje = null
+            )
+        }
+        viewModelScope.launch {
+            var consultarDespuesDePublicar = false
+            try {
+                val oferta = operacion.oferta
+                val mensaje = when (operacion.tipo) {
+                    TipoOperacionOferta.PUBLICAR -> {
+                        val publicada = repositorioRemoto.crearOferta(oferta)
+                        ofertasRemotas =
+                            listOf(publicada) + ofertasRemotas.filterNot { it.id == publicada.id }
+                        consultarDespuesDePublicar = true
+                        "Oferta publicada en línea."
+                    }
+
+                    TipoOperacionOferta.EDITAR -> {
+                        val actualizada = repositorioRemoto.editarOferta(oferta.id, oferta)
+                        ofertasRemotas =
+                            ofertasRemotas.map { if (it.id == oferta.id) actualizada else it }
+                        "Cambios guardados en línea."
+                    }
+
+                    TipoOperacionOferta.ELIMINAR -> {
+                        repositorioRemoto.eliminarOferta(oferta.id)
+                        ofertasRemotas = ofertasRemotas.filterNot { it.id == oferta.id }
+                        "Oferta eliminada de la lista en línea."
+                    }
+                }
+                estado.update {
+                    it.copy(
+                        estadoRemoto = EstadoRemoto.Exito(ofertasRemotas),
+                        pestana = PestanaOfertas.EN_LINEA,
+                        mensaje = mensaje
+                    )
+                }
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (error: Exception) {
+                estado.update {
+                    it.copy(errorOperacion = mensajeDeError(error), operacionFallida = operacion)
+                }
+            } finally {
+                estado.update { it.copy(operacionEnCurso = null) }
+            }
+            // Recupera también las publicaciones anteriores que aún no se habían consultado.
+            if (consultarDespuesDePublicar) cargarOfertasRemotas()
+        }
+    }
+
+    private fun mensajeDeError(error: Exception): String = when (error) {
+        is HttpException -> "El servidor no pudo completar la operación. Inténtalo de nuevo."
+
+        is JsonParseException, is MalformedJsonException, is EOFException,
+        is IllegalArgumentException, is NullPointerException ->
+            "No pudimos interpretar las ofertas recibidas."
+
+        is IOException -> "No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo."
+
+        else -> "No se pudo completar la operación. Inténtalo de nuevo."
     }
 }

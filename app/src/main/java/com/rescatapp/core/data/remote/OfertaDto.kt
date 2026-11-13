@@ -18,7 +18,7 @@ data class OfertaDto(
 )
 
 fun OfertaDto.aOferta(): Oferta = Oferta(
-    id = id?.toIntOrNull() ?: 0,
+    id = requireNotNull(id?.toIntOrNull()?.takeIf { it > 0 }) { "Identificador remoto inválido" },
     nombre = nombre,
     comercio = comercio,
     categoria = Categoria.valueOf(categoria),

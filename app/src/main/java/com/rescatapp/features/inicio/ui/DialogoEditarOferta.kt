@@ -20,6 +20,8 @@ import com.rescatapp.core.designsystem.components.CampoConError
 import com.rescatapp.core.designsystem.components.DialogoConfirmacion
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.util.aDecimalPositivoOrNull
+import com.rescatapp.core.util.aHoraOrNull
 
 @Composable
 internal fun DialogoEditarOferta(
@@ -31,20 +33,29 @@ internal fun DialogoEditarOferta(
     var precioRescate by remember { mutableStateOf(oferta.precioRescate.toString()) }
     var horaDesde by remember { mutableStateOf(oferta.horaRetiroDesde) }
     var horaHasta by remember { mutableStateOf(oferta.horaRetiroHasta) }
+    var mostrarErrores by remember { mutableStateOf(false) }
+    val cantidadValida = cantidad.trim().toIntOrNull()?.takeIf { it >= 0 }
+    val precioValido = precioRescate.aDecimalPositivoOrNull()?.takeIf { it < oferta.precioNormal }
+    val desde = horaDesde.aHoraOrNull()
+    val hasta = horaHasta.aHoraOrNull()
+    val horarioValido = desde != null && hasta != null && hasta.isAfter(desde)
 
     DialogoConfirmacion(
         titulo = "Editar oferta",
         textoConfirmar = "Guardar cambios",
         textoDescartar = "Cancelar",
         onConfirmar = {
-            onGuardar(
-                oferta.copy(
-                    cantidadDisponible = cantidad.toIntOrNull() ?: oferta.cantidadDisponible,
-                    precioRescate = precioRescate.toDoubleOrNull() ?: oferta.precioRescate,
-                    horaRetiroDesde = horaDesde.trim(),
-                    horaRetiroHasta = horaHasta.trim()
+            mostrarErrores = true
+            if (cantidadValida != null && precioValido != null && horarioValido) {
+                onGuardar(
+                    oferta.copy(
+                        cantidadDisponible = cantidadValida,
+                        precioRescate = precioValido,
+                        horaRetiroDesde = horaDesde.trim(),
+                        horaRetiroHasta = horaHasta.trim()
+                    )
                 )
-            )
+            }
         },
         onDescartar = onDescartar
     ) {
@@ -57,6 +68,16 @@ internal fun DialogoEditarOferta(
                 style = MaterialTheme.typography.titleMedium,
                 color = Naranja
             )
+            if (mostrarErrores &&
+                (cantidadValida == null || precioValido == null || !horarioValido)
+            ) {
+                Text(
+                    "Ingresa unidades enteras (0 o más), un precio mayor a 0 y menor al normal, " +
+                        "y horas HH:mm con fin posterior al inicio.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             CampoConError(
                 etiqueta = "Unidades disponibles",
                 valor = cantidad,

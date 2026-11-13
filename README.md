@@ -100,7 +100,7 @@ Consecuencias en el código:
 | Pantalla | [ExplorarScreen.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L27) |
 | Cuadrícula de ofertas | [CuadriculaOfertas](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarScreen.kt#L60) |
 | Chips de filtro y orden, menú de categorías | [FiltrosExplorar.kt](app/src/main/java/com/rescatapp/features/explorar/ui/FiltrosExplorar.kt#L26) |
-| Búsqueda y filtro por categoría con SQL en Room | [OfertaDao](app/src/main/java/com/rescatapp/core/data) y [FiltrarOfertasUseCase.kt](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) |
+| Búsqueda y filtro por categoría en memoria | [FiltrarOfertasUseCase.kt](app/src/main/java/com/rescatapp/features/explorar/domain/FiltrarOfertasUseCase.kt#L9) |
 | "N ofertas encontradas" (`count`) | [ExplorarUiState.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarUiState.kt#L11) |
 | Categoría recibida desde Inicio | [ExplorarViewModel.kt](app/src/main/java/com/rescatapp/features/explorar/ui/ExplorarViewModel.kt#L29) |
 
@@ -123,7 +123,7 @@ Consecuencias en el código:
 | Selector de foto (cámara o galería) | [SeccionFotoOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/SeccionFotoOferta.kt#L27) |
 | Selector de categoría | [SelectorCategoriaOferta.kt](app/src/main/java/com/rescatapp/features/registro/ui/SelectorCategoriaOferta.kt#L21) |
 | Validación de campos, números, horas y precio de rescate < normal | [ValidarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/ValidarOfertaUseCase.kt#L10) |
-| Guarda en Room y emite nueva oferta | [RegistrarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/RegistrarOfertaUseCase.kt#L10) |
+| Agrega al repositorio en memoria y emite nueva oferta | [RegistrarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/registro/domain/RegistrarOfertaUseCase.kt#L10) |
 | Estado del formulario | [RegistroViewModel.kt](app/src/main/java/com/rescatapp/features/registro/ui/RegistroViewModel.kt) |
 
 ### Mis pedidos
@@ -173,16 +173,17 @@ com.rescatapp
 │
 ├── core/                            Módulos y utilidades compartidas
 │   ├── data/
-│   │   ├── local/                   Persistencia local con Room
-│   │   │   ├── converters/          TypeConverters para enums y listas estructuradas
-│   │   │   ├── dao/                 OfertaDao y PedidoDao con consultas SQL y Flow
-│   │   │   ├── database/            RescatAppDatabase y ModuloBaseDatos (Hilt)
-│   │   │   └── entities/            OfertaEntity y PedidoEntity con @PrimaryKey
+│   │   ├── local/                   Infraestructura Room para pedidos (integración pendiente)
+│   │   │   ├── RescatAppTypeConverters.kt
+│   │   │   ├── PedidoDao.kt
+│   │   │   ├── RescatAppDatabase.kt y ModuloBaseDatos.kt
+│   │   │   └── PedidoEntity.kt
 │   │   ├── remote/                  Servicios remotos con Retrofit
-│   │   │   ├── api/                 ApiService (GET, POST, PUT, DELETE)
-│   │   │   ├── dto/                 OfertaDto y mapeadores hacia el dominio
-│   │   │   └── network/             ModuloRed y configuración de BASE_URL (MockAPI)
-│   │   └── repository/              Repositorios únicos (Single Source of Truth)
+│   │   │   ├── ApiService.kt        GET, POST, PUT, DELETE
+│   │   │   ├── OfertaDto.kt         DTO y mapeadores hacia el dominio
+│   │   │   ├── RetrofitClient.kt    Cliente con límite de tiempo y BASE_URL
+│   │   │   └── FuenteOfertasRemotas, RepositorioOfertasRemotas y módulo Hilt
+│   │   └── RepositorioOfertas.kt y RepositorioPedidos.kt (datos locales en memoria)
 │   ├── domain/                      Casos de uso transversales (cálculo de impacto y roles)
 │   ├── model/                       Modelos de dominio puros (Oferta, Pedido, Categoria, etc.)
 │   ├── designsystem/                Tema accesible (colores, tipografía) y componentes visuales
@@ -190,7 +191,7 @@ com.rescatapp
 │
 ├── features/                        Módulos funcionales de pantalla (MVVM)
 │   ├── inicio/                      domain/ + ui/ (Dashboard de impacto y secciones)
-│   ├── explorar/                    domain/ + ui/ (Búsqueda y filtro SQL dinámico)
+│   ├── explorar/                    domain/ + ui/ (Búsqueda y filtro en memoria)
 │   ├── detalle/                     domain/ + ui/ (Información completa y reserva)
 │   ├── registro/                    domain/ + ui/ (Formulario de publicación y validaciones)
 │   ├── pedidos/                     domain/ + ui/ (Seguimiento, avance de estados y cancelación)
@@ -208,7 +209,7 @@ com.rescatapp
 | `core/util` | `Conversiones`, `Formateadores` | [abrir](app/src/main/java/com/rescatapp/core/util) |
 | `features` | Una carpeta por pantalla con arquitectura MVVM | [abrir](app/src/main/java/com/rescatapp/features) |
 | `navigation` | `Rutas`, `RescatAppNavHost`, barra inferior | [abrir](app/src/main/java/com/rescatapp/navigation) |
-| Pruebas unitarias | Misma estructura que el código (25 archivos, 78 pruebas) | [abrir](app/src/test/java/com/rescatapp) |
+| Pruebas automatizadas | Modelos, casos de uso, repositorios, ViewModels e interfaz | [abrir](app/src/test/java/com/rescatapp) |
 
 ---
 
@@ -226,28 +227,11 @@ Screen  ──►  ViewModel  ──►  UseCase  ──►  Repositorio
 - **`core` no importa ninguna feature.**
 - Solo [navigation/](app/src/main/java/com/rescatapp/navigation) conoce todas las pantallas.
 
-### Sincronización entre dispositivos (Single Source of Truth)
+### Catálogo local y ofertas en línea
 
-La base de datos local (Room) es la única fuente de verdad para la interfaz mediante flujos reactivos (`Flow`), mientras que la capa remota (Retrofit) sincroniza con el backend en MockAPI:
+Los repositorios locales de ofertas y pedidos mantienen datos de demostración en memoria mediante `StateFlow`. En **Mis ofertas**, las pestañas **Activas** y **Finalizadas** muestran el catálogo local; **En línea** consulta y gestiona las publicaciones del negocio en MockAPI mediante Retrofit.
 
-```
-Teléfono A (Negocio)               Internet               Teléfono B (Cliente)
-┌────────────────────┐                                   ┌────────────────────┐
-│ Pantallas          │                                   │ Pantallas          │
-│   ▲ observa Flow   │                                   │   ▲ observa Flow   │
-│ Room (local)       │                                   │ Room (local)       │
-│   ▲ guarda         │                                   │   ▲ guarda         │
-│ Retrofit ──────────┼────────► ┌───────────────┐ ◄──────┼───┤ Retrofit       │
-└────────────────────┘          │ API (MockAPI) │        └────────────────────┘
-                                │ información   │
-                                │ común         │
-                                └───────────────┘
-```
-
-1. **Publicación y persistencia:** Cuando el negocio publica una oferta en el Teléfono A, se registra localmente en Room y se envía a la API remota mediante `POST`.
-2. **Sincronización remota:** El cliente en el Teléfono B consulta la API mediante `GET` para obtener las publicaciones más recientes y las guarda en su Room local.
-3. **Capacidad sin conexión (Offline-first):** Una vez que los datos residen en Room, el cliente puede consultar las ofertas y pedidos aunque no disponga de conexión a internet.
-4. **Reactividad automática:** La interfaz nunca lee directamente de la red; observa Room mediante `Flow`. Cualquier inserción, actualización o eliminación redibuja automáticamente las pantallas con `collectAsStateWithLifecycle()`.
+Las operaciones remotas no modifican las ofertas locales ni se sincronizan con Room. El ViewModel mantiene el estado remoto y la interfaz lo observa con `collectAsStateWithLifecycle()`. La integración de Room con los repositorios locales sigue pendiente; no hay garantía de persistencia del catálogo local al reiniciar el proceso.
 
 ### Flujo de una reserva (estado y recomposición)
 
@@ -256,20 +240,20 @@ Teléfono A (Negocio)               Internet               Teléfono B (Cliente)
 | 1 | El cliente toca "Reservar" | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
 | 2 | El ViewModel pide la reserva | [DetalleViewModel.reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L36) |
 | 3 | El caso de uso valida que haya unidades | [ReservarOfertaUseCase](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
-| 4 | Se descuenta una unidad de la oferta en Room | `cambiarUnidadesDisponibles()` en `RepositorioOfertas.kt` |
-| 5 | Se crea el pedido en estado Reservado en SQLite | `crearPedido()` y `insertar()` en `RepositorioPedidos.kt` |
-| 6 | Los `Flow` de los DAOs de Room emiten las listas actualizadas | `OfertaDao.observarTodas()` y `PedidoDao.observarTodos()` |
+| 4 | Se descuenta una unidad de la oferta en memoria | `cambiarUnidadesDisponibles()` en `RepositorioOfertas.kt` |
+| 5 | Se crea el pedido en estado Reservado en memoria | `crearPedido()` y `agregar()` en `RepositorioPedidos.kt` |
+| 6 | Los repositorios emiten las listas actualizadas | `RepositorioOfertas.ofertas` y `RepositorioPedidos.pedidos` |
 | 7 | Cada ViewModel combina los datos y crea un `UiState` nuevo | [InicioViewModel](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
 | 8 | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20) |
 
-Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos de manera atómica.
+Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil observan las listas y se actualizan automáticamente.
 
 ### Decisiones técnicas
 
 | Decisión | Por qué |
 | --- | --- |
 | **Hilt** para inyección de dependencias | Los ViewModels reciben repositorios y casos de uso sin crearlos a mano. Con `@Singleton`, todas las pantallas comparten la misma instancia de cada componente. |
-| **Repositorios concretos con Single Source of Truth** | Cada entidad tiene su repositorio que centraliza el acceso a Room y coordina la sincronización con Retrofit. |
+| **Repositorios locales y fuente remota separada** | Los repositorios locales mantienen el estado en memoria; `FuenteOfertasRemotas` permite inyectar Retrofit o una implementación falsa para pruebas. |
 | **`Flow` y `StateFlow`** | Permiten propagar cambios automáticamente desde SQLite hacia la UI sin recargas manuales. |
 | **Un caso de uso por regla** | Cada clase hace una sola cosa (principio de responsabilidad única) y se prueba de forma aislada. |
 | **Formato con Spotless** | Todo el equipo escribe con el mismo estilo; el CI rechaza código sin formatear. |
@@ -290,34 +274,43 @@ Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil se actualizan solos de ma
 
 ## Persistencia local con Room
 
-La persistencia local garantiza que la información permanezca intacta tras cerrar forzosamente la aplicación o reiniciar el dispositivo (Prueba Técnica 8).
+Existe infraestructura Room para pedidos (`PedidoEntity`, `PedidoDao`, `RescatAppDatabase`, convertidores y módulo Hilt con precarga). Tiene pruebas propias, pero `RepositorioPedidos` todavía no utiliza ese DAO. No existen `OfertaEntity` ni `OfertaDao` en esta versión.
 
-* **Entidades relacionales:**
-  * `OfertaEntity`: almacena id, nombre, comercio, categoría, descripción, peso, precios, unidades disponibles, horarios de retiro y uri de imagen.
-  * `PedidoEntity`: almacena id, ofertaId, nombreOferta, comercio, precioUnitario, estado, pasos de progreso, código de retiro y horario.
-* **DAOs reactivos:**
-  * `OfertaDao`: expone consultas con `Flow<List<OfertaEntity>>`, operaciones `suspend` (`insertar`, `actualizar`, `eliminar`) y la consulta con filtro dinámico `filtrar(categoria, texto)`.
-  * `PedidoDao`: expone `observarTodos(): Flow<List<PedidoEntity>>` y operaciones `suspend` para registrar y avanzar pedidos.
-* **Base de datos y precarga inicial:**
-  * `RescatAppDatabase`: hereda de `RoomDatabase`. Incorpora un `RoomDatabase.Callback` que pre-puebla los datos iniciales de [DatosDeEjemplo.kt](app/src/main/java/com/rescatapp/core/data/DatosDeEjemplo.kt) en la primera instalación, garantizando que el docente vea información inmediata sin pantallas vacías.
+**Pendiente:** conectar los repositorios a Room para conservar los cambios locales después de reiniciar el proceso. El issue #71 agrega gestión remota separada, sin implementar sincronización automática ni caché persistente de las respuestas.
 
 ---
 
 ## Consumo de API REST con Retrofit y MockAPI
 
-El consumo de servicios remotos está configurado con Retrofit 2 y OkHttp contra un proyecto dedicado en **MockAPI.io**:
+El consumo de servicios remotos está configurado con Retrofit y OkHttp contra un proyecto dedicado en **MockAPI.io**:
 
 * **Permiso de red:** Declarado en [AndroidManifest.xml](app/src/main/AndroidManifest.xml) con `<uses-permission android:name="android.permission.INTERNET" />`.
 * **Contrato ApiService:**
-  * `@GET("ofertas") suspend fun getOfertas(): List<OfertaDto>`
-  * `@POST("ofertas") suspend fun postOferta(@Body oferta: OfertaDto): OfertaDto`
-  * `@PUT("ofertas/{id}") suspend fun putOferta(@Path("id") id: String, @Body oferta: OfertaDto): OfertaDto`
-  * `@DELETE("ofertas/{id}") suspend fun deleteOferta(@Path("id") id: String): Response<Unit>`
-* **Modelos DTO y desacoplamiento:** `OfertaDto` utiliza anotaciones `@SerializedName` de Gson y se transforma hacia/desde los modelos de dominio mediante mapeadores aislados.
+  * `@GET("ofertas") suspend fun obtenerOfertas(): List<OfertaDto>`
+  * `@POST("ofertas") suspend fun crearOferta(@Body oferta: OfertaDto): OfertaDto`
+  * `@PUT("ofertas/{id}") suspend fun actualizarOferta(@Path("id") id: String, @Body oferta: OfertaDto): OfertaDto`
+  * `@DELETE("ofertas/{id}") suspend fun eliminarOferta(@Path("id") id: String)`
+* **Modelos DTO y desacoplamiento:** Gson convierte las respuestas a `OfertaDto`; los mapeadores transforman los DTO a modelos de dominio y rechazan identificadores remotos inválidos.
 * **Manejo de estados asíncronos:** La capa de presentación maneja `EstadoRemoto`:
   * **Cargando:** muestra un `CircularProgressIndicator` mientras la petición está en curso.
-  * **Éxito:** presenta los datos remotos sincronizados.
-  * **Error:** captura `IOException` o `HttpException` sin cerrar la aplicación y presenta un mensaje legible con botón de **"Reintentar"**.
+  * **Éxito:** presenta las ofertas remotas del negocio, cada una identificada como **En línea**. Una respuesta vacía muestra un estado vacío.
+  * **Error:** distingue conexión, servidor y conversión, mostrando un mensaje legible y **Reintentar** para repetir el GET.
+
+### Mis ofertas en línea — issue #71
+
+1. Cambiar a rol negocio en Perfil y abrir **Mis ofertas**.
+2. Seleccionar **En línea**: ejecuta GET al entrar, muestra progreso y luego éxito o error. Repetir la selección o recomponer la pantalla no duplica solicitudes en curso.
+3. En **Activas**, pulsar **Publicar en línea**: envía POST, usa el ID del servidor, abre **En línea** y vuelve a consultar las publicaciones. Si falla esa consulta posterior, reintentar repite solo GET, no POST.
+4. En una tarjeta remota, **Editar** valida unidades (enteras, 0 o más), precio de rescate (positivo y menor al normal) y horario (`HH:mm`, fin posterior al inicio), y envía PUT. **Eliminar** requiere confirmación y envía DELETE.
+5. Las mutaciones muestran progreso, bloquean acciones duplicadas y actualizan la lista solo después del éxito. Si fallan, conservan los datos anteriores y ofrecen **Reintentar operación**. Una cancelación de corrutina no se presenta como error de red. El cliente tiene un límite de 30 segundos por llamada.
+
+**Pruebas:** `OfertasNegocioViewModelTest` usa un repositorio remoto falso con respuestas suspendidas para verificar las transiciones y el CRUD; `RepositorioOfertasRemotasTest` comprueba el contrato HTTP con MockWebServer; `OfertasNegocioScreenTest` comprueba carga/error, publicación, validación y confirmación de eliminación con Compose y Robolectric.
+
+```powershell
+.\gradlew.bat spotlessCheck :app:testDebugUnitTest :app:assembleDebug
+```
+
+**Comprobación manual:** desconectar Internet y entrar a **En línea**, comprobar el error, reconectar y pulsar **Reintentar**. Publicar una oferta local, editar la publicación y eliminarla después de probar también **Cancelar**. Verificar las etiquetas de origen y que los indicadores desaparezcan tanto ante éxito como ante error.
 
 ---
 
@@ -339,7 +332,7 @@ El consumo de servicios remotos está configurado con Retrofit 2 y OkHttp contra
 
 ### §3.3. Persistencia local con Room
 * **Entity, DAO y Database:** Implementados en `core/data/local/` con tipos consistentes y TypeConverters.
-* **Persistencia confirmada:** Los datos registrados, editados o eliminados sobreviven al cierre forzado y reinicio de la app.
+* **Integración pendiente:** los repositorios actuales usan memoria; la persistencia del flujo de la app aún no está implementada.
 * **Operaciones asíncronas:** Escritura implementada con funciones `suspend` y lectura con `Flow`.
 
 ### §3.4. Flujo reactivo con Flow y StateFlow
@@ -347,7 +340,7 @@ El consumo de servicios remotos está configurado con Retrofit 2 y OkHttp contra
 * **ViewModel y UI:** Los ViewModels transforman los flujos a `StateFlow` y Compose los consume mediante `collectAsStateWithLifecycle()`, logrando actualización automática sin recargas manuales.
 
 ### §3.5. Consultas y filtros dinámicos
-* **Filtro SQL dinámico:** `OfertaDao.filtrar(categoria, texto)` implementa una consulta SQL real con cláusula `WHERE`:
+* **Filtro actual:** `FiltrarOfertasUseCase` filtra listas en memoria. Una futura implementación con Room podría utilizar esta consulta; aún no existe `OfertaDao`:
   ```sql
   SELECT * FROM ofertas
   WHERE (:categoria IS NULL OR categoria = :categoria)
@@ -383,9 +376,9 @@ El siguiente guion permite comprobar en vivo los 12 pasos exigidos en la Secció
 | **4** | Corregir datos válidos (Pack Croissants · Panadería · 40 · 20 · 4 un. · 18:00 a 20:00) y pulsar "Publicar oferta" | La pantalla se cierra y la oferta aparece de primera en Explorar e Inicio | Reflejo en listado |
 | **5** | Tocar la oferta recién creada en la lista | Abre la pantalla **Detalle** mostrando precio normal, precio de rescate, ahorro, peso y horario | Detalle de registro |
 | **6** | Desde el flujo de negocio, editar la oferta cambiando el precio o stock | El cambio se guarda y se refleja inmediatamente en toda la app sin recargar | Actualización de registro |
-| **7** | En la sección del negocio, pulsar "Eliminar oferta" y confirmar en el diálogo | La oferta desaparece de la base de datos local y de todas las pantallas | Operación DELETE con confirmación |
-| **8** | Cerrar la aplicación desde la multitarea del emulador (Swipe-to-kill) y volver a abrirla | Las ofertas creadas o modificadas siguen presentes en Room | Persistencia local con Room |
-| **9** | En Explorar, escribir "Pan" y seleccionar la categoría "Panadería" | La consulta SQL de Room filtra con `WHERE` dinámico; al limpiar texto y volver a "Todas" se restaura la lista | Filtro dinámico en SQLite |
+| **7** | En Mis ofertas → En línea, pulsar "Eliminar" y confirmar | La oferta desaparece del servidor y de la lista remota | DELETE remoto con confirmación |
+| **8** | Cerrar y volver a abrir la app | Las publicaciones remotas se recuperan al entrar a En línea; los cambios locales en memoria se pierden | Persistencia local pendiente |
+| **9** | En Explorar, escribir "Pan" y seleccionar "Panadería" | Se filtra en memoria; al limpiar texto y volver a "Todas" se restaura la lista | Filtro SQL pendiente |
 | **10** | Ir a la pestaña "En línea" en Mis ofertas | Se muestra un indicador de carga mientras Retrofit ejecuta el `GET` sobre MockAPI y lista las ofertas remotas | Consulta GET remota |
 | **11** | Pulsar "Publicar en línea" sobre una oferta local | Se ejecuta `POST` contra MockAPI y el registro aparece en el servidor remoto | Operaciones remotas adicionales |
 | **12** | Desconectar el Wi-Fi / Datos en el emulador y pulsar "Reintentar" | Se captura el error de red, no hay crash y se muestra el banner de fallo con botón de reintento | Estados de carga y error |
@@ -409,10 +402,10 @@ Cada archivo tiene una sola responsabilidad: facilita la lectura, la realizació
 Room es una capa de abstracción sobre SQLite. Los datos residen en el almacenamiento interno del dispositivo. Gracias a `@Dao` y funciones `suspend`, las operaciones de inserción y actualización se graban permanentemente en disco, de modo que si el sistema destruye el proceso, los datos continúan presentes al reiniciar la app.
 
 **5. ¿Cómo funciona la arquitectura Single Source of Truth (SSOT)?**\
-La base de datos local (Room) es la única fuente de verdad para la interfaz. Las pantallas observan flujos `Flow` provenientes del DAO. Cuando Retrofit descarga datos de MockAPI, estos se insertan en Room, y es Room quien automáticamente notifica a la UI mediante recomposición reactiva.
+Actualmente los repositorios locales mantienen sus listas en `StateFlow` y el ViewModel de Mis ofertas mantiene el estado remoto por separado. No hay sincronización con Room. Una futura integración podría usar Room como fuente de verdad persistente.
 
 **6. ¿Cómo se implementa el filtro dinámico con WHERE en Room?**\
-A través de una consulta SQL en `OfertaDao`:
+Todavía no está implementado: el filtro actual opera en memoria. Esta sería una consulta posible para un futuro `OfertaDao`:
 ```kotlin
 @Query("SELECT * FROM ofertas WHERE (:categoria IS NULL OR categoria = :categoria) AND (nombre LIKE '%' || :texto || '%' OR comercio LIKE '%' || :texto || '%')")
 fun filtrar(categoria: String?, texto: String): Flow<List<OfertaEntity>>
@@ -421,10 +414,10 @@ Si el parámetro de categoría es nulo, la condición se anula y SQLite devuelve
 
 **7. ¿Cómo se envían datos entre pantallas?**\
 - **Argumentos de ruta**, solo con identificadores mínimos: [detalle/{ofertaId}](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L19) y [explorar?categoria=POSTRES](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L16). El ViewModel de destino los lee con `SavedStateHandle`.
-- **Repositorios compartidos**: los datos completos residen en Room y los observan los ViewModels con flujos reactivos.
+- **Repositorios compartidos**: los datos locales residen en memoria y los observan los ViewModels con flujos reactivos.
 
 **8. ¿Cómo se manejan los errores de red en Retrofit sin colgar la app?**\
-Las llamadas del `ApiService` se envuelven en bloques `try/catch` dentro del repositorio remoto capturando `IOException` (fallos de conexión) y `HttpException` (errores HTTP 4xx/5xx). El ViewModel traduce la excepción a un `EstadoRemoto.Error(mensaje)` observable por Compose, mostrando un mensaje comprensible y un botón de reintento.
+El repositorio propaga los errores y el ViewModel los traduce a mensajes para conexión, HTTP o conversión. En el GET se expone `EstadoRemoto.Error(mensaje)`; en las mutaciones se conserva la lista y se expone el error de operación. Compose muestra el mensaje y la acción de reintento correspondiente.
 
 **9. ¿Qué previene que se queden estados de carga colgados?**\
 En el ViewModel, las corrutinas aseguran la desactivación de la bandera de carga en bloques estructurados o mediante el sellado del estado (`EstadoRemoto.Cargando` -> `EstadoRemoto.Exito` o `EstadoRemoto.Error`), garantizando que la UI siempre pase a un estado terminal accionable.
@@ -441,7 +434,7 @@ Campos obligatorios no vacíos, formato numérico positivo para precios y peso, 
 | **12. Producción y consumo responsables** (Meta 12.3: reducir a la mitad el desperdicio de alimentos) | **Principal, con métricas en vivo** | Conecta excedentes con compradores antes de su descarte. El indicador **"Aprovechado"** calcula los kilos de comida rescatados del desperdicio. |
 | **1. Fin de la pobreza** | Secundario, con indicador | El indicador **"Ahorrado"** suma el beneficio económico directo para las familias al acceder a alimentos con hasta un 50% de descuento. |
 
-Las métricas de impacto se calculan de manera reactiva en [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt) a partir de los pedidos confirmados en Room:
+Las métricas de impacto se calculan de manera reactiva en [CalcularImpactoUseCase.kt](app/src/main/java/com/rescatapp/core/domain/CalcularImpactoUseCase.kt) a partir de los pedidos del repositorio en memoria:
 
 | Indicador | ODS | Cómo se calcula | Valor inicial de ejemplo |
 | --- | --- | --- | --- |

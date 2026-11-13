@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.SelectorPestanas
 import com.rescatapp.core.designsystem.theme.Naranja
+import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.UsuarioDemo
 
@@ -58,11 +63,21 @@ internal fun SelectorOfertasNegocio(
 
 @Composable
 internal fun ListaOfertasNegocio(
-    pestana: PestanaOfertas,
+    estado: OfertasNegocioUiState,
     onSeleccion: (PestanaOfertas) -> Unit,
-    ofertas: List<Oferta>,
-    onEditar: (Oferta) -> Unit
+    onReintentar: () -> Unit,
+    onPublicar: (Oferta) -> Unit,
+    onEditar: (Oferta) -> Unit,
+    onEliminar: (Oferta) -> Unit,
+    onReintentarOperacion: () -> Unit,
+    onLimpiarMensaje: () -> Unit
 ) {
+    val esRemota = estado.pestana == PestanaOfertas.EN_LINEA
+    val ofertas = when (estado.pestana) {
+        PestanaOfertas.ACTIVAS -> estado.activas
+        PestanaOfertas.FINALIZADAS -> estado.finalizadas
+        PestanaOfertas.EN_LINEA -> (estado.estadoRemoto as? EstadoRemoto.Exito)?.datos.orEmpty()
+    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 48.dp),
@@ -70,9 +85,56 @@ internal fun ListaOfertasNegocio(
     ) {
         item { EncabezadoOfertasNegocio() }
         item {
-            SelectorOfertasNegocio(pestana = pestana, onSeleccion = onSeleccion)
+            SelectorOfertasNegocio(pestana = estado.pestana, onSeleccion = onSeleccion)
         }
-        if (ofertas.isEmpty()) {
+        item {
+            Text(
+                text = if (esRemota) {
+                    "Ofertas publicadas en línea"
+                } else {
+                    "Ofertas locales · En este dispositivo"
+                },
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+        }
+        estado.mensaje?.let { mensaje ->
+            item { MensajeOfertas(mensaje, "Entendido", onLimpiarMensaje) }
+        }
+        estado.errorOperacion?.let { mensaje ->
+            item {
+                MensajeOfertas(
+                    mensaje,
+                    "Reintentar operación",
+                    onReintentarOperacion,
+                    error = true,
+                    habilitado = !estado.ocupado
+                )
+            }
+        }
+        estado.operacionEnCurso?.let { operacion ->
+            item {
+                val accion = when (operacion.tipo) {
+                    TipoOperacionOferta.PUBLICAR -> "Publicando"
+                    TipoOperacionOferta.EDITAR -> "Guardando cambios de"
+                    TipoOperacionOferta.ELIMINAR -> "Eliminando"
+                }
+                ProgresoOfertas("$accion «${operacion.oferta.nombre}»…")
+            }
+        }
+        if (esRemota && estado.estadoRemoto is EstadoRemoto.Cargando) {
+            item { ProgresoOfertas("Cargando ofertas en línea…") }
+        } else if (esRemota && estado.estadoRemoto is EstadoRemoto.Error) {
+            item {
+                MensajeOfertas(
+                    estado.estadoRemoto.mensaje,
+                    "Reintentar",
+                    onReintentar,
+                    error = true
+                )
+            }
+        } else if (ofertas.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -81,7 +143,7 @@ internal fun ListaOfertasNegocio(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No hay ofertas ${pestana.titulo.lowercase()}",
+                        text = "No hay ofertas ${estado.pestana.titulo.lowercase()}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -90,9 +152,60 @@ internal fun ListaOfertasNegocio(
         } else {
             items(ofertas, key = { it.id }) { oferta ->
                 Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    TarjetaOfertaNegocio(oferta = oferta, onEditar = { onEditar(oferta) })
+                    TarjetaOfertaNegocio(
+                        oferta = oferta,
+                        esRemota = esRemota,
+                        habilitada = !estado.ocupado,
+                        procesando = estado.operacionEnCurso?.let {
+                            it.oferta.id == oferta.id &&
+                                esRemota == (it.tipo != TipoOperacionOferta.PUBLICAR)
+                        } == true,
+                        onEditar = { onEditar(oferta) },
+                        onPublicar = if (estado.pestana == PestanaOfertas.ACTIVAS) {
+                            { onPublicar(oferta) }
+                        } else {
+                            null
+                        },
+                        onEliminar = { onEliminar(oferta) }
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ProgresoOfertas(mensaje: String) {
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        CircularProgressIndicator(color = Naranja)
+        Text(mensaje, style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+private fun MensajeOfertas(
+    mensaje: String,
+    accion: String,
+    onAccion: () -> Unit,
+    error: Boolean = false,
+    habilitado: Boolean = true
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = if (error) {
+            MaterialTheme.colorScheme.errorContainer
+        } else {
+            MaterialTheme.colorScheme.primaryContainer
+        }
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(mensaje, style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = onAccion, enabled = habilitado) { Text(accion) }
         }
     }
 }
