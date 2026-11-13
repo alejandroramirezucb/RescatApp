@@ -108,5 +108,8 @@ fun FormularioOferta(
         )
     }
 
-    SeccionFotoOferta()
+    SeccionFotoOferta(
+        imagenUri = campos.imagenUri,
+        onFotoSeleccionada = { onCampoCambiado(campos.copy(imagenUri = it)) }
+    )
 }

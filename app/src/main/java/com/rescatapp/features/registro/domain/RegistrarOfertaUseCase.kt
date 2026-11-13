@@ -28,7 +28,8 @@ class RegistrarOfertaUseCase @Inject constructor(
             precioRescate = precioRescate.aDecimalPositivoOrNull() ?: return null,
             cantidadDisponible = cantidadDisponible.aEnteroPositivoOrNull() ?: return null,
             horaRetiroDesde = horaRetiroDesde.trim(),
-            horaRetiroHasta = horaRetiroHasta.trim()
+            horaRetiroHasta = horaRetiroHasta.trim(),
+            imagenUri = imagenUri
         )
     }
 }

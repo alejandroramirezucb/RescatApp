@@ -58,7 +58,11 @@ internal fun SelectorOfertasNegocio(
 }
 
 @Composable
-internal fun ListaOfertasNegocio(ofertas: List<Oferta>, pestana: PestanaOfertas) {
+internal fun ListaOfertasNegocio(
+    ofertas: List<Oferta>,
+    pestana: PestanaOfertas,
+    onEditar: (Oferta) -> Unit = {}
+) {
     LazyColumn(
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -77,7 +81,9 @@ internal fun ListaOfertasNegocio(ofertas: List<Oferta>, pestana: PestanaOfertas)
                 }
             }
         } else {
-            items(ofertas) { oferta -> TarjetaOfertaNegocio(oferta) }
+            items(ofertas, key = { it.id }) { oferta ->
+                TarjetaOfertaNegocio(oferta = oferta, onEditar = { onEditar(oferta) })
+            }
         }
     }
 }

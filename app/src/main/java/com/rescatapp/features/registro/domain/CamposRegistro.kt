@@ -12,5 +12,6 @@ data class CamposRegistro(
     val precioRescate: String = "",
     val cantidadDisponible: String = "",
     val horaRetiroDesde: String = "",
-    val horaRetiroHasta: String = ""
+    val horaRetiroHasta: String = "",
+    val imagenUri: String? = null
 )

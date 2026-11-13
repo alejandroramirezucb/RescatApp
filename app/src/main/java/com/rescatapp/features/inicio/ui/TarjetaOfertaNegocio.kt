@@ -32,7 +32,7 @@ import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearDinero
 
 @Composable
-internal fun TarjetaOfertaNegocio(oferta: Oferta) {
+internal fun TarjetaOfertaNegocio(oferta: Oferta, onEditar: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -42,33 +42,34 @@ internal fun TarjetaOfertaNegocio(oferta: Oferta) {
         Row(modifier = Modifier.height(100.dp)) {
             ImagenCategoria(
                 categoria = oferta.categoria,
+                imagenUri = oferta.imagenUri,
                 modifier = Modifier.width(100.dp).fillMaxSize(),
                 tamanoIcono = 36.dp
             )
-            DatosOfertaNegocio(oferta, Modifier.weight(1f))
+            DatosOfertaNegocio(oferta, onEditar, Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun DatosOfertaNegocio(oferta: Oferta, modifier: Modifier) {
+private fun DatosOfertaNegocio(oferta: Oferta, onEditar: () -> Unit, modifier: Modifier) {
     Column(
         modifier = modifier.padding(12.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        EncabezadoOferta(oferta.nombre)
+        EncabezadoOferta(oferta.nombre, oferta.estaAgotada)
         Text(
             text = "Vendidos: ${oferta.cantidadDisponible * 2} · " +
                 "Quedan: ${oferta.cantidadDisponible}",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        PieOferta(oferta.precioRescate.formatearDinero())
+        PieOferta(oferta.precioRescate.formatearDinero(), onEditar)
     }
 }
 
 @Composable
-private fun EncabezadoOferta(nombre: String) {
+private fun EncabezadoOferta(nombre: String, estaAgotada: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -81,12 +82,12 @@ private fun EncabezadoOferta(nombre: String) {
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(8.dp))
-        ChipEstadoOferta()
+        ChipEstadoOferta(estaAgotada)
     }
 }
 
 @Composable
-private fun PieOferta(precio: String) {
+private fun PieOferta(precio: String, onEditar: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -102,7 +103,7 @@ private fun PieOferta(precio: String) {
             color = Color.Transparent,
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            onClick = {}
+            onClick = onEditar
         ) {
             Text(
                 text = "Editar",
@@ -115,8 +116,9 @@ private fun PieOferta(precio: String) {
 }
 
 @Composable
-private fun ChipEstadoOferta() {
-    val color = Color(0xFF4CAF50)
+private fun ChipEstadoOferta(estaAgotada: Boolean = false) {
+    val color = if (estaAgotada) Color(0xFFE53935) else Color(0xFF4CAF50)
+    val texto = if (estaAgotada) "Agotada" else "Activa"
     Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(50)) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -125,7 +127,7 @@ private fun ChipEstadoOferta() {
         ) {
             Box(modifier = Modifier.size(6.dp).background(color, CircleShape))
             Text(
-                text = "Activa",
+                text = texto,
                 style = MaterialTheme.typography.labelSmall,
                 color = color,
                 fontWeight = FontWeight.Bold

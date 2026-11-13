@@ -1,5 +1,6 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,13 +17,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.EncabezadoSeccion
 import com.rescatapp.core.designsystem.components.EstadoVacio
 import com.rescatapp.core.designsystem.components.FilaImpacto
 import com.rescatapp.core.designsystem.components.TarjetaOferta
-import com.rescatapp.core.designsystem.theme.Verde
-import com.rescatapp.core.designsystem.theme.VerdeSuave
+import com.rescatapp.core.designsystem.theme.Naranja
+import com.rescatapp.core.designsystem.theme.NaranjaSuave
 import com.rescatapp.core.domain.Impacto
 import com.rescatapp.core.model.Oferta
 
@@ -32,8 +34,9 @@ internal val rellenoLateral = PaddingValues(horizontal = margenLateral)
 @Composable
 internal fun BloqueImpacto(impacto: Impacto) {
     Surface(
-        color = VerdeSuave,
+        color = NaranjaSuave.copy(alpha = 0.45f),
         shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, NaranjaSuave),
         modifier = Modifier.fillMaxWidth().padding(rellenoLateral)
     ) {
         Column(
@@ -43,9 +46,10 @@ internal fun BloqueImpacto(impacto: Impacto) {
             Text(
                 text = "Tu impacto esta semana",
                 style = MaterialTheme.typography.titleMedium,
-                color = Verde
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
             )
-            FilaImpacto(impacto = impacto, colorValores = Verde)
+            FilaImpacto(impacto = impacto, colorValores = Naranja)
         }
     }
 }

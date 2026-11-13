@@ -8,7 +8,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 
 @HiltViewModel
-class OfertasNegocioViewModel @Inject constructor(repositorioOfertas: RepositorioOfertas) :
-    ViewModel() {
+class OfertasNegocioViewModel @Inject constructor(
+    private val repositorioOfertas: RepositorioOfertas
+) : ViewModel() {
     val ofertas: StateFlow<List<Oferta>> = repositorioOfertas.ofertas
+
+    fun actualizarOferta(oferta: Oferta) {
+        repositorioOfertas.actualizar(oferta)
+    }
 }

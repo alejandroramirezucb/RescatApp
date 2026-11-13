@@ -42,6 +42,7 @@ fun TarjetaPedido(
         Row(modifier = Modifier.height(100.dp)) {
             ImagenCategoria(
                 categoria = pedido.categoria,
+                imagenUri = pedido.imagenUri,
                 modifier = Modifier.width(100.dp).fillMaxHeight(),
                 tamanoIcono = 32.dp
             )

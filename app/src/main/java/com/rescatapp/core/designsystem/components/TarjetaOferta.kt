@@ -43,6 +43,7 @@ fun TarjetaOferta(
     ) {
         ImagenCategoria(
             categoria = oferta.categoria,
+            imagenUri = oferta.imagenUri,
             modifier = Modifier.fillMaxWidth().height(104.dp)
         ) {
             InsigniaDescuento(

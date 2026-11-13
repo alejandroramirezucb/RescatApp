@@ -17,7 +17,8 @@ data class Oferta(
     val precioRescate: Double,
     val cantidadDisponible: Int,
     val horaRetiroDesde: String,
-    val horaRetiroHasta: String
+    val horaRetiroHasta: String,
+    val imagenUri: String? = null
 ) {
     val porcentajeDescuento: Int
         get() = ((1 - precioRescate / precioNormal) * PORCENTAJE_TOTAL).roundToInt()
@@ -47,6 +48,7 @@ data class Oferta(
         pesoKg = pesoKg,
         horaRetiroDesde = horaRetiroDesde,
         horaRetiroHasta = horaRetiroHasta,
-        estado = estado
+        estado = estado,
+        imagenUri = imagenUri
     )
 }

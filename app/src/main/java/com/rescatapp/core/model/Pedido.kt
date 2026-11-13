@@ -11,7 +11,8 @@ data class Pedido(
     val pesoKg: Double,
     val horaRetiroDesde: String,
     val horaRetiroHasta: String,
-    val estado: EstadoPedido
+    val estado: EstadoPedido,
+    val imagenUri: String? = null
 ) {
     val estaActivo: Boolean
         get() = !estado.esFinal
