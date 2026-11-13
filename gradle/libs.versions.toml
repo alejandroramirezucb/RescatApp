@@ -13,7 +13,7 @@ spotless = "8.10.3"
 ktlint = "1.8.0"
 coroutinesTest = "1.10.2"
 coil = "2.7.0"
-room = "2.6.1"
+room = "2.8.5"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
