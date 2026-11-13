@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 private const val OFERTA_INEXISTENTE = -1
 
@@ -35,9 +36,11 @@ class DetalleViewModel @Inject constructor(
 
     fun reservar() {
         val nombreOferta = uiState.value.oferta?.nombre ?: return
-        mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
-            is ResultadoOperacion.Exito -> "Reservaste $nombreOferta. Puedes verlo en Pedidos."
-            is ResultadoOperacion.Error -> resultado.mensaje
+        viewModelScope.launch {
+            mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
+                is ResultadoOperacion.Exito -> "Reservaste $nombreOferta. Puedes verlo en Pedidos."
+                is ResultadoOperacion.Error -> resultado.mensaje
+            }
         }
     }
 

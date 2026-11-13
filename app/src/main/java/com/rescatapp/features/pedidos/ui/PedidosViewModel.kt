@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class PedidosViewModel @Inject constructor(
@@ -46,7 +47,7 @@ class PedidosViewModel @Inject constructor(
             scope = viewModelScope,
             started = suscripcionPantalla,
             initialValue = crearEstado(
-                seleccionarPedidosPorRol(repositorioPedidos.pedidos.value, UsuarioDemo.rol.value),
+                emptyList(),
                 pestana.value,
                 null,
                 UsuarioDemo.rol.value
@@ -57,9 +58,17 @@ class PedidosViewModel @Inject constructor(
         pestana.value = pestanaElegida
     }
 
-    fun avanzar(pedidoId: Int) = mostrarErrorSiFalla(avanzarPedido(pedidoId))
+    fun avanzar(pedidoId: Int) {
+        viewModelScope.launch {
+            mostrarErrorSiFalla(avanzarPedido(pedidoId))
+        }
+    }
 
-    fun cancelar(pedidoId: Int) = mostrarErrorSiFalla(cancelarPedido(pedidoId))
+    fun cancelar(pedidoId: Int) {
+        viewModelScope.launch {
+            mostrarErrorSiFalla(cancelarPedido(pedidoId))
+        }
+    }
 
     fun limpiarMensaje() {
         mensaje.value = null

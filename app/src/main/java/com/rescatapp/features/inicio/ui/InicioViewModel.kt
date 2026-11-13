@@ -28,7 +28,7 @@ class InicioViewModel @Inject constructor(
             started = suscripcionPantalla,
             initialValue = crearEstado(
                 repositorioOfertas.ofertas.value,
-                repositorioPedidos.pedidos.value
+                emptyList()
             )
         )
 

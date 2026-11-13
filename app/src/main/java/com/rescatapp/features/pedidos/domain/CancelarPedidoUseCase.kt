@@ -10,7 +10,7 @@ class CancelarPedidoUseCase @Inject constructor(
     private val repositorioPedidos: RepositorioPedidos,
     private val repositorioOfertas: RepositorioOfertas
 ) {
-    operator fun invoke(pedidoId: Int): ResultadoOperacion {
+    suspend operator fun invoke(pedidoId: Int): ResultadoOperacion {
         val pedido = repositorioPedidos.buscarPorId(pedidoId)
             ?: return ResultadoOperacion.Error(MensajesPedidos.PEDIDO_NO_ENCONTRADO)
         if (pedido.estado != EstadoPedido.RESERVADO) {

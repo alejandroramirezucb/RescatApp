@@ -29,7 +29,7 @@ class PerfilViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = suscripcionPantalla,
-        initialValue = crearEstado(repositorioPedidos.pedidos.value, UsuarioDemo.rol.value)
+        initialValue = crearEstado(emptyList(), UsuarioDemo.rol.value)
     )
 
     private fun crearEstado(

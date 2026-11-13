@@ -9,7 +9,7 @@ class ReservarOfertaUseCase @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas,
     private val repositorioPedidos: RepositorioPedidos
 ) {
-    operator fun invoke(ofertaId: Int): ResultadoOperacion {
+    suspend operator fun invoke(ofertaId: Int): ResultadoOperacion {
         val oferta = repositorioOfertas.buscarPorId(ofertaId)
             ?: return ResultadoOperacion.Error("Oferta no encontrada")
         if (oferta.estaAgotada) return ResultadoOperacion.Error("Esta oferta está agotada")
