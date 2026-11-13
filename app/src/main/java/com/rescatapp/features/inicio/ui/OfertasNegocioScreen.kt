@@ -62,7 +62,8 @@ fun OfertasNegocioScreen(viewModel: OfertasNegocioViewModel = hiltViewModel()) {
         ListaOfertasNegocio(
             ofertas = if (pestana == PestanaOfertas.ACTIVAS) ofertasActivas else ofertasFinalizadas,
             pestana = pestana,
-            onEditar = { ofertaParaEditar = it }
+            onEditar = { ofertaParaEditar = it },
+            modifier = Modifier.weight(1f)
         )
     }
 }

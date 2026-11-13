@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -133,13 +135,18 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+        ) {
             Text(
                 text = "Mis pedidos",
                 style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(vertical = 20.dp)
+                modifier = Modifier.padding(top = 20.dp, bottom = 16.dp)
             )
             SelectorPestanasPedidos(estado.pestana, viewModel::seleccionarPestana)
+            Spacer(Modifier.height(8.dp))
             ListaPedidos(
                 estado = estado,
                 onSolicitarAvanzar = { pedido ->
@@ -151,7 +158,8 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
                 },
                 onSolicitarCancelar = { pedido ->
                     pedidoParaCancelar = pedido
-                }
+                },
+                modifier = Modifier.weight(1f)
             )
         }
         SnackbarHost(estadoSnackbar, modifier = Modifier.align(Alignment.BottomCenter))
@@ -162,14 +170,21 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
 private fun ListaPedidos(
     estado: PedidosUiState,
     onSolicitarAvanzar: (Pedido) -> Unit,
-    onSolicitarCancelar: (Pedido) -> Unit
+    onSolicitarCancelar: (Pedido) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     if (estado.pestanaSinPedidos) {
-        EstadoVacio(estado.pestana.mensajeSinPedidos)
+        Box(
+            modifier = modifier.fillMaxSize().padding(top = 40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            EstadoVacio(estado.pestana.mensajeSinPedidos)
+        }
         return
     }
     LazyColumn(
-        contentPadding = PaddingValues(vertical = 16.dp),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         when (estado.pestana) {
