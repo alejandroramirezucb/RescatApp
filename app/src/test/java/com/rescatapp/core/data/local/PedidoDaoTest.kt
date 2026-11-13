@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.rescatapp.core.data.pedidosDeEjemplo
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -153,5 +154,30 @@ class PedidoDaoTest {
         // IDs en orden descendente
         val idsEsperados = pedidosDeEjemplo.map { it.id }.sortedDescending()
         assertEquals(idsEsperados, todos.map { it.id })
+    }
+
+    @Test
+    fun preservaFechaDelPedidoAlGuardarYConsultar() = runTest {
+        val fechaHistorica = LocalDate.of(2026, 11, 2)
+        val pedido = PedidoEntity(
+            id = 50,
+            ofertaId = 3,
+            nombreOferta = "Sandwich",
+            comercio = "Cafe",
+            categoria = Categoria.CAFETERIA,
+            precioPagado = 15.0,
+            ahorro = 5.0,
+            pesoKg = 0.4,
+            horaRetiroDesde = "10:00",
+            horaRetiroHasta = "11:00",
+            estado = EstadoPedido.RESERVADO,
+            fecha = fechaHistorica
+        )
+
+        pedidoDao.insertar(pedido)
+
+        val recuperado = pedidoDao.buscarPorId(50)
+        assertNotNull(recuperado)
+        assertEquals(fechaHistorica, recuperado?.fecha)
     }
 }

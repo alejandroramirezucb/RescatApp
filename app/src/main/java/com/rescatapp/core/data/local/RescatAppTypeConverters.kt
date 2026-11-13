@@ -3,6 +3,7 @@ package com.rescatapp.core.data.local
 import androidx.room.TypeConverter
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
+import java.time.LocalDate
 
 class RescatAppTypeConverters {
 
@@ -19,4 +20,11 @@ class RescatAppTypeConverters {
     @TypeConverter
     fun toCategoria(valor: String): Categoria =
         runCatching { Categoria.valueOf(valor) }.getOrDefault(Categoria.COMIDA)
+
+    @TypeConverter
+    fun fromLocalDate(fecha: LocalDate): String = fecha.toString()
+
+    @TypeConverter
+    fun toLocalDate(valor: String): LocalDate =
+        runCatching { LocalDate.parse(valor) }.getOrDefault(LocalDate.now())
 }
