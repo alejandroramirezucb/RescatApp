@@ -1,5 +1,8 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
@@ -18,6 +21,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
+import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
 import java.io.File
@@ -110,21 +114,40 @@ class OfertasNegocioScreenTest {
     }
 
     @Test
+    @GraphicsMode(GraphicsMode.Mode.LEGACY)
     fun editarUnaOfertaRemotaValidaElPrecioAntesDeEmitirElEvento() {
         var ediciones = 0
+        val ofertaActualizada = mutableStateOf<Oferta?>(null)
         compose.setContent {
             RescatAppTheme {
-                ContenidoPrueba(estadoEnLinea(), onEditar = { ediciones++ })
+                if (ofertaActualizada.value == null) {
+                    EditorOferta(
+                        oferta,
+                        onGuardar = {
+                            ofertaActualizada.value = it
+                            ediciones++
+                        }
+                    ) { onConfirmar, contenido ->
+                        Column {
+                            contenido()
+                            Button(onClick = onConfirmar) { Text("Guardar cambios") }
+                        }
+                    }
+                } else {
+                    Text("Oferta actualizada")
+                }
             }
         }
-        compose.onNodeWithText("Editar").performClick()
         compose.onNodeWithText(oferta.precioRescate.toString()).performTextReplacement("99999")
         compose.onNodeWithText("Guardar cambios").performClick()
         assertEquals(0, ediciones)
+        compose.onNodeWithText(ValidadorCamposOferta.PRECIO_RESCATE_NO_MENOR).assertIsDisplayed()
 
         compose.onNodeWithText("99999").performTextReplacement("1")
         compose.onNodeWithText("Guardar cambios").performClick()
         assertEquals(1, ediciones)
+        assertEquals(1.0, ofertaActualizada.value!!.precioRescate, 0.001)
+        compose.onNodeWithText("Oferta actualizada").assertIsDisplayed()
     }
 
     private fun estadoEnLinea() = OfertasNegocioUiState(

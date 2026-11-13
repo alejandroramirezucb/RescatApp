@@ -312,6 +312,12 @@ El consumo de servicios remotos está configurado con Retrofit y OkHttp contra u
 
 **Comprobación manual:** desconectar Internet y entrar a **En línea**, comprobar el error, reconectar y pulsar **Reintentar**. Publicar una oferta local, editar la publicación y eliminarla después de probar también **Cancelar**. Verificar las etiquetas de origen y que los indicadores desaparezcan tanto ante éxito como ante error.
 
+### Validación de edición — issue #78
+
+El diálogo de edición muestra errores debajo de cada campo y bloquea el guardado si la cantidad no es un entero mayor o igual a 0, el precio no es positivo y menor al normal o el horario no cumple `HH:mm` con fin posterior al inicio. Los errores se actualizan al corregir los campos después del primer intento de guardar.
+
+Las reglas están en `core/domain/ValidadorCamposOferta`, compartido por `ValidarOfertaUseCase` y el diálogo: no se duplican reglas en la interfaz. El registro sigue exigiendo cantidad mayor a 0; la edición admite 0 para marcar una oferta agotada. Las pruebas del validador cubren valores vacíos, texto no numérico, límites, formatos, horarios y datos válidos; la prueba Compose verifica el error inline y el guardado posterior.
+
 ---
 
 ## Dónde se cumple cada punto de la guía técnica
