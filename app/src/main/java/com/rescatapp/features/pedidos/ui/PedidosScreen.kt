@@ -135,90 +135,79 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 48.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                text = "Mis pedidos",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(top = 20.dp, bottom = 16.dp)
-            )
-            SelectorPestanasPedidos(estado.pestana, viewModel::seleccionarPestana)
-            Spacer(Modifier.height(8.dp))
-            ListaPedidos(
-                estado = estado,
-                onSolicitarAvanzar = { pedido ->
-                    if (pedido.estado == EstadoPedido.LISTO) {
-                        pedidoParaConfirmarRetiro = pedido
-                    } else {
-                        viewModel.avanzar(pedido.id)
+            item {
+                Text(
+                    text = "Mis pedidos",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            item {
+                SelectorPestanasPedidos(estado.pestana, viewModel::seleccionarPestana)
+            }
+            if (estado.pestanaSinPedidos) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EstadoVacio(estado.pestana.mensajeSinPedidos)
                     }
-                },
-                onSolicitarCancelar = { pedido ->
-                    pedidoParaCancelar = pedido
-                },
-                modifier = Modifier.weight(1f)
-            )
-        }
-        SnackbarHost(estadoSnackbar, modifier = Modifier.align(Alignment.BottomCenter))
-    }
-}
+                }
+            } else {
+                when (estado.pestana) {
+                    PestanaPedidos.ACTIVOS -> items(estado.activos, key = {
+                        it.pedido.id
+                    }) { activo ->
+                        TarjetaPedido(activo.pedido) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-@Composable
-private fun ListaPedidos(
-    estado: PedidosUiState,
-    onSolicitarAvanzar: (Pedido) -> Unit,
-    onSolicitarCancelar: (Pedido) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (estado.pestanaSinPedidos) {
-        Box(
-            modifier = modifier.fillMaxSize().padding(top = 40.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            EstadoVacio(estado.pestana.mensajeSinPedidos)
-        }
-        return
-    }
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = 8.dp, bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        when (estado.pestana) {
-            PestanaPedidos.ACTIVOS -> items(estado.activos, key = { it.pedido.id }) { activo ->
-                TarjetaPedido(activo.pedido) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            FilaCodigoRetiro(activo.pedido)
 
-                    FilaCodigoRetiro(activo.pedido)
+                            BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
 
-                    BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
-
-                    if (estado.esNegocio) {
-                        AccionesPedidoNegocio(
-                            pedido = activo.pedido,
-                            onAvanzar = { onSolicitarAvanzar(activo.pedido) },
-                            onCancelar = { onSolicitarCancelar(activo.pedido) }
-                        )
-                    } else if (activo.pedido.estado == EstadoPedido.RESERVADO) {
-                        TextButton(
-                            onClick = { onSolicitarCancelar(activo.pedido) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
-                        ) {
-                            Text("Cancelar reserva", color = MaterialTheme.colorScheme.error)
+                            if (estado.esNegocio) {
+                                AccionesPedidoNegocio(
+                                    pedido = activo.pedido,
+                                    onAvanzar = {
+                                        if (activo.pedido.estado == EstadoPedido.LISTO) {
+                                            pedidoParaConfirmarRetiro = activo.pedido
+                                        } else {
+                                            viewModel.avanzar(activo.pedido.id)
+                                        }
+                                    },
+                                    onCancelar = { pedidoParaCancelar = activo.pedido }
+                                )
+                            } else if (activo.pedido.estado == EstadoPedido.RESERVADO) {
+                                TextButton(
+                                    onClick = { pedidoParaCancelar = activo.pedido },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                                ) {
+                                    Text(
+                                        "Cancelar reserva",
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
                         }
+                    }
+
+                    PestanaPedidos.HISTORIAL -> items(estado.historial, key = { it.id }) { pedido ->
+                        TarjetaPedido(pedido)
                     }
                 }
             }
-
-            PestanaPedidos.HISTORIAL -> items(estado.historial, key = { it.id }) { pedido ->
-                TarjetaPedido(pedido)
-            }
         }
+        SnackbarHost(estadoSnackbar, modifier = Modifier.align(Alignment.BottomCenter))
     }
 }
 

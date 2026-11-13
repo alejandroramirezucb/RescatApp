@@ -18,7 +18,7 @@ fun InicioNegocioScreen(viewModel: InicioNegocioViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 20.dp)
+        contentPadding = PaddingValues(bottom = 48.dp)
     ) {
         item { EncabezadoNegocio(estado.nombreNegocio) }
         item {

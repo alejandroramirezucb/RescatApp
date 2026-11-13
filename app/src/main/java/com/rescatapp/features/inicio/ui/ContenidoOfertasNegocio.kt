@@ -32,9 +32,10 @@ internal fun EncabezadoOfertasNegocio() {
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
         color = Color.White,
-        modifier = Modifier.fillMaxWidth().background(
-            Naranja
-        ).padding(horizontal = 20.dp, vertical = 8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Naranja)
+            .padding(horizontal = 20.dp, vertical = 8.dp)
     )
 }
 
@@ -60,20 +61,26 @@ internal fun SelectorOfertasNegocio(
 
 @Composable
 internal fun ListaOfertasNegocio(
-    ofertas: List<Oferta>,
     pestana: PestanaOfertas,
-    onEditar: (Oferta) -> Unit = {},
-    modifier: Modifier = Modifier
+    onSeleccion: (PestanaOfertas) -> Unit,
+    ofertas: List<Oferta>,
+    onEditar: (Oferta) -> Unit = {}
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 100.dp),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 48.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        item { EncabezadoOfertasNegocio() }
+        item {
+            SelectorOfertasNegocio(pestana = pestana, onSeleccion = onSeleccion)
+        }
         if (ofertas.isEmpty()) {
             item {
                 Box(
-                    modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 40.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -85,7 +92,9 @@ internal fun ListaOfertasNegocio(
             }
         } else {
             items(ofertas, key = { it.id }) { oferta ->
-                TarjetaOfertaNegocio(oferta = oferta, onEditar = { onEditar(oferta) })
+                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    TarjetaOfertaNegocio(oferta = oferta, onEditar = { onEditar(oferta) })
+                }
             }
         }
     }

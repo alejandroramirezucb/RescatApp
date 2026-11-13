@@ -56,16 +56,12 @@ fun OfertasNegocioScreen(viewModel: OfertasNegocioViewModel = hiltViewModel()) {
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        EncabezadoOfertasNegocio()
-        SelectorOfertasNegocio(pestana) { pestana = it }
-        ListaOfertasNegocio(
-            ofertas = if (pestana == PestanaOfertas.ACTIVAS) ofertasActivas else ofertasFinalizadas,
-            pestana = pestana,
-            onEditar = { ofertaParaEditar = it },
-            modifier = Modifier.weight(1f)
-        )
-    }
+    ListaOfertasNegocio(
+        pestana = pestana,
+        onSeleccion = { pestana = it },
+        ofertas = if (pestana == PestanaOfertas.ACTIVAS) ofertasActivas else ofertasFinalizadas,
+        onEditar = { ofertaParaEditar = it }
+    )
 }
 
 @Composable

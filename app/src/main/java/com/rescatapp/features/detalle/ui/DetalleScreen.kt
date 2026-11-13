@@ -3,6 +3,7 @@ package com.rescatapp.features.detalle.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -115,7 +116,12 @@ fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewMo
 
 @Composable
 private fun InformacionOferta(oferta: Oferta, onReservar: () -> Unit) {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 32.dp)
+    ) {
         ImagenCategoria(
             categoria = oferta.categoria,
             imagenUri = oferta.imagenUri,

@@ -21,7 +21,8 @@ enum class DestinoPrincipal(
     PEDIDOS(Rutas.PEDIDOS, Rutas.PEDIDOS, "Pedidos", Icons.Filled.ShoppingBag),
     PERFIL(Rutas.PERFIL, Rutas.PERFIL, "Perfil", Icons.Filled.Person);
 
-    fun muestraBotonPublicar(rol: RolUsuario): Boolean = rol == RolUsuario.NEGOCIO && this == INICIO
+    fun muestraBotonPublicar(rol: RolUsuario): Boolean =
+        rol == RolUsuario.NEGOCIO && (this == INICIO || this == OFERTAS)
 
     companion object {
         fun desdeRuta(rutaActual: String?): DestinoPrincipal? =

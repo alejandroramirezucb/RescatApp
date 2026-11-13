@@ -5,7 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -25,17 +28,28 @@ import com.rescatapp.core.model.UsuarioDemo
 fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
-    Column(modifier = Modifier.fillMaxSize()) {
+    val scrollState = rememberScrollState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+    ) {
         EncabezadoPerfil(estado.nombre, estado.correo, estado.inicial, estado.esNegocio)
         IndicadoresPerfil(estado)
         Column(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             InformacionCuenta(estado)
+            PreferenciasPerfil()
+            SeccionSostenibilidadODS()
         }
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(8.dp))
         BotonCambiarRol(rol)
+        Spacer(Modifier.height(48.dp))
     }
 }
 
@@ -57,7 +71,9 @@ private fun BotonCambiarRol(rol: RolUsuario) {
         onClick = {
             UsuarioDemo.cambiarRol(if (esNegocio) RolUsuario.CLIENTE else RolUsuario.NEGOCIO)
         },
-        modifier = Modifier.fillMaxWidth().padding(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
         Text(if (esNegocio) "Cambiar a perfil de cliente" else "Cambiar a perfil de negocio (Demo)")
