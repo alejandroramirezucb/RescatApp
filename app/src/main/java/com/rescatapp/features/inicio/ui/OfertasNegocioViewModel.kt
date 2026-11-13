@@ -9,6 +9,7 @@ import com.rescatapp.core.data.remote.FuenteOfertasRemotas
 import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.UsuarioDemo
+import com.rescatapp.features.inicio.domain.EditarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.EOFException
 import java.io.IOException
@@ -23,7 +24,8 @@ import retrofit2.HttpException
 @HiltViewModel
 class OfertasNegocioViewModel @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas,
-    private val repositorioRemoto: FuenteOfertasRemotas
+    private val repositorioRemoto: FuenteOfertasRemotas,
+    private val editarOferta: EditarOfertaUseCase
 ) : ViewModel() {
     private val estado = MutableStateFlow(OfertasNegocioUiState())
     val uiState = estado.asStateFlow()
@@ -54,7 +56,7 @@ class OfertasNegocioViewModel @Inject constructor(
         estado.update { it.copy(guardandoLocal = true, errorLocal = null) }
         viewModelScope.launch {
             try {
-                repositorioOfertas.actualizar(oferta)
+                editarOferta(oferta)
                 onGuardada()
             } catch (cancelacion: CancellationException) {
                 throw cancelacion

@@ -12,6 +12,7 @@ import com.rescatapp.core.data.remote.FuenteOfertasRemotas
 import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.UsuarioDemo
+import com.rescatapp.features.inicio.domain.EditarOfertaUseCase
 import java.io.EOFException
 import java.io.IOException
 import kotlinx.coroutines.CancellationException
@@ -212,7 +213,8 @@ class OfertasNegocioViewModelTest {
         assertEquals(1, remoto.mutaciones)
     }
 
-    private fun crearViewModel() = OfertasNegocioViewModel(local, remoto)
+    private fun crearViewModel() =
+        OfertasNegocioViewModel(local, remoto, EditarOfertaUseCase(local))
 
     @Test
     fun guardarLocalEsperaLaEscrituraRoomAntesDeCerrarElDialogo() = runTest {
@@ -224,7 +226,8 @@ class OfertasNegocioViewModelTest {
                 base.actualizar(oferta)
             }
         }
-        val vm = OfertasNegocioViewModel(RepositorioOfertas(dao), remoto)
+        val repositorio = RepositorioOfertas(dao)
+        val vm = OfertasNegocioViewModel(repositorio, remoto, EditarOfertaUseCase(repositorio))
         var guardadas = 0
         vm.actualizarOferta(oferta.copy(precioRescate = 1.0)) { guardadas++ }
         assertTrue(vm.uiState.value.guardandoLocal)
@@ -243,7 +246,8 @@ class OfertasNegocioViewModelTest {
             override suspend fun actualizar(oferta: OfertaEntity): Unit =
                 throw IOException("Error de escritura")
         }
-        val vm = OfertasNegocioViewModel(RepositorioOfertas(dao), remoto)
+        val repositorio = RepositorioOfertas(dao)
+        val vm = OfertasNegocioViewModel(repositorio, remoto, EditarOfertaUseCase(repositorio))
         var guardadas = 0
         vm.actualizarOferta(oferta) { guardadas++ }
 

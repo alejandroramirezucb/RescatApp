@@ -7,6 +7,7 @@ import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.core.navigation.ArgumentosRuta
+import com.rescatapp.features.inicio.domain.EditarOfertaUseCase
 import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -93,6 +94,28 @@ class ExplorarViewModelTest {
         assertEquals(OrdenOfertas.MAYOR_DESCUENTO, viewModel.uiState.value.filtros.orden)
         assertEquals(nueva.id, viewModel.uiState.value.ofertas.first().id)
         assertEquals(3, viewModel.uiState.value.cantidad)
+    }
+
+    @Test
+    fun editarActualizaLaConsultaActivaSinRecargarYConservaLosFiltros() = runTest {
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+        viewModel.buscar("Edicion Room")
+        viewModel.seleccionarCategoria(Categoria.POSTRES)
+        viewModel.seleccionarOrden(OrdenOfertas.MAYOR_DESCUENTO)
+        val editarOferta = EditarOfertaUseCase(repositorioOfertas)
+        val oferta = ofertasDeEjemplo.first()
+
+        editarOferta(oferta.copy(nombre = "Edicion Room", categoria = Categoria.POSTRES))
+
+        assertEquals(listOf(oferta.id), viewModel.uiState.value.ofertas.map { it.id })
+        assertEquals("Edicion Room", viewModel.uiState.value.filtros.texto)
+        assertEquals(Categoria.POSTRES, viewModel.uiState.value.filtros.categoria)
+        assertEquals(OrdenOfertas.MAYOR_DESCUENTO, viewModel.uiState.value.filtros.orden)
+
+        editarOferta(oferta.copy(nombre = "Edicion Room", categoria = Categoria.PANADERIA))
+
+        assertEquals(0, viewModel.uiState.value.cantidad)
     }
 
     private fun crearViewModel(categoria: String? = null) = ExplorarViewModel(
