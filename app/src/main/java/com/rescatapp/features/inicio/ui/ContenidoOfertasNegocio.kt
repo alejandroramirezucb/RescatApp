@@ -108,6 +108,9 @@ internal fun ListaOfertasNegocio(
         if (estado.guardandoLocal) {
             item { ProgresoOfertas("Guardando cambios locales…") }
         }
+        if (estado.eliminandoLocal) {
+            item { ProgresoOfertas("Eliminando oferta local.") }
+        }
         estado.errorOperacion?.let { mensaje ->
             item {
                 MensajeOfertas(

@@ -29,8 +29,8 @@ class RepositorioOfertas @Inject constructor(private val ofertaDao: OfertaDao) {
         ofertaDao.actualizar(oferta.toEntity())
     }
 
-    suspend fun eliminar(ofertaId: Int) {
-        ofertaDao.eliminarPorId(ofertaId)
+    suspend fun eliminar(oferta: Oferta) {
+        ofertaDao.eliminar(oferta.toEntity())
     }
 
     suspend fun cambiarUnidadesDisponibles(ofertaId: Int, diferencia: Int): Boolean =

@@ -85,13 +85,16 @@ internal fun TarjetaOfertaNegocio(
                         )
                     }
                 }
-                if (esRemota) {
+                Row {
+                    if (!esRemota) {
+                        onPublicar?.let {
+                            TextButton(onClick = it, enabled = habilitada) {
+                                Text("Publicar en línea")
+                            }
+                        }
+                    }
                     TextButton(onClick = onEliminar, enabled = habilitada) {
                         Text("Eliminar", color = MaterialTheme.colorScheme.error)
-                    }
-                } else {
-                    onPublicar?.let {
-                        TextButton(onClick = it, enabled = habilitada) { Text("Publicar en línea") }
                     }
                 }
             }

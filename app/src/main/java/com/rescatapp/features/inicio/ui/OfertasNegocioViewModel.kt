@@ -70,6 +70,25 @@ class OfertasNegocioViewModel @Inject constructor(
         }
     }
 
+    fun eliminarOfertaLocal(oferta: Oferta, onEliminada: () -> Unit = {}) {
+        if (estado.value.ocupado) return
+        estado.update { it.copy(eliminandoLocal = true, errorLocal = null, mensaje = null) }
+        viewModelScope.launch {
+            try {
+                repositorioOfertas.eliminar(oferta)
+                onEliminada()
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                estado.update {
+                    it.copy(errorLocal = "No se pudo eliminar la oferta. Intenta nuevamente.")
+                }
+            } finally {
+                estado.update { it.copy(eliminandoLocal = false) }
+            }
+        }
+    }
+
     fun cargarOfertasRemotas() {
         if (estado.value.ocupado) return
         estado.update { it.copy(estadoRemoto = EstadoRemoto.Cargando) }

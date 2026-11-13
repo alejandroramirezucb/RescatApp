@@ -150,6 +150,40 @@ class OfertasNegocioScreenTest {
         compose.onNodeWithText("Oferta actualizada").assertIsDisplayed()
     }
 
+    @Test
+    fun eliminarLocalMuestraElNombreYVolverNoEliminaLaOferta() {
+        var eliminacionesLocales = 0
+        var eliminacionesRemotas = 0
+        val estado = mutableStateOf(OfertasNegocioUiState(activas = listOf(oferta)))
+        compose.setContent {
+            RescatAppTheme {
+                ContenidoPrueba(
+                    estado.value,
+                    onEliminar = { eliminacionesRemotas++ },
+                    onEliminarLocal = { _, onEliminada ->
+                        eliminacionesLocales++
+                        estado.value = estado.value.copy(activas = emptyList())
+                        onEliminada()
+                    }
+                )
+            }
+        }
+        compose.onNodeWithText("Eliminar").performClick()
+        compose.onNodeWithText("¿Eliminar «${oferta.nombre}» de las ofertas locales?")
+            .assertIsDisplayed()
+        compose.onNodeWithText("Volver").performClick()
+        assertEquals(0, eliminacionesLocales)
+        compose.onNodeWithText(oferta.nombre).assertIsDisplayed()
+
+        compose.onNodeWithText("Eliminar").performClick()
+        compose.onNode(hasText("Eliminar") and hasAnyAncestor(isDialog())).performClick()
+
+        assertEquals(1, eliminacionesLocales)
+        assertEquals(0, eliminacionesRemotas)
+        compose.onNodeWithText(oferta.nombre).assertDoesNotExist()
+        compose.onNodeWithText("No hay ofertas activas").assertIsDisplayed()
+    }
+
     private fun estadoEnLinea() = OfertasNegocioUiState(
         pestana = PestanaOfertas.EN_LINEA,
         estadoRemoto = EstadoRemoto.Exito(listOf(oferta))
@@ -170,7 +204,8 @@ class OfertasNegocioScreenTest {
         onReintentar: () -> Unit = {},
         onPublicar: (Oferta) -> Unit = {},
         onEditar: (Oferta) -> Unit = {},
-        onEliminar: (Oferta) -> Unit = {}
+        onEliminar: (Oferta) -> Unit = {},
+        onEliminarLocal: (Oferta, () -> Unit) -> Unit = { _, _ -> }
     ) {
         OfertasNegocioContenido(
             estado = estado,
@@ -180,6 +215,7 @@ class OfertasNegocioScreenTest {
             onEditarLocal = { _, _ -> },
             onEditarRemota = onEditar,
             onEliminar = onEliminar,
+            onEliminarLocal = onEliminarLocal,
             onReintentarOperacion = {},
             onLimpiarMensaje = {}
         )

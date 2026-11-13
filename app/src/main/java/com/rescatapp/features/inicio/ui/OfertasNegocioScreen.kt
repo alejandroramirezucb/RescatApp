@@ -1,5 +1,6 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ fun OfertasNegocioScreen(viewModel: OfertasNegocioViewModel = hiltViewModel()) {
         onEditarLocal = viewModel::actualizarOferta,
         onEditarRemota = viewModel::editarOfertaRemota,
         onEliminar = viewModel::eliminarOfertaRemota,
+        onEliminarLocal = viewModel::eliminarOfertaLocal,
         onReintentarOperacion = viewModel::reintentarOperacion,
         onLimpiarMensaje = viewModel::limpiarMensaje
     )
@@ -37,11 +39,12 @@ internal fun OfertasNegocioContenido(
     onEditarLocal: (Oferta, () -> Unit) -> Unit,
     onEditarRemota: (Oferta) -> Unit,
     onEliminar: (Oferta) -> Unit,
+    onEliminarLocal: (Oferta, () -> Unit) -> Unit,
     onReintentarOperacion: () -> Unit,
     onLimpiarMensaje: () -> Unit
 ) {
     var ofertaParaEditar by remember { mutableStateOf<Pair<Oferta, Boolean>?>(null) }
-    var ofertaParaEliminar by remember { mutableStateOf<Oferta?>(null) }
+    var ofertaParaEliminar by remember { mutableStateOf<Pair<Oferta, Boolean>?>(null) }
 
     ofertaParaEditar?.let { (oferta, esRemota) ->
         DialogoEditarOferta(
@@ -58,19 +61,33 @@ internal fun OfertasNegocioContenido(
         )
     }
 
-    ofertaParaEliminar?.let { oferta ->
+    ofertaParaEliminar?.let { (oferta, esRemota) ->
         DialogoConfirmacion(
-            titulo = "Eliminar oferta en línea",
+            titulo = if (esRemota) "Eliminar oferta en línea" else "Eliminar oferta local",
             textoConfirmar = "Eliminar",
-            textoDescartar = "Cancelar",
+            textoDescartar = if (esRemota) "Cancelar" else "Volver",
             colorConfirmar = MaterialTheme.colorScheme.error,
             onConfirmar = {
-                onEliminar(oferta)
-                ofertaParaEliminar = null
+                if (!estado.ocupado) {
+                    if (esRemota) {
+                        onEliminar(oferta)
+                        ofertaParaEliminar = null
+                    } else {
+                        onEliminarLocal(oferta) { ofertaParaEliminar = null }
+                    }
+                }
             },
             onDescartar = { ofertaParaEliminar = null }
         ) {
-            Text("¿Eliminar «${oferta.nombre}» de las ofertas en línea?")
+            if (esRemota) {
+                Text("¿Eliminar «${oferta.nombre}» de las ofertas en línea?")
+            } else {
+                Column {
+                    Text("¿Eliminar «${oferta.nombre}» de las ofertas locales?")
+                    if (estado.eliminandoLocal) Text("Eliminando oferta local.")
+                    estado.errorLocal?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                }
+            }
         }
     }
 
@@ -80,7 +97,7 @@ internal fun OfertasNegocioContenido(
         onReintentar = onReintentar,
         onPublicar = onPublicar,
         onEditar = { ofertaParaEditar = it to (estado.pestana == PestanaOfertas.EN_LINEA) },
-        onEliminar = { ofertaParaEliminar = it },
+        onEliminar = { ofertaParaEliminar = it to (estado.pestana == PestanaOfertas.EN_LINEA) },
         onReintentarOperacion = onReintentarOperacion,
         onLimpiarMensaje = onLimpiarMensaje
     )

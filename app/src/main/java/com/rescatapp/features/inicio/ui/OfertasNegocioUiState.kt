@@ -18,6 +18,7 @@ data class OfertasNegocioUiState(
     val activas: List<Oferta> = emptyList(),
     val finalizadas: List<Oferta> = emptyList(),
     val guardandoLocal: Boolean = false,
+    val eliminandoLocal: Boolean = false,
     val errorLocal: String? = null,
     val estadoRemoto: EstadoRemoto<List<Oferta>> = EstadoRemoto.Exito(emptyList()),
     val operacionEnCurso: OperacionOferta? = null,
@@ -26,5 +27,6 @@ data class OfertasNegocioUiState(
     val mensaje: String? = null
 ) {
     val ocupado: Boolean
-        get() = guardandoLocal || estadoRemoto is EstadoRemoto.Cargando || operacionEnCurso != null
+        get() = guardandoLocal || eliminandoLocal ||
+            estadoRemoto is EstadoRemoto.Cargando || operacionEnCurso != null
 }

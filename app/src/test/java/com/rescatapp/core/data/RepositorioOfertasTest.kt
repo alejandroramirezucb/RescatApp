@@ -90,7 +90,7 @@ class RepositorioOfertasTest {
 
     @Test
     fun eliminarPersisteLaAusenciaEnElDao() = runTest {
-        repositorio.eliminar(14)
+        repositorio.eliminar(repositorio.buscarPorId(14)!!)
 
         assertNull(dao.buscarPorId(14))
         assertEquals(13, repositorio.ofertas.first().size)
