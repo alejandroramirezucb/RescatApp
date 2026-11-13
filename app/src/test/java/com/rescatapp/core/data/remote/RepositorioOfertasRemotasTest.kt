@@ -1,7 +1,7 @@
 package com.rescatapp.core.data.remote
 
+import com.google.gson.Gson
 import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.Oferta
 import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -25,6 +25,7 @@ class RepositorioOfertasRemotasTest {
         "precioNormal":45.0,"precioRescate":25.0,"cantidadDisponible":5,
         "horaRetiroDesde":"18:00","horaRetiroHasta":"20:00"}
     """.trimIndent()
+    private val oferta = Gson().fromJson(ofertaJson, OfertaDto::class.java).aOferta()
 
     @Before
     fun iniciar() {
@@ -57,21 +58,7 @@ class RepositorioOfertasRemotasTest {
     fun crearOfertaEnviaLaOfertaEnElCuerpo() = runTest {
         servidor.enqueue(MockResponse().setBody(ofertaJson))
 
-        repositorio.crearOferta(
-            Oferta(
-                id = 0,
-                nombre = "Pack Sorpresa",
-                comercio = "Panadería La Central",
-                categoria = Categoria.PANADERIA,
-                descripcion = "Panes del día",
-                pesoKg = 1.0,
-                precioNormal = 45.0,
-                precioRescate = 25.0,
-                cantidadDisponible = 5,
-                horaRetiroDesde = "18:00",
-                horaRetiroHasta = "20:00"
-            )
-        )
+        repositorio.crearOferta(oferta)
         val solicitud = servidor.takeRequest()
         val cuerpo = solicitud.body.readUtf8()
 
@@ -93,7 +80,6 @@ class RepositorioOfertasRemotasTest {
     @Test
     fun editarOfertaEnviaPutConElIdRemotoYDevuelveLaRespuestaDelServidor() = runTest {
         servidor.enqueue(MockResponse().setBody(ofertaJson.replace("25.0", "20.0")))
-        val oferta = com.google.gson.Gson().fromJson(ofertaJson, OfertaDto::class.java).aOferta()
 
         val actualizada = repositorio.editarOferta(1, oferta.copy(precioRescate = 20.0))
 
@@ -135,7 +121,6 @@ class RepositorioOfertasRemotasTest {
 
     @Test
     fun erroresHttpDeLasMutacionesSePropaganAlConsumidor() = runTest {
-        val oferta = com.google.gson.Gson().fromJson(ofertaJson, OfertaDto::class.java).aOferta()
         val operaciones: List<suspend () -> Unit> = listOf(
             {
                 repositorio.crearOferta(oferta)

@@ -2,8 +2,6 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.JsonParseException
-import com.google.gson.stream.MalformedJsonException
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.remote.FuenteOfertasRemotas
 import com.rescatapp.core.model.EstadoRemoto
@@ -11,15 +9,12 @@ import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.features.inicio.domain.EditarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.io.EOFException
-import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 
 @HiltViewModel
 class OfertasNegocioViewModel @Inject constructor(
@@ -35,12 +30,8 @@ class OfertasNegocioViewModel @Inject constructor(
         viewModelScope.launch {
             repositorioOfertas.ofertas.collect { ofertas ->
                 val propias = ofertas.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
-                estado.update {
-                    it.copy(
-                        activas = propias.filterNot(Oferta::estaAgotada),
-                        finalizadas = propias.filter(Oferta::estaAgotada)
-                    )
-                }
+                val (finalizadas, activas) = propias.partition(Oferta::estaAgotada)
+                estado.update { it.copy(activas = activas, finalizadas = finalizadas) }
             }
         }
     }
@@ -119,9 +110,7 @@ class OfertasNegocioViewModel @Inject constructor(
         estado.value.operacionFallida?.let(::ejecutarOperacion)
     }
 
-    fun limpiarMensaje() {
-        estado.update { it.copy(mensaje = null, errorLocal = null) }
-    }
+    fun limpiarMensaje() = estado.update { it.copy(mensaje = null, errorLocal = null) }
 
     private fun ejecutarOperacion(operacion: OperacionOferta) {
         if (estado.value.ocupado) return
@@ -136,34 +125,13 @@ class OfertasNegocioViewModel @Inject constructor(
         viewModelScope.launch {
             var consultarDespuesDePublicar = false
             try {
-                val oferta = operacion.oferta
-                val mensaje = when (operacion.tipo) {
-                    TipoOperacionOferta.PUBLICAR -> {
-                        val publicada = repositorioRemoto.crearOferta(oferta)
-                        ofertasRemotas =
-                            listOf(publicada) + ofertasRemotas.filterNot { it.id == publicada.id }
-                        consultarDespuesDePublicar = true
-                        "Oferta publicada en línea."
-                    }
-
-                    TipoOperacionOferta.EDITAR -> {
-                        val actualizada = repositorioRemoto.editarOferta(oferta.id, oferta)
-                        ofertasRemotas =
-                            ofertasRemotas.map { if (it.id == oferta.id) actualizada else it }
-                        "Cambios guardados en línea."
-                    }
-
-                    TipoOperacionOferta.ELIMINAR -> {
-                        repositorioRemoto.eliminarOferta(oferta.id)
-                        ofertasRemotas = ofertasRemotas.filterNot { it.id == oferta.id }
-                        "Oferta eliminada de la lista en línea."
-                    }
-                }
+                ofertasRemotas = repositorioRemoto.aplicarOperacion(operacion, ofertasRemotas)
+                consultarDespuesDePublicar = operacion.tipo == TipoOperacionOferta.PUBLICAR
                 estado.update {
                     it.copy(
                         estadoRemoto = EstadoRemoto.Exito(ofertasRemotas),
                         pestana = PestanaOfertas.EN_LINEA,
-                        mensaje = mensaje
+                        mensaje = mensajeDeExito(operacion.tipo)
                     )
                 }
             } catch (cancelacion: CancellationException) {
@@ -175,20 +143,7 @@ class OfertasNegocioViewModel @Inject constructor(
             } finally {
                 estado.update { it.copy(operacionEnCurso = null) }
             }
-            // Recupera también las publicaciones anteriores que aún no se habían consultado.
             if (consultarDespuesDePublicar) cargarOfertasRemotas()
         }
-    }
-
-    private fun mensajeDeError(error: Exception): String = when (error) {
-        is HttpException -> "El servidor no pudo completar la operación. Inténtalo de nuevo."
-
-        is JsonParseException, is MalformedJsonException, is EOFException,
-        is IllegalArgumentException, is NullPointerException ->
-            "No pudimos interpretar las ofertas recibidas."
-
-        is IOException -> "No pudimos conectarnos. Revisa tu conexión e inténtalo de nuevo."
-
-        else -> "No se pudo completar la operación. Inténtalo de nuevo."
     }
 }
