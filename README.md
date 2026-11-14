@@ -111,6 +111,8 @@ Consecuencias en el código:
 | Pantalla | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L40) |
 | Información de la oferta y botón Reservar | [InformacionOferta](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
 | Lee el id de la ruta con `SavedStateHandle` | [DetalleViewModel.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L26) |
+| Pasarela de pago simulada (QR Simple y Efectivo) | [PasarelaPagoDialog.kt](app/src/main/java/com/rescatapp/features/pago/ui/PasarelaPagoDialog.kt) · [PasarelaPagoSimulada.kt](app/src/main/java/com/rescatapp/features/pago/domain/PasarelaPagoSimulada.kt) |
+| Renderizador vectorial de QR en Canvas | [CodigoQrCanvas.kt](app/src/main/java/com/rescatapp/features/pago/ui/components/CodigoQrCanvas.kt) |
 | Diálogo de confirmación de reserva | [DialogoReserva.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DialogoReserva.kt#L22) |
 | Descuenta una unidad del stock de la oferta | [ReservarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
 
