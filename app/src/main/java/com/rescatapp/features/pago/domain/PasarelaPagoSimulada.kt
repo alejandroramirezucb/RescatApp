@@ -16,6 +16,12 @@ import kotlinx.coroutines.delay
 @Singleton
 class PasarelaPagoSimulada @Inject constructor() {
 
+    var tiempoEsperaMs: Long = TIEMPO_SIMULACION_MS
+
+    constructor(tiempoEsperaMs: Long) : this() {
+        this.tiempoEsperaMs = tiempoEsperaMs
+    }
+
     private val secuenciaTransaccion = AtomicInteger(1000)
     private val formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
 
@@ -43,7 +49,7 @@ class PasarelaPagoSimulada @Inject constructor() {
     suspend fun procesarPagoQr(
         datosQr: DatosQrPago,
         simularExito: Boolean = true,
-        tiempoEsperaMs: Long = TIEMPO_SIMULACION_MS
+        tiempoEsperaMs: Long = this.tiempoEsperaMs
     ): ResultadoPago {
         if (tiempoEsperaMs > 0) {
             delay(tiempoEsperaMs)

@@ -17,9 +17,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -38,6 +36,7 @@ import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.formatearHorario
 import com.rescatapp.core.util.formatearPeso
+import com.rescatapp.features.pago.ui.PasarelaPagoDialog
 
 @Composable
 fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewModel()) {
@@ -45,17 +44,21 @@ fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewMo
     val estadoSnackbar = remember { SnackbarHostState() }
     EfectoMensajeTemporal(estado.mensaje, estadoSnackbar, viewModel::limpiarMensaje)
 
-    var mostrarDialogoReserva by remember { mutableStateOf(false) }
-
-    if (mostrarDialogoReserva) {
+    if (estado.mostrandoPasarelaPago) {
         estado.oferta?.let { oferta ->
-            DialogoReserva(
+            PasarelaPagoDialog(
                 oferta = oferta,
-                onConfirmar = {
-                    mostrarDialogoReserva = false
-                    viewModel.reservar()
-                },
-                onDescartar = { mostrarDialogoReserva = false }
+                datosQr = estado.datosQrPago,
+                estadoPago = estado.estadoPago,
+                comprobante = estado.comprobantePago,
+                metodoSeleccionado = estado.metodoPagoSeleccionado,
+                errorPago = estado.errorPago,
+                onSeleccionarMetodo = viewModel::seleccionarMetodoPago,
+                onGenerarQr = viewModel::generarQrPago,
+                onSimularPagoQr = viewModel::simularPagoQr,
+                onConfirmarPagoEfectivo = viewModel::confirmarPagoEfectivo,
+                onCompletarReservaTrasPago = viewModel::completarReservaTrasPagoAprobado,
+                onDescartar = viewModel::cerrarPasarelaPago
             )
         }
     }
@@ -73,7 +76,7 @@ fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewMo
         } else {
             InformacionOferta(
                 oferta = oferta,
-                onReservar = { mostrarDialogoReserva = true },
+                onReservar = viewModel::abrirPasarelaPago,
                 modifier = Modifier.padding(espacioInterno)
             )
         }
