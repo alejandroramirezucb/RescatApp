@@ -33,44 +33,53 @@ open class NotificadorSistemaAndroid @Inject constructor(
     }
 
     open fun crearCanalesDeNotificacion() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-                    ?: return
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                ?: return
 
-            val canalCliente = NotificationChannel(
-                CANAL_PEDIDOS_CLIENTE,
-                "Pedidos Cliente",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notificaciones sobre el estado de tus pedidos de rescate"
-                enableVibration(true)
-            }
-
-            val canalVendedor = NotificationChannel(
-                CANAL_PEDIDOS_VENDEDOR,
-                "Ventas y Pedidos Recientes",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notificaciones para comercios sobre nuevos pedidos y reservas"
-                enableVibration(true)
-            }
-
-            val canalOfertas = NotificationChannel(
-                CANAL_OFERTAS,
-                "Ofertas y Rescates",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Avisos sobre disponibilidad de ofertas y publicaciones"
-            }
-
-            notificationManager.createNotificationChannels(
-                listOf(canalCliente, canalVendedor, canalOfertas)
-            )
+        val canalCliente = NotificationChannel(
+            CANAL_PEDIDOS_CLIENTE,
+            "Pedidos Cliente",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Notificaciones sobre el estado de tus pedidos de rescate"
+            enableVibration(true)
+            enableLights(true)
+            setShowBadge(true)
         }
+
+        val canalVendedor = NotificationChannel(
+            CANAL_PEDIDOS_VENDEDOR,
+            "Ventas y Pedidos Recientes",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Notificaciones para comercios sobre nuevos pedidos y reservas"
+            enableVibration(true)
+            enableLights(true)
+            setShowBadge(true)
+        }
+
+        val canalOfertas = NotificationChannel(
+            CANAL_OFERTAS,
+            "Ofertas y Rescates",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Avisos sobre disponibilidad de ofertas y publicaciones"
+            enableLights(true)
+            setShowBadge(true)
+        }
+
+        notificationManager.createNotificationChannels(
+            listOf(canalCliente, canalVendedor, canalOfertas)
+        )
     }
 
     open fun mostrarNotificacion(id: Int, titulo: String, mensaje: String, tipo: TipoNotificacion) {
+        val notificationManagerCompat = NotificationManagerCompat.from(context)
+        if (!notificationManagerCompat.areNotificationsEnabled()) {
+            return
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val permisoConcedido = ContextCompat.checkSelfPermission(
                 context,
@@ -79,13 +88,16 @@ open class NotificadorSistemaAndroid @Inject constructor(
             if (!permisoConcedido) return
         }
 
-        val canalId = when (tipo) {
-            TipoNotificacion.NUEVO_PEDIDO_VENDEDOR -> CANAL_PEDIDOS_VENDEDOR
+        val (canalId, categoria) = when (tipo) {
+            TipoNotificacion.NUEVO_PEDIDO_VENDEDOR ->
+                Pair(CANAL_PEDIDOS_VENDEDOR, NotificationCompat.CATEGORY_EVENT)
 
             TipoNotificacion.OFERTA_AGOTADA,
-            TipoNotificacion.OFERTA_PUBLICADA -> CANAL_OFERTAS
+            TipoNotificacion.OFERTA_PUBLICADA ->
+                Pair(CANAL_OFERTAS, NotificationCompat.CATEGORY_RECOMMENDATION)
 
-            else -> CANAL_PEDIDOS_CLIENTE
+            else ->
+                Pair(CANAL_PEDIDOS_CLIENTE, NotificationCompat.CATEGORY_STATUS)
         }
 
         val intent = Intent(context, MainActivity::class.java).apply {
@@ -105,12 +117,14 @@ open class NotificadorSistemaAndroid @Inject constructor(
             .setContentText(mensaje)
             .setStyle(NotificationCompat.BigTextStyle().bigText(mensaje))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setCategory(categoria)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
 
         runCatching {
-            NotificationManagerCompat.from(context).notify(id, notification)
+            notificationManagerCompat.notify(id, notification)
         }
     }
 }
