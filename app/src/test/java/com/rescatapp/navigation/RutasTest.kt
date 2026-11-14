@@ -24,6 +24,11 @@ class RutasTest {
     }
 
     @Test
+    fun rutaNotificacionesEsValida() {
+        assertEquals("notificaciones", Rutas.NOTIFICACIONES)
+    }
+
+    @Test
     fun cadaPestanaSeReconocePorSuRutaRegistrada() {
         val pestanaExplorar = DestinoPrincipal.desdeRuta(Rutas.EXPLORAR_POR_CATEGORIA)
 

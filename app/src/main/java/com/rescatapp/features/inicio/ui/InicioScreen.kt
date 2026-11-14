@@ -17,6 +17,7 @@ import com.rescatapp.core.model.Categoria
 fun InicioScreen(
     onExplorar: (Categoria?) -> Unit,
     onVerDetalle: (Int) -> Unit,
+    onVerNotificaciones: () -> Unit = {},
     viewModel: InicioViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
@@ -27,7 +28,14 @@ fun InicioScreen(
         contentPadding = PaddingValues(top = 20.dp, bottom = 48.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        item { EncabezadoInicio(estado.usuario, onBuscar = verTodas) }
+        item {
+            EncabezadoInicio(
+                usuario = estado.usuario,
+                onBuscar = verTodas,
+                conteoNoLeidas = estado.notificacionesNoLeidas,
+                onVerNotificaciones = onVerNotificaciones
+            )
+        }
         item { BloqueImpacto(estado.impacto) }
         item { CategoriasInicio(onExplorar) }
         item {

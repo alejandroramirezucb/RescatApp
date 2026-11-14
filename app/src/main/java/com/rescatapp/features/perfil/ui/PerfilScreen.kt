@@ -25,7 +25,10 @@ import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 
 @Composable
-fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
+fun PerfilScreen(
+    onVerNotificaciones: () -> Unit = {},
+    viewModel: PerfilViewModel = hiltViewModel()
+) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
     Column(
@@ -42,7 +45,7 @@ fun PerfilScreen(viewModel: PerfilViewModel = hiltViewModel()) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             InformacionCuenta(estado)
-            PreferenciasPerfil()
+            PreferenciasPerfil(onVerNotificaciones = onVerNotificaciones)
             SeccionSostenibilidadODS()
         }
         Spacer(Modifier.height(8.dp))

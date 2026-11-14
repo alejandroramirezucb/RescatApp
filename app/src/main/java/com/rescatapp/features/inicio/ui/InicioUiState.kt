@@ -7,5 +7,6 @@ import com.rescatapp.features.inicio.domain.OfertasInicio
 data class InicioUiState(
     val usuario: String = UsuarioDemo.NOMBRE,
     val impacto: Impacto = Impacto(),
-    val ofertas: OfertasInicio = OfertasInicio()
+    val ofertas: OfertasInicio = OfertasInicio(),
+    val notificacionesNoLeidas: Int = 0
 )

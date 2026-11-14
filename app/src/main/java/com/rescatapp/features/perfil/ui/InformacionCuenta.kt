@@ -1,6 +1,7 @@
 package com.rescatapp.features.perfil.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,12 +42,13 @@ internal fun InformacionCuenta(estado: PerfilUiState) {
 }
 
 @Composable
-internal fun PreferenciasPerfil() {
+internal fun PreferenciasPerfil(onVerNotificaciones: () -> Unit = {}) {
     TarjetaPerfil(titulo = "Preferencias y alertas") {
         FilaDatoPerfil(
             icono = Icons.Default.Notifications,
             etiqueta = "Notificaciones",
-            valor = "Alertas inmediatas al publicar ofertas cercanas"
+            valor = "Alertas inmediatas de pedidos y ofertas",
+            modifier = Modifier.clickable { onVerNotificaciones() }
         )
         FilaDatoPerfil(
             icono = Icons.Default.Tune,
@@ -75,9 +77,14 @@ private fun TarjetaPerfil(titulo: String, contenido: @Composable () -> Unit) {
 }
 
 @Composable
-private fun FilaDatoPerfil(icono: ImageVector, etiqueta: String, valor: String) {
+private fun FilaDatoPerfil(
+    icono: ImageVector,
+    etiqueta: String,
+    valor: String,
+    modifier: Modifier = Modifier
+) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {

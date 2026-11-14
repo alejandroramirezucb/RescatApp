@@ -14,13 +14,22 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun InicioNegocioScreen(viewModel: InicioNegocioViewModel = hiltViewModel()) {
+fun InicioNegocioScreen(
+    onVerNotificaciones: () -> Unit = {},
+    viewModel: InicioNegocioViewModel = hiltViewModel()
+) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 48.dp)
     ) {
-        item { EncabezadoNegocio(estado.nombreNegocio) }
+        item {
+            EncabezadoNegocio(
+                nombre = estado.nombreNegocio,
+                conteoNoLeidas = estado.notificacionesNoLeidas,
+                onVerNotificaciones = onVerNotificaciones
+            )
+        }
         item {
             Column(
                 modifier = Modifier.padding(20.dp),

@@ -25,21 +25,26 @@ import androidx.navigation.navArgument
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.navigation.ArgumentosRuta
+import com.rescatapp.core.notification.SolicitudPermisoNotificaciones
 import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.inicio.ui.InicioNegocioScreen
 import com.rescatapp.features.inicio.ui.InicioScreen
 import com.rescatapp.features.inicio.ui.OfertasNegocioScreen
+import com.rescatapp.features.notificaciones.ui.NotificacionesScreen
 import com.rescatapp.features.pedidos.ui.PedidosScreen
 import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
 @Composable
 fun RescatAppNavHost() {
+    SolicitudPermisoNotificaciones()
+
     val navController = rememberNavController()
     val entradaActual by navController.currentBackStackEntryAsState()
     val destinoPrincipal = DestinoPrincipal.desdeRuta(entradaActual?.destination?.route)
     val verDetalle = { ofertaId: Int -> navController.navigate(Rutas.detalle(ofertaId)) }
+    val verNotificaciones = { navController.navigate(Rutas.NOTIFICACIONES) }
     val volver: () -> Unit = { navController.popBackStack() }
     val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
 
@@ -66,11 +71,12 @@ fun RescatAppNavHost() {
         ) {
             composable(Rutas.INICIO) {
                 if (rol == RolUsuario.NEGOCIO) {
-                    InicioNegocioScreen()
+                    InicioNegocioScreen(onVerNotificaciones = verNotificaciones)
                 } else {
                     InicioScreen(
                         onExplorar = { navController.navigate(Rutas.explorar(it)) },
-                        onVerDetalle = verDetalle
+                        onVerDetalle = verDetalle,
+                        onVerNotificaciones = verNotificaciones
                     )
                 }
             }
@@ -95,8 +101,16 @@ fun RescatAppNavHost() {
                 RegistroScreen(onVolver = volver, onPublicado = volver)
             }
             composable(Rutas.PEDIDOS) { PedidosScreen() }
-            composable(Rutas.PERFIL) { PerfilScreen() }
+            composable(Rutas.PERFIL) {
+                PerfilScreen(onVerNotificaciones = verNotificaciones)
+            }
             composable(Rutas.OFERTAS_NEGOCIO) { OfertasNegocioScreen() }
+            composable(Rutas.NOTIFICACIONES) {
+                NotificacionesScreen(
+                    onVolver = volver,
+                    onVerPedidos = { navController.navigate(Rutas.PEDIDOS) }
+                )
+            }
         }
     }
 }

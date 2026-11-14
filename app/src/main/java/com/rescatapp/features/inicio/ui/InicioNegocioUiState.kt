@@ -12,5 +12,6 @@ data class InicioNegocioUiState(
     val rescatados: Int = 0,
     val pedidosRecientes: List<Pedido> = emptyList(),
     val ventasSemana: List<Double> = List(7) { 0.0 },
-    val indiceDiaActual: Int = LocalDate.now().dayOfWeek.ordinal
+    val indiceDiaActual: Int = LocalDate.now().dayOfWeek.ordinal,
+    val notificacionesNoLeidas: Int = 0
 )

@@ -2,6 +2,7 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioNotificaciones
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.domain.seleccionarPedidosPorRol
@@ -13,22 +14,29 @@ import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.inicio.domain.CalcularVentasSemanaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class InicioNegocioViewModel @Inject constructor(
     repositorioOfertas: RepositorioOfertas,
     repositorioPedidos: RepositorioPedidos,
-    calcularVentasSemana: CalcularVentasSemanaUseCase
+    calcularVentasSemana: CalcularVentasSemanaUseCase,
+    repositorioNotificaciones: RepositorioNotificaciones? = null
 ) : ViewModel() {
+
+    private val noLeidasFlow: Flow<Int> =
+        repositorioNotificaciones?.contarNoLeidas(RolUsuario.NEGOCIO) ?: flowOf(0)
 
     val uiState: StateFlow<InicioNegocioUiState> =
         combine(
             repositorioOfertas.ofertas,
-            repositorioPedidos.pedidos
-        ) { ofertas, pedidos ->
+            repositorioPedidos.pedidos,
+            noLeidasFlow
+        ) { ofertas, pedidos, noLeidas ->
             val negocio = UsuarioDemo.NEGOCIO_DEMO
             val ofertasNegocio = ofertas.filter { it.comercio == negocio }
             val pedidosNegocio = seleccionarPedidosPorRol(pedidos, RolUsuario.NEGOCIO)
@@ -47,7 +55,8 @@ class InicioNegocioViewModel @Inject constructor(
                 ofertasActivas = ofertasNegocio.count { !it.estaAgotada },
                 rescatados = rescatadosTotal,
                 pedidosRecientes = pedidosNegocio.sortedByDescending { it.id },
-                ventasSemana = calcularVentasSemana(pedidosNegocio)
+                ventasSemana = calcularVentasSemana(pedidosNegocio),
+                notificacionesNoLeidas = noLeidas
             )
         }.stateIn(
             scope = viewModelScope,

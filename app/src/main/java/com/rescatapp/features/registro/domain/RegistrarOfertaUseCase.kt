@@ -3,17 +3,28 @@ package com.rescatapp.features.registro.domain
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.ResultadoOperacion
+import com.rescatapp.core.notification.GestorNotificaciones
 import com.rescatapp.core.util.aDecimalPositivoOrNull
 import com.rescatapp.core.util.aEnteroPositivoOrNull
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class RegistrarOfertaUseCase @Inject constructor(
-    private val repositorioOfertas: RepositorioOfertas
+    private val repositorioOfertas: RepositorioOfertas,
+    private val gestorNotificaciones: GestorNotificaciones? = null
 ) {
     operator fun invoke(campos: CamposRegistro): ResultadoOperacion {
         val oferta = campos.aOfertaOrNull()
             ?: return ResultadoOperacion.Error("Revisa los datos de la oferta")
-        return ResultadoOperacion.Exito(repositorioOfertas.agregar(oferta))
+        val ofertaAgregada = repositorioOfertas.agregar(oferta)
+        if (gestorNotificaciones != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                gestorNotificaciones.notificarOfertaPublicada(ofertaAgregada)
+            }
+        }
+        return ResultadoOperacion.Exito(ofertaAgregada)
     }
 
     private fun CamposRegistro.aOfertaOrNull(): Oferta? {
