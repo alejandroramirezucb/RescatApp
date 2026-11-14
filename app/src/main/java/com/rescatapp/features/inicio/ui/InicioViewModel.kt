@@ -40,7 +40,7 @@ class InicioViewModel @Inject constructor(
             scope = viewModelScope,
             started = suscripcionPantalla,
             initialValue = crearEstado(
-                repositorioOfertas.ofertas.value,
+                emptyList(),
                 emptyList(),
                 0
             )

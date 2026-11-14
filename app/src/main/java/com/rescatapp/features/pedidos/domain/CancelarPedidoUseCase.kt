@@ -20,12 +20,11 @@ class CancelarPedidoUseCase @Inject constructor(
         }
 
         val pedidoCancelado = pedido.copy(estado = EstadoPedido.CANCELADO)
-        repositorioPedidos.actualizar(pedidoCancelado)
         repositorioOfertas.cambiarUnidadesDisponibles(pedido.ofertaId, diferencia = 1)
+        repositorioPedidos.actualizar(pedidoCancelado)
 
         gestorNotificaciones?.notificarPedidoCanceladoCliente(pedidoCancelado)
         gestorNotificaciones?.notificarPedidoCanceladoVendedor(pedidoCancelado)
-
         return ResultadoOperacion.Exito(pedidoCancelado)
     }
 }

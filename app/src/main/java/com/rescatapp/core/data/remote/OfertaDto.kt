@@ -18,7 +18,7 @@ data class OfertaDto(
 )
 
 fun OfertaDto.aOferta(): Oferta = Oferta(
-    id = id?.toIntOrNull() ?: 0,
+    id = requireNotNull(id).toInt(),
     nombre = nombre,
     comercio = comercio,
     categoria = Categoria.valueOf(categoria),

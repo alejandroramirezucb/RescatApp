@@ -1,8 +1,8 @@
 package com.rescatapp.features.pedidos.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
 import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
@@ -18,15 +18,14 @@ class PedidosViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val fakePedidoDao = FakePedidoDao()
-    private val repositorioPedidos = RepositorioPedidos(fakePedidoDao)
+    private val repositorioPedidos = RepositorioPedidos(FakePedidoDao())
 
     @Test
     fun separaActivosEHistorialDelMasRecienteAlMasAntiguo() = runTest {
         val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
-
         val estado = viewModel.uiState.value
+
         assertEquals(listOf(5, 4), estado.activos.map { it.pedido.id })
         assertEquals(listOf(3, 2, 1), estado.historial.map { it.id })
     }
@@ -67,7 +66,7 @@ class PedidosViewModelTest {
     private fun crearViewModel() = PedidosViewModel(
         repositorioPedidos = repositorioPedidos,
         avanzarPedido = AvanzarPedidoUseCase(repositorioPedidos),
-        cancelarPedido = CancelarPedidoUseCase(repositorioPedidos, RepositorioOfertas()),
+        cancelarPedido = CancelarPedidoUseCase(repositorioPedidos, crearRepositorioOfertas()),
         construirProgreso = ConstruirProgresoPedidoUseCase()
     )
 }

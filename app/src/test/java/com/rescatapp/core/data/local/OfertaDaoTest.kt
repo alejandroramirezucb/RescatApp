@@ -3,6 +3,7 @@ package com.rescatapp.core.data.local
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.model.Categoria
 import kotlinx.coroutines.flow.first
@@ -178,5 +179,61 @@ class OfertaDaoTest {
 
         val lista = ofertaDao.observarTodas().first()
         assertEquals(ofertasDeEjemplo.size, lista.size)
+    }
+
+    @Test
+    fun filtrarBuscaTambienEnElComercioYRespetaLaCategoria() = runTest {
+        ofertaDao.insertar(
+            crearOferta(id = 1, nombre = "Sandwich", categoria = Categoria.COMIDA)
+                .copy(comercio = "Café Aroma")
+        )
+        ofertaDao.insertar(crearOferta(id = 2, nombre = "Tarta", categoria = Categoria.POSTRES))
+
+        val resultado = ofertaDao.filtrar(Categoria.COMIDA, "café").first()
+        assertEquals(listOf(1), resultado.map { it.id })
+        assertEquals(0, ofertaDao.filtrar(Categoria.POSTRES, "café").first().size)
+    }
+
+    @Test
+    fun unaOfertaEliminadaNoReapareceAlReabrirLaBaseDeDatos() = runTest {
+        val contexto: Context = ApplicationProvider.getApplicationContext()
+        val nombre = "ofertas-eliminacion-${java.util.UUID.randomUUID()}.db"
+        try {
+            val primera = Room.databaseBuilder(contexto, RescatAppDatabase::class.java, nombre)
+                .allowMainThreadQueries()
+                .build()
+            try {
+                primera.ofertaDao().insertar(crearOferta(id = 1))
+                primera.ofertaDao().insertar(crearOferta(id = 2, nombre = "Otra oferta"))
+                val repositorio = RepositorioOfertas(primera.ofertaDao())
+                repositorio.eliminar(repositorio.buscarPorId(1)!!)
+            } finally {
+                primera.close()
+            }
+
+            val segunda = Room.databaseBuilder(contexto, RescatAppDatabase::class.java, nombre)
+                .allowMainThreadQueries()
+                .build()
+            try {
+                val repositorio = RepositorioOfertas(segunda.ofertaDao())
+                assertNull(repositorio.buscarPorId(1))
+                assertEquals(listOf(2), repositorio.ofertas.first().map { it.id })
+            } finally {
+                segunda.close()
+            }
+        } finally {
+            contexto.deleteDatabase(nombre)
+        }
+    }
+
+    @Test
+    fun cambiarDisponibilidadNoPermiteSobrevenderLaUltimaUnidad() = runTest {
+        ofertaDao.insertar(crearOferta(id = 1).copy(cantidadDisponible = 1))
+
+        assertEquals(1, ofertaDao.cambiarUnidadesDisponibles(1, -1))
+        assertEquals(0, ofertaDao.cambiarUnidadesDisponibles(1, -1))
+        assertEquals(0, ofertaDao.buscarPorId(1)?.cantidadDisponible)
+        assertEquals(1, ofertaDao.cambiarUnidadesDisponibles(1, 1))
+        assertEquals(1, ofertaDao.buscarPorId(1)?.cantidadDisponible)
     }
 }

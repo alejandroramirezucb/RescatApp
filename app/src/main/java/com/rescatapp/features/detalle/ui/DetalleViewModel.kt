@@ -10,6 +10,7 @@ import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -26,20 +27,33 @@ class DetalleViewModel @Inject constructor(
 ) : ViewModel() {
     private val ofertaId: Int = savedStateHandle[ArgumentosRuta.OFERTA_ID] ?: OFERTA_INEXISTENTE
     private val mensaje = MutableStateFlow<String?>(null)
+    private var reservaEnCurso = false
 
     val uiState: StateFlow<DetalleUiState> =
         combine(repositorioOfertas.obtenerPorId(ofertaId), mensaje, ::DetalleUiState).stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
-            initialValue = DetalleUiState(oferta = repositorioOfertas.buscarPorId(ofertaId))
+            initialValue = DetalleUiState()
         )
 
     fun reservar() {
+        if (reservaEnCurso) return
         val nombreOferta = uiState.value.oferta?.nombre ?: return
+        reservaEnCurso = true
         viewModelScope.launch {
-            mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
-                is ResultadoOperacion.Exito -> "Reservaste $nombreOferta. Puedes verlo en Pedidos."
-                is ResultadoOperacion.Error -> resultado.mensaje
+            try {
+                mensaje.value = when (val resultado = reservarOferta(ofertaId)) {
+                    is ResultadoOperacion.Exito ->
+                        "Reservaste $nombreOferta. Puedes verlo en Pedidos."
+
+                    is ResultadoOperacion.Error -> resultado.mensaje
+                }
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                mensaje.value = "No se pudo guardar la reserva. Intenta nuevamente."
+            } finally {
+                reservaEnCurso = false
             }
         }
     }

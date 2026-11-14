@@ -2,8 +2,8 @@ package com.rescatapp.features.detalle.ui
 
 import androidx.lifecycle.SavedStateHandle
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
@@ -19,18 +19,21 @@ class DetalleViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorioOfertas = RepositorioOfertas()
+    private val repositorioOfertas = crearRepositorioOfertas()
 
     @Test
-    fun muestraLaOfertaRecibidaEnLaRuta() {
+    fun muestraLaOfertaRecibidaEnLaRuta() = runTest {
         val viewModel = crearViewModel(ofertaId = 14)
+        observarDuranteLaPrueba(viewModel.uiState)
 
         assertEquals("Pack Sorpresa", viewModel.uiState.value.oferta?.nombre)
     }
 
     @Test
-    fun indicaCuandoLaOfertaNoExiste() {
-        assertTrue(crearViewModel(ofertaId = 99).uiState.value.noEncontrada)
+    fun indicaCuandoLaOfertaNoExiste() = runTest {
+        val viewModel = crearViewModel(ofertaId = 99)
+        observarDuranteLaPrueba(viewModel.uiState)
+        assertTrue(viewModel.uiState.value.noEncontrada)
     }
 
     @Test

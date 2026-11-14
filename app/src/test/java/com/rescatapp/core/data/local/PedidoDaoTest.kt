@@ -64,7 +64,6 @@ class PedidoDaoTest {
 
         val lista = pedidoDao.observarTodos().first()
         assertEquals(3, lista.size)
-        // Debe ordenar por ID descendente (3, 2, 1)
         assertEquals(listOf(3, 2, 1), lista.map { it.id })
     }
 
@@ -151,7 +150,6 @@ class PedidoDaoTest {
 
         val todos = pedidoDao.observarTodos().first()
         assertEquals(pedidosDeEjemplo.size, todos.size)
-        // IDs en orden descendente
         val idsEsperados = pedidosDeEjemplo.map { it.id }.sortedDescending()
         assertEquals(idsEsperados, todos.map { it.id })
     }

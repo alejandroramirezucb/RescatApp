@@ -1,15 +1,21 @@
 package com.rescatapp.features.registro.domain
 
+import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.util.aDecimalPositivoOrNull
-import com.rescatapp.core.util.aEnteroPositivoOrNull
-import com.rescatapp.core.util.aHoraOrNull
-import java.time.LocalTime
 import javax.inject.Inject
 
-class ValidarOfertaUseCase @Inject constructor() {
+class ValidarOfertaUseCase @Inject constructor(private val validarCampos: ValidadorCamposOferta) {
+    constructor() : this(ValidadorCamposOferta())
+
     operator fun invoke(campos: CamposRegistro): ErroresRegistro {
         val precioNormal = campos.precioNormal.aDecimalPositivoOrNull()
-        val horaDesde = campos.horaRetiroDesde.aHoraOrNull()
+        val erroresCampos = validarCampos(
+            cantidad = campos.cantidadDisponible,
+            precioRescate = campos.precioRescate,
+            precioNormal = precioNormal,
+            horaDesde = campos.horaRetiroDesde,
+            horaHasta = campos.horaRetiroHasta
+        )
         return ErroresRegistro(
             nombre = MensajesValidacion.NOMBRE_VACIO
                 .takeIf { campos.nombre.isBlank() },
@@ -23,36 +29,10 @@ class ValidarOfertaUseCase @Inject constructor() {
                 .takeIf { campos.pesoKg.aDecimalPositivoOrNull() == null },
             precioNormal = MensajesValidacion.PRECIO_NORMAL_INVALIDO
                 .takeIf { precioNormal == null },
-            precioRescate = validarPrecioRescate(campos.precioRescate, precioNormal),
-            cantidadDisponible = MensajesValidacion.CANTIDAD_INVALIDA
-                .takeIf { campos.cantidadDisponible.aEnteroPositivoOrNull() == null },
-            horaRetiroDesde = MensajesValidacion.FORMATO_HORA_INVALIDO
-                .takeIf { horaDesde == null },
-            horaRetiroHasta = validarHoraHasta(campos.horaRetiroHasta, horaDesde)
+            precioRescate = erroresCampos.precioRescate,
+            cantidadDisponible = erroresCampos.cantidadDisponible,
+            horaRetiroDesde = erroresCampos.horaRetiroDesde,
+            horaRetiroHasta = erroresCampos.horaRetiroHasta
         )
-    }
-
-    private fun validarPrecioRescate(texto: String, precioNormal: Double?): String? {
-        val precioRescate = texto.aDecimalPositivoOrNull()
-        return when {
-            precioRescate == null -> MensajesValidacion.PRECIO_RESCATE_INVALIDO
-
-            precioNormal != null && precioRescate >= precioNormal ->
-                MensajesValidacion.PRECIO_RESCATE_NO_MENOR
-
-            else -> null
-        }
-    }
-
-    private fun validarHoraHasta(texto: String, horaDesde: LocalTime?): String? {
-        val horaHasta = texto.aHoraOrNull()
-        return when {
-            horaHasta == null -> MensajesValidacion.FORMATO_HORA_INVALIDO
-
-            horaDesde != null && !horaHasta.isAfter(horaDesde) ->
-                MensajesValidacion.HORA_FINAL_NO_POSTERIOR
-
-            else -> null
-        }
     }
 }

@@ -1,7 +1,7 @@
 package com.rescatapp.features.pedidos.domain
 
-import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.ResultadoOperacion
@@ -10,9 +10,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class CancelarPedidoUseCaseTest {
-    private val repositorioOfertas = RepositorioOfertas()
-    private val fakePedidoDao = FakePedidoDao()
-    private val repositorioPedidos = RepositorioPedidos(fakePedidoDao)
+    private val repositorioOfertas = crearRepositorioOfertas()
+    private val repositorioPedidos = RepositorioPedidos(FakePedidoDao())
     private val cancelarPedido = CancelarPedidoUseCase(repositorioPedidos, repositorioOfertas)
 
     @Test

@@ -15,7 +15,7 @@ class RegistrarOfertaUseCase @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas,
     private val gestorNotificaciones: GestorNotificaciones? = null
 ) {
-    operator fun invoke(campos: CamposRegistro): ResultadoOperacion {
+    suspend operator fun invoke(campos: CamposRegistro): ResultadoOperacion {
         val oferta = campos.aOfertaOrNull()
             ?: return ResultadoOperacion.Error("Revisa los datos de la oferta")
         val ofertaAgregada = repositorioOfertas.agregar(oferta)
