@@ -23,19 +23,19 @@ data class UsuarioEntity(
     val direccion: String = "",
     val nombreNegocio: String? = null,
     val fechaCreacion: Long = System.currentTimeMillis()
-) {
-    fun toDomain(): Usuario = Usuario(
-        id = id,
-        nombre = nombre,
-        correo = correo,
-        contrasenaHash = contrasenaHash,
-        rol = rol,
-        telefono = telefono,
-        direccion = direccion,
-        nombreNegocio = nombreNegocio,
-        fechaCreacion = fechaCreacion
-    )
-}
+)
+
+fun UsuarioEntity.toDomain(): Usuario = Usuario(
+    id = id,
+    nombre = nombre,
+    correo = correo,
+    contrasenaHash = contrasenaHash,
+    rol = rol,
+    telefono = telefono,
+    direccion = direccion,
+    nombreNegocio = nombreNegocio,
+    fechaCreacion = fechaCreacion
+)
 
 fun Usuario.toEntity(): UsuarioEntity = UsuarioEntity(
     id = id,

@@ -17,20 +17,20 @@ data class SesionEntity(
     val fechaInicio: Long = System.currentTimeMillis(),
     val token: String = ""
 ) {
-    fun toDomain(): SesionUsuario = SesionUsuario(
-        usuarioId = usuarioId,
-        nombre = nombre,
-        correo = correo,
-        rol = rol,
-        nombreNegocio = nombreNegocio,
-        token = token,
-        fechaInicio = fechaInicio
-    )
-
     companion object {
         const val ID_SESION_UNICA = 1
     }
 }
+
+fun SesionEntity.toDomain(): SesionUsuario = SesionUsuario(
+    usuarioId = usuarioId,
+    nombre = nombre,
+    correo = correo,
+    rol = rol,
+    nombreNegocio = nombreNegocio,
+    token = token,
+    fechaInicio = fechaInicio
+)
 
 fun SesionUsuario.toEntity(): SesionEntity = SesionEntity(
     id = SesionEntity.ID_SESION_UNICA,
