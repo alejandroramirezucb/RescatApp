@@ -151,6 +151,17 @@ Consecuencias en el código:
 | Impacto acumulado y ODS | [SeccionSostenibilidadODS.kt](app/src/main/java/com/rescatapp/features/perfil/ui/SeccionSostenibilidadODS.kt#L16) |
 | Estado del perfil | [PerfilViewModel.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilViewModel.kt) |
 
+### Autenticación y Registro de Usuarios
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla de Inicio de Sesión | [LoginScreen.kt](app/src/main/java/com/rescatapp/features/auth/ui/login/LoginScreen.kt) · [LoginViewModel.kt](app/src/main/java/com/rescatapp/features/auth/ui/login/LoginViewModel.kt) |
+| Pantalla de Registro (Cliente y Negocio) | [RegistroUsuarioScreen.kt](app/src/main/java/com/rescatapp/features/auth/ui/registro/RegistroUsuarioScreen.kt) · [RegistroUsuarioViewModel.kt](app/src/main/java/com/rescatapp/features/auth/ui/registro/RegistroUsuarioViewModel.kt) |
+| Casos de uso de autenticación | [IniciarSesionUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/IniciarSesionUseCase.kt) · [RegistrarUsuarioUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/RegistrarUsuarioUseCase.kt) · [CerrarSesionUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/CerrarSesionUseCase.kt) |
+| Repositorio con persistencia de sesión Room | [RepositorioAutenticacion.kt](app/src/main/java/com/rescatapp/core/data/RepositorioAutenticacion.kt) |
+| Entidades y DAOs | [UsuarioEntity.kt](app/src/main/java/com/rescatapp/core/data/local/UsuarioEntity.kt) · [SesionEntity.kt](app/src/main/java/com/rescatapp/core/data/local/SesionEntity.kt) |
+| Seguridad y Hashing de contraseñas | [SeguridadAuth.kt](app/src/main/java/com/rescatapp/features/auth/data/SeguridadAuth.kt) |
+
 ### Componentes compartidos
 
 | Componente | Dónde |
