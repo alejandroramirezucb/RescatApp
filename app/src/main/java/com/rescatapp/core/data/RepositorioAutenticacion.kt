@@ -16,6 +16,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 @Singleton
 class RepositorioAutenticacion @Inject constructor(
@@ -23,17 +24,31 @@ class RepositorioAutenticacion @Inject constructor(
     private val sesionDao: SesionDao
 ) {
 
-    val sesionActual: Flow<SesionUsuario?> = sesionDao.observarSesion().map { it?.toDomain() }
+    val sesionActual: Flow<SesionUsuario?> = sesionDao.observarSesion()
+        .map { it?.toDomain() }
+        .onEach { sesion ->
+            if (sesion != null) {
+                UsuarioDemo.cambiarRol(sesion.rol)
+            }
+        }
 
     suspend fun obtenerSesionActual(): SesionUsuario? = sesionDao.obtenerSesion()?.toDomain()
 
+    suspend fun sincronizarSesion(): SesionUsuario? {
+        val sesion = sesionDao.obtenerSesion()?.toDomain()
+        if (sesion != null) {
+            UsuarioDemo.cambiarRol(sesion.rol)
+        }
+        return sesion
+    }
+
     suspend fun buscarPorCorreo(correo: String): Usuario? =
-        usuarioDao.buscarPorCorreo(correo.trim())?.toDomain()
+        usuarioDao.buscarPorCorreo(correo.trim().lowercase())?.toDomain()
 
     suspend fun buscarPorId(id: String): Usuario? = usuarioDao.buscarPorId(id)?.toDomain()
 
     suspend fun iniciarSesion(correo: String, contrasena: String): ResultadoOperacion {
-        val correoNormalizado = correo.trim()
+        val correoNormalizado = correo.trim().lowercase()
         val usuario = usuarioDao.buscarPorCorreo(correoNormalizado)?.toDomain()
             ?: return ResultadoOperacion.Error(
                 "No existe una cuenta registrada con este correo electrónico."
@@ -61,7 +76,7 @@ class RepositorioAutenticacion @Inject constructor(
     }
 
     suspend fun registrarUsuario(datos: DatosRegistro): ResultadoOperacion {
-        val correoNormalizado = datos.correo.trim()
+        val correoNormalizado = datos.correo.trim().lowercase()
         val existente = usuarioDao.buscarPorCorreo(correoNormalizado)
         if (existente != null) {
             return ResultadoOperacion.Error(
