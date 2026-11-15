@@ -36,7 +36,8 @@ class PerfilViewModel @Inject constructor(
         flujoSesion
     ) { pedidos, rol, sesion ->
         val rolEfectivo = sesion?.rol ?: rol
-        crearEstado(seleccionarPedidosPorRol(pedidos, rolEfectivo), rolEfectivo, sesion)
+        val pedidosFiltrados = seleccionarPedidosPorRol(pedidos, rolEfectivo, sesion?.nombreNegocio)
+        crearEstado(pedidosFiltrados, rolEfectivo, sesion)
     }.stateIn(
         scope = viewModelScope,
         started = suscripcionPantalla,

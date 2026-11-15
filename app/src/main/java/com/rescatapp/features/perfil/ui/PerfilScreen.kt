@@ -73,8 +73,10 @@ fun PerfilScreen(
             PreferenciasPerfil(onVerNotificaciones = onVerNotificaciones)
             SeccionSostenibilidadODS()
         }
-        Spacer(Modifier.height(8.dp))
-        BotonCambiarRol(rol)
+        if (!estado.estaAutenticado) {
+            Spacer(Modifier.height(8.dp))
+            BotonCambiarRol(rol)
+        }
         Spacer(Modifier.height(48.dp))
     }
 }
