@@ -74,7 +74,10 @@ fun RegistroUsuarioScreen(
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(estado.sesionExitosa) {
-        estado.sesionExitosa?.let { onRegistroExitoso(it) }
+        estado.sesionExitosa?.let { sesion ->
+            viewModel.consumirSesionExitosa()
+            onRegistroExitoso(sesion)
+        }
     }
 
     Scaffold(
@@ -213,7 +216,7 @@ fun RegistroUsuarioScreen(
                         imeAction = ImeAction.Done,
                         onImeAction = {
                             focusManager.clearFocus()
-                            viewModel.registrarUsuario(onRegistroExitoso)
+                            viewModel.registrarUsuario()
                         }
                     )
 
@@ -241,7 +244,7 @@ fun RegistroUsuarioScreen(
                             texto = textoBoton,
                             onClick = {
                                 focusManager.clearFocus()
-                                viewModel.registrarUsuario(onRegistroExitoso)
+                                viewModel.registrarUsuario()
                             },
                             habilitado = estado.botonHabilitado
                         )

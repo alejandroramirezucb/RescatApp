@@ -105,6 +105,7 @@ class RegistroUsuarioViewModel @Inject constructor(
     }
 
     fun registrarUsuario(onExito: (SesionUsuario) -> Unit = {}) {
+        if (_uiState.value.cargando) return
         val datos = _uiState.value.datos
         val errores = validarRegistroUsuarioUseCase(datos)
         if (errores.hayErrores) {
@@ -128,6 +129,10 @@ class RegistroUsuarioViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun consumirSesionExitosa() {
+        _uiState.update { it.copy(sesionExitosa = null) }
     }
 
     fun limpiarError() {

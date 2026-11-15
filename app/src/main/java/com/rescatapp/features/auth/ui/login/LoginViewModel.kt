@@ -50,6 +50,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun iniciarSesion(onExito: (SesionUsuario) -> Unit = {}) {
+        if (_uiState.value.cargando) return
         val credenciales = _uiState.value.credenciales
         val errores = validarLoginUseCase(credenciales)
         if (errores.hayErrores) {
@@ -76,6 +77,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun iniciarSesionDemo(esNegocio: Boolean, onExito: (SesionUsuario) -> Unit = {}) {
+        if (_uiState.value.cargando) return
         viewModelScope.launch {
             _uiState.update { it.copy(cargando = true, errorGeneral = null) }
             when (val resultado = iniciarSesionUseCase.demo(esNegocio)) {
@@ -92,6 +94,10 @@ class LoginViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun consumirSesionExitosa() {
+        _uiState.update { it.copy(sesionExitosa = null) }
     }
 
     fun limpiarError() {

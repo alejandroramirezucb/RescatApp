@@ -78,7 +78,10 @@ fun LoginScreen(
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(estado.sesionExitosa) {
-        estado.sesionExitosa?.let { onLoginExitoso(it) }
+        estado.sesionExitosa?.let { sesion ->
+            viewModel.consumirSesionExitosa()
+            onLoginExitoso(sesion)
+        }
     }
 
     Scaffold(
@@ -144,7 +147,7 @@ fun LoginScreen(
                         onToggleVisibilidad = viewModel::onToggleVisibilidadContrasena,
                         onImeAction = {
                             focusManager.clearFocus()
-                            viewModel.iniciarSesion(onLoginExitoso)
+                            viewModel.iniciarSesion()
                         }
                     )
 
@@ -167,7 +170,7 @@ fun LoginScreen(
                             texto = "Iniciar sesión",
                             onClick = {
                                 focusManager.clearFocus()
-                                viewModel.iniciarSesion(onLoginExitoso)
+                                viewModel.iniciarSesion()
                             },
                             habilitado = estado.botonHabilitado
                         )
@@ -184,7 +187,7 @@ fun LoginScreen(
             BotonesAccesoRapidoDemo(
                 onAccesoDemo = { esNegocio ->
                     focusManager.clearFocus()
-                    viewModel.iniciarSesionDemo(esNegocio, onLoginExitoso)
+                    viewModel.iniciarSesionDemo(esNegocio)
                 },
                 habilitado = !estado.cargando
             )
