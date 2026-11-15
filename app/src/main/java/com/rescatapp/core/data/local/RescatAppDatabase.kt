@@ -5,8 +5,14 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(
-    entities = [PedidoEntity::class, OfertaEntity::class, NotificacionEntity::class],
-    version = 2,
+    entities = [
+        PedidoEntity::class,
+        OfertaEntity::class,
+        NotificacionEntity::class,
+        UsuarioEntity::class,
+        SesionEntity::class
+    ],
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(RescatAppTypeConverters::class)
@@ -17,6 +23,10 @@ abstract class RescatAppDatabase : RoomDatabase() {
     abstract fun ofertaDao(): OfertaDao
 
     abstract fun notificacionDao(): NotificacionDao
+
+    abstract fun usuarioDao(): UsuarioDao
+
+    abstract fun sesionDao(): SesionDao
 
     companion object {
         const val NOMBRE_BASE_DATOS = "rescatapp.db"

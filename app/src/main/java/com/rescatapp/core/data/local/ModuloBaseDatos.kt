@@ -7,6 +7,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.data.pedidosDeEjemplo
+import com.rescatapp.features.auth.data.UsuariosDeEjemplo
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -48,6 +49,43 @@ object ModuloBaseDatos {
         }
     }
 
+    val MIGRACION_2_3 = object : Migration(2, 3) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    nombre TEXT NOT NULL,
+                    correo TEXT NOT NULL,
+                    contrasenaHash TEXT NOT NULL,
+                    rol TEXT NOT NULL,
+                    telefono TEXT NOT NULL,
+                    direccion TEXT NOT NULL,
+                    nombreNegocio TEXT,
+                    fechaCreacion INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_usuarios_correo ON usuarios(correo)"
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS sesion_activa (
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    usuarioId TEXT NOT NULL,
+                    correo TEXT NOT NULL,
+                    nombre TEXT NOT NULL,
+                    rol TEXT NOT NULL,
+                    nombreNegocio TEXT,
+                    fechaInicio INTEGER NOT NULL,
+                    token TEXT NOT NULL
+                )
+                """.trimIndent()
+            )
+        }
+    }
+
     @Provides
     @Singleton
     fun proveerRescatAppDatabase(
@@ -57,7 +95,7 @@ object ModuloBaseDatos {
         contexto,
         RescatAppDatabase::class.java,
         RescatAppDatabase.NOMBRE_BASE_DATOS
-    ).addMigrations(MIGRACION_1_2)
+    ).addMigrations(MIGRACION_1_2, MIGRACION_2_3)
         .addCallback(object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
@@ -68,6 +106,9 @@ object ModuloBaseDatos {
                     )
                     database.pedidoDao().insertarTodos(
                         pedidosDeEjemplo.map { it.toEntity() }
+                    )
+                    database.usuarioDao().insertarTodos(
+                        UsuariosDeEjemplo.todos.map { it.toEntity() }
                     )
                 }
             }
@@ -84,4 +125,10 @@ object ModuloBaseDatos {
     @Provides
     fun proveerNotificacionDao(database: RescatAppDatabase): NotificacionDao =
         database.notificacionDao()
+
+    @Provides
+    fun proveerUsuarioDao(database: RescatAppDatabase): UsuarioDao = database.usuarioDao()
+
+    @Provides
+    fun proveerSesionDao(database: RescatAppDatabase): SesionDao = database.sesionDao()
 }
