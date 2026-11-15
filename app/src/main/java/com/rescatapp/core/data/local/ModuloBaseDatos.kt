@@ -83,6 +83,15 @@ object ModuloBaseDatos {
                 )
                 """.trimIndent()
             )
+            for (usuario in UsuariosDeEjemplo.todos) {
+                val negocioSql = if (usuario.nombreNegocio != null) "'${usuario.nombreNegocio}'" else "NULL"
+                db.execSQL(
+                    """
+                    INSERT OR IGNORE INTO usuarios (id, nombre, correo, contrasenaHash, rol, telefono, direccion, nombreNegocio, fechaCreacion)
+                    VALUES ('${usuario.id}', '${usuario.nombre}', '${usuario.correo}', '${usuario.contrasenaHash}', '${usuario.rol.name}', '${usuario.telefono}', '${usuario.direccion}', $negocioSql, ${usuario.fechaCreacion})
+                    """.trimIndent()
+                )
+            }
         }
     }
 
