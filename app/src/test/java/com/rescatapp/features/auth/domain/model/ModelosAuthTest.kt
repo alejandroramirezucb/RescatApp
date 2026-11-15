@@ -58,7 +58,8 @@ class ModelosAuthTest {
         val conErrorNombreNegocio = ErroresRegistro(nombreNegocio = "Nombre de negocio requerido")
         assertTrue(conErrorNombreNegocio.hayErrores)
 
-        val conErrorConfirmacion = ErroresRegistro(confirmarContrasena = "Las contraseñas no coinciden")
+        val conErrorConfirmacion =
+            ErroresRegistro(confirmarContrasena = "Las contraseñas no coinciden")
         assertTrue(conErrorConfirmacion.hayErrores)
     }
 }

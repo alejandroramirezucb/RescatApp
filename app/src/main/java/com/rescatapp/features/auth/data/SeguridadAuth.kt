@@ -12,7 +12,11 @@ object SeguridadAuth {
         return bytes.joinToString("") { "%02x".format(it) }
     }
 
-    fun verificarContrasena(contrasenaPlana: String, hashAlmacenado: String, salt: String = SALT_DEFAULT): Boolean {
+    fun verificarContrasena(
+        contrasenaPlana: String,
+        hashAlmacenado: String,
+        salt: String = SALT_DEFAULT
+    ): Boolean {
         val nuevoHash = hashearContrasena(contrasenaPlana, salt)
         return MessageDigest.isEqual(
             nuevoHash.toByteArray(Charsets.UTF_8),

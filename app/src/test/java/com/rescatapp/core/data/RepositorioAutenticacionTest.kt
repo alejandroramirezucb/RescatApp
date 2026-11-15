@@ -153,10 +153,16 @@ class RepositorioAutenticacionTest {
     fun iniciarSesionRapidaDemoFuncionaParaClienteYNegocio() = runTest {
         val resCliente = repositorio.iniciarSesionRapidaDemo(esNegocio = false)
         assertTrue(resCliente is ResultadoOperacion.Exito)
-        assertEquals(RolUsuario.CLIENTE, ((resCliente as ResultadoOperacion.Exito).valor as SesionUsuario).rol)
+        assertEquals(
+            RolUsuario.CLIENTE,
+            ((resCliente as ResultadoOperacion.Exito).valor as SesionUsuario).rol
+        )
 
         val resNegocio = repositorio.iniciarSesionRapidaDemo(esNegocio = true)
         assertTrue(resNegocio is ResultadoOperacion.Exito)
-        assertEquals(RolUsuario.NEGOCIO, ((resNegocio as ResultadoOperacion.Exito).valor as SesionUsuario).rol)
+        assertEquals(
+            RolUsuario.NEGOCIO,
+            ((resNegocio as ResultadoOperacion.Exito).valor as SesionUsuario).rol
+        )
     }
 }

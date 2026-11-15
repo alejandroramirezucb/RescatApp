@@ -34,7 +34,8 @@ class ValidarLoginUseCaseTest {
 
     @Test
     fun correoFormatoInvalidoRetornaError() {
-        val resultado = validador(CredencialesLogin(correo = "correosinformato", contrasena = "123456"))
+        val resultado =
+            validador(CredencialesLogin(correo = "correosinformato", contrasena = "123456"))
         assertTrue(resultado.hayErrores)
         assertEquals("Ingresa un correo electrónico válido", resultado.correo)
     }
@@ -48,7 +49,8 @@ class ValidarLoginUseCaseTest {
 
     @Test
     fun contrasenaCortaRetornaError() {
-        val resultado = validador(CredencialesLogin(correo = "correo@valido.com", contrasena = "12345"))
+        val resultado =
+            validador(CredencialesLogin(correo = "correo@valido.com", contrasena = "12345"))
         assertTrue(resultado.hayErrores)
         assertEquals("La contraseña debe tener al menos 6 caracteres", resultado.contrasena)
     }

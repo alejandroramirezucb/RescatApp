@@ -30,13 +30,14 @@ class RepositorioAutenticacion @Inject constructor(
     suspend fun buscarPorCorreo(correo: String): Usuario? =
         usuarioDao.buscarPorCorreo(correo.trim())?.toDomain()
 
-    suspend fun buscarPorId(id: String): Usuario? =
-        usuarioDao.buscarPorId(id)?.toDomain()
+    suspend fun buscarPorId(id: String): Usuario? = usuarioDao.buscarPorId(id)?.toDomain()
 
     suspend fun iniciarSesion(correo: String, contrasena: String): ResultadoOperacion {
         val correoNormalizado = correo.trim()
         val usuario = usuarioDao.buscarPorCorreo(correoNormalizado)?.toDomain()
-            ?: return ResultadoOperacion.Error("No existe una cuenta registrada con este correo electrónico.")
+            ?: return ResultadoOperacion.Error(
+                "No existe una cuenta registrada con este correo electrónico."
+            )
 
         val contrasenaValida = SeguridadAuth.verificarContrasena(
             contrasenaPlana = contrasena,
@@ -63,7 +64,9 @@ class RepositorioAutenticacion @Inject constructor(
         val correoNormalizado = datos.correo.trim()
         val existente = usuarioDao.buscarPorCorreo(correoNormalizado)
         if (existente != null) {
-            return ResultadoOperacion.Error("Ya existe una cuenta registrada con este correo electrónico.")
+            return ResultadoOperacion.Error(
+                "Ya existe una cuenta registrada con este correo electrónico."
+            )
         }
 
         val nuevoUsuario = Usuario(

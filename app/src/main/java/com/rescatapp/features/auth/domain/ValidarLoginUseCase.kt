@@ -11,7 +11,11 @@ class ValidarLoginUseCase @Inject constructor() {
     operator fun invoke(credenciales: CredencialesLogin): ErroresLogin {
         val errorCorreo = when {
             credenciales.correo.isBlank() -> "Ingresa tu correo electrónico"
-            !regexEmail.matches(credenciales.correo.trim()) -> "Ingresa un correo electrónico válido"
+
+            !regexEmail.matches(
+                credenciales.correo.trim()
+            ) -> "Ingresa un correo electrónico válido"
+
             else -> null
         }
 

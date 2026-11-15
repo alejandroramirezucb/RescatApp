@@ -114,7 +114,9 @@ fun RegistroUsuarioScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -127,10 +129,20 @@ fun RegistroUsuarioScreen(
                         BannerError(mensaje = estado.errorGeneral!!)
                     }
 
+                    val etiquetaNombre = if (estado.esNegocio) {
+                        "Nombre del responsable"
+                    } else {
+                        "Nombre completo"
+                    }
+                    val ejemploNombre = if (estado.esNegocio) {
+                        "Ej. Roberto Gómez"
+                    } else {
+                        "Ej. María González"
+                    }
                     CampoFormulario(
-                        etiqueta = if (estado.esNegocio) "Nombre del responsable" else "Nombre completo",
+                        etiqueta = etiquetaNombre,
                         valor = estado.datos.nombre,
-                        ejemplo = if (estado.esNegocio) "Ej. Roberto Gómez" else "Ej. María González",
+                        ejemplo = ejemploNombre,
                         icono = Icons.Default.Person,
                         error = estado.errores.nombre,
                         onValorCambiado = viewModel::onNombreCambiado
@@ -166,8 +178,13 @@ fun RegistroUsuarioScreen(
                         onValorCambiado = viewModel::onTelefonoCambiado
                     )
 
+                    val etiquetaDireccion = if (estado.esNegocio) {
+                        "Dirección del local"
+                    } else {
+                        "Dirección (opcional)"
+                    }
                     CampoFormulario(
-                        etiqueta = if (estado.esNegocio) "Dirección del local" else "Dirección (opcional)",
+                        etiqueta = etiquetaDireccion,
                         valor = estado.datos.direccion,
                         ejemplo = "Av. Las Palmeras 123",
                         icono = Icons.Default.LocationOn,
@@ -215,8 +232,13 @@ fun RegistroUsuarioScreen(
                             )
                         }
                     } else {
+                        val textoBoton = if (estado.esNegocio) {
+                            "Registrar mi negocio"
+                        } else {
+                            "Registrarme como cliente"
+                        }
                         BotonPrincipal(
-                            texto = if (estado.esNegocio) "Registrar mi negocio" else "Registrarme como cliente",
+                            texto = textoBoton,
                             onClick = {
                                 focusManager.clearFocus()
                                 viewModel.registrarUsuario(onRegistroExitoso)
@@ -252,10 +274,7 @@ fun RegistroUsuarioScreen(
 }
 
 @Composable
-private fun SelectorRol(
-    rolSeleccionado: RolUsuario,
-    onRolSeleccionado: (RolUsuario) -> Unit
-) {
+private fun SelectorRol(rolSeleccionado: RolUsuario, onRolSeleccionado: (RolUsuario) -> Unit) {
     val indice = if (rolSeleccionado == RolUsuario.CLIENTE) 0 else 1
 
     TabRow(
@@ -271,7 +290,13 @@ private fun SelectorRol(
                     Icon(
                         Icons.Default.Person,
                         contentDescription = null,
-                        tint = if (rolSeleccionado == RolUsuario.CLIENTE) Verde else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (rolSeleccionado ==
+                            RolUsuario.CLIENTE
+                        ) {
+                            Verde
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                     Spacer(Modifier.width(6.dp))
                     Text("Cliente")
@@ -286,7 +311,13 @@ private fun SelectorRol(
                     Icon(
                         Icons.Default.Storefront,
                         contentDescription = null,
-                        tint = if (rolSeleccionado == RolUsuario.NEGOCIO) Naranja else MaterialTheme.colorScheme.onSurfaceVariant
+                        tint = if (rolSeleccionado ==
+                            RolUsuario.NEGOCIO
+                        ) {
+                            Naranja
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     )
                     Spacer(Modifier.width(6.dp))
                     Text("Negocio / Comercio")
@@ -361,13 +392,22 @@ private fun CampoContrasena(
             leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
             trailingIcon = {
                 IconButton(onClick = onToggleVisibilidad) {
+                    val icono = if (visible) {
+                        Icons.Outlined.VisibilityOff
+                    } else {
+                        Icons.Outlined.Visibility
+                    }
                     Icon(
-                        imageVector = if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                        imageVector = icono,
                         contentDescription = if (visible) "Ocultar" else "Mostrar"
                     )
                 }
             },
-            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (visible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
             isError = error != null,
             singleLine = true,
             keyboardOptions = KeyboardOptions(

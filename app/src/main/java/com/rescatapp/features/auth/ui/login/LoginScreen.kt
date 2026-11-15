@@ -115,7 +115,9 @@ fun LoginScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
@@ -246,11 +248,7 @@ private fun EncabezadoLogin() {
 }
 
 @Composable
-private fun CampoTextoCorreo(
-    valor: String,
-    error: String?,
-    onValorCambiado: (String) -> Unit
-) {
+private fun CampoTextoCorreo(valor: String, error: String?, onValorCambiado: (String) -> Unit) {
     Column {
         Text(
             text = "Correo electrónico",
@@ -310,13 +308,22 @@ private fun CampoTextoContrasena(
             },
             trailingIcon = {
                 IconButton(onClick = onToggleVisibilidad) {
+                    val icono = if (visible) {
+                        Icons.Outlined.VisibilityOff
+                    } else {
+                        Icons.Outlined.Visibility
+                    }
                     Icon(
-                        imageVector = if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                        imageVector = icono,
                         contentDescription = if (visible) "Ocultar" else "Mostrar"
                     )
                 }
             },
-            visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
+            visualTransformation = if (visible) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
             isError = error != null,
             singleLine = true,
             keyboardOptions = KeyboardOptions(

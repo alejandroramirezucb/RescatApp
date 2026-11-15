@@ -49,7 +49,10 @@ class CasosUsoAuthTest {
     fun iniciarSesionConDatosInvalidosFallaSinConsultarRepositorio() = runTest {
         val resultado = iniciarSesion(CredencialesLogin(correo = "mal", contrasena = "12"))
         assertTrue(resultado is ResultadoOperacion.Error)
-        assertEquals("Ingresa un correo electrónico válido", (resultado as ResultadoOperacion.Error).mensaje)
+        assertEquals(
+            "Ingresa un correo electrónico válido",
+            (resultado as ResultadoOperacion.Error).mensaje
+        )
     }
 
     @Test
@@ -66,7 +69,12 @@ class CasosUsoAuthTest {
     @Test
     fun registrarUsuarioInvalidoFallaEnValidacion() = runTest {
         val resultado = registrarUsuario(
-            DatosRegistro(nombre = "", correo = "valido@test.com", contrasena = "123456", confirmarContrasena = "123456")
+            DatosRegistro(
+                nombre = "",
+                correo = "valido@test.com",
+                contrasena = "123456",
+                confirmarContrasena = "123456"
+            )
         )
         assertTrue(resultado is ResultadoOperacion.Error)
         assertEquals("Ingresa tu nombre completo", (resultado as ResultadoOperacion.Error).mensaje)

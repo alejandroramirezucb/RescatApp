@@ -38,7 +38,8 @@ class RegistroUsuarioViewModelTest {
         sesionDao = FakeSesionDao()
         repositorio = RepositorioAutenticacion(usuarioDao, sesionDao)
         validarRegistroUsuarioUseCase = ValidarRegistroUsuarioUseCase()
-        registrarUsuarioUseCase = RegistrarUsuarioUseCase(repositorio, validarRegistroUsuarioUseCase)
+        registrarUsuarioUseCase =
+            RegistrarUsuarioUseCase(repositorio, validarRegistroUsuarioUseCase)
         viewModel = RegistroUsuarioViewModel(registrarUsuarioUseCase, validarRegistroUsuarioUseCase)
     }
 

@@ -37,7 +37,10 @@ class ValidarRegistroUsuarioUseCase @Inject constructor() {
         val errorNombreNegocio = if (datos.rol == RolUsuario.NEGOCIO) {
             when {
                 datos.nombreNegocio.isBlank() -> "Ingresa el nombre de tu comercio o negocio"
-                datos.nombreNegocio.trim().length < 2 -> "El nombre comercial debe tener al menos 2 caracteres"
+
+                datos.nombreNegocio.trim().length < 2 ->
+                    "El nombre comercial debe tener al menos 2 caracteres"
+
                 else -> null
             }
         } else {

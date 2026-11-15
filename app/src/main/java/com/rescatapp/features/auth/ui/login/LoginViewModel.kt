@@ -65,6 +65,7 @@ class LoginViewModel @Inject constructor(
                     _uiState.update { it.copy(cargando = false, sesionExitosa = sesion) }
                     onExito(sesion)
                 }
+
                 is ResultadoOperacion.Error -> {
                     _uiState.update {
                         it.copy(cargando = false, errorGeneral = resultado.mensaje)
@@ -83,6 +84,7 @@ class LoginViewModel @Inject constructor(
                     _uiState.update { it.copy(cargando = false, sesionExitosa = sesion) }
                     onExito(sesion)
                 }
+
                 is ResultadoOperacion.Error -> {
                     _uiState.update {
                         it.copy(cargando = false, errorGeneral = resultado.mensaje)
