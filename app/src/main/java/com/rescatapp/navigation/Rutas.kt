@@ -14,6 +14,8 @@ object Rutas {
     const val PERFIL = "perfil"
     const val OFERTAS_NEGOCIO = "ofertas_negocio"
     const val NOTIFICACIONES = "notificaciones"
+    const val LOGIN = "login"
+    const val REGISTRO_USUARIO = "registro_usuario"
 
     fun explorar(categoria: Categoria?): String =
         categoria?.let { "$EXPLORAR?${ArgumentosRuta.CATEGORIA}=${it.name}" } ?: EXPLORAR

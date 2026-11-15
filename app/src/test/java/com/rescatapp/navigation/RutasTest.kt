@@ -29,6 +29,12 @@ class RutasTest {
     }
 
     @Test
+    fun rutasDeAutenticacionSonValidas() {
+        assertEquals("login", Rutas.LOGIN)
+        assertEquals("registro_usuario", Rutas.REGISTRO_USUARIO)
+    }
+
+    @Test
     fun cadaPestanaSeReconocePorSuRutaRegistrada() {
         val pestanaExplorar = DestinoPrincipal.desdeRuta(Rutas.EXPLORAR_POR_CATEGORIA)
 
