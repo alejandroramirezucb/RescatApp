@@ -105,7 +105,7 @@ class RegistroUsuarioViewModel @Inject constructor(
     }
 
     fun registrarUsuario(onExito: (SesionUsuario) -> Unit = {}) {
-        if (_uiState.value.cargando) return
+        if (_uiState.value.cargando || _uiState.value.sesionExitosa != null) return
         val datos = _uiState.value.datos
         val errores = validarRegistroUsuarioUseCase(datos)
         if (errores.hayErrores) {
@@ -113,8 +113,8 @@ class RegistroUsuarioViewModel @Inject constructor(
             return
         }
 
+        _uiState.update { it.copy(cargando = true, errorGeneral = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true, errorGeneral = null) }
             when (val resultado = registrarUsuarioUseCase(datos)) {
                 is ResultadoOperacion.Exito -> {
                     val sesion = resultado.valor as SesionUsuario

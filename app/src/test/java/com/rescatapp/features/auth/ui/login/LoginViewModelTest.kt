@@ -10,7 +10,11 @@ import com.rescatapp.features.auth.data.UsuariosDeEjemplo
 import com.rescatapp.features.auth.domain.IniciarSesionUseCase
 import com.rescatapp.features.auth.domain.ValidarLoginUseCase
 import com.rescatapp.features.auth.domain.model.SesionUsuario
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -121,5 +125,34 @@ class LoginViewModelTest {
         val estado = viewModel.uiState.value
         assertNotNull(estado.errorGeneral)
         assertNull(estado.sesionExitosa)
+    }
+
+    @Test
+    fun consumirSesionExitosaLimpiaSesionDelEstado() = runTest {
+        viewModel.onCorreoCambiado("invitado@example.com")
+        viewModel.onContrasenaCambia("cliente123")
+        viewModel.iniciarSesion()
+
+        assertNotNull(viewModel.uiState.value.sesionExitosa)
+        viewModel.consumirSesionExitosa()
+        assertNull(viewModel.uiState.value.sesionExitosa)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun llamadasMultiplesDuranteCargaSonIgnoradas() = runTest(StandardTestDispatcher()) {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        viewModel.onCorreoCambiado("invitado@example.com")
+        viewModel.onContrasenaCambia("cliente123")
+
+        var contadorInvocaciones = 0
+        viewModel.iniciarSesion { contadorInvocaciones++ }
+        assertTrue(viewModel.uiState.value.cargando)
+
+        // Segunda llamada mientras cargando es true
+        viewModel.iniciarSesion { contadorInvocaciones++ }
+
+        testScheduler.advanceUntilIdle()
+        assertEquals(1, contadorInvocaciones)
     }
 }

@@ -165,4 +165,50 @@ class RepositorioAutenticacionTest {
             ((resNegocio as ResultadoOperacion.Exito).valor as SesionUsuario).rol
         )
     }
+
+    @Test
+    fun loginConCorreoEnMayusculasOEspaciosIniciaSesionCorrectamente() = runTest {
+        val resultado = repositorio.iniciarSesion("  INVITADO@EXAMPLE.COM  ", "cliente123")
+        assertTrue(resultado is ResultadoOperacion.Exito)
+        val sesion = (resultado as ResultadoOperacion.Exito).valor as SesionUsuario
+        assertEquals("invitado@example.com", sesion.correo)
+    }
+
+    @Test
+    fun registrarUsuarioNormalizaCorreoEnMinusculasYDetectaDuplicados() = runTest {
+        val datos = DatosRegistro(
+            nombre = "Esteban",
+            correo = "  ESTEBAN@EMPRESA.COM  ",
+            contrasena = "pass123",
+            confirmarContrasena = "pass123"
+        )
+        val resultado = repositorio.registrarUsuario(datos)
+        assertTrue(resultado is ResultadoOperacion.Exito)
+        val guardado = usuarioDao.buscarPorCorreo("esteban@empresa.com")
+        assertNotNull(guardado)
+        assertEquals("esteban@empresa.com", guardado?.correo)
+
+        // Intento con diferente formato de mayúsculas
+        val intentoDuplicado = datos.copy(correo = "Esteban@Empresa.Com")
+        val resultadoDup = repositorio.registrarUsuario(intentoDuplicado)
+        assertTrue(resultadoDup is ResultadoOperacion.Error)
+    }
+
+    @Test
+    fun sincronizarSesionRestauraRolEnInicioDeApp() = runTest {
+        UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
+        sesionDao.guardarSesion(
+            com.rescatapp.core.data.local.SesionEntity(
+                usuarioId = "neg-1",
+                correo = "negocio@test.com",
+                nombre = "Negocio Test",
+                rol = RolUsuario.NEGOCIO,
+                nombreNegocio = "Negocio Test"
+            )
+        )
+
+        val sesion = repositorio.sincronizarSesion()
+        assertNotNull(sesion)
+        assertEquals(RolUsuario.NEGOCIO, UsuarioDemo.rol.value)
+    }
 }

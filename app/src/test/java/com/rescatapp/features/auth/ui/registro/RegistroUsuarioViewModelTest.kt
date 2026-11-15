@@ -10,7 +10,11 @@ import com.rescatapp.features.auth.data.UsuariosDeEjemplo
 import com.rescatapp.features.auth.domain.RegistrarUsuarioUseCase
 import com.rescatapp.features.auth.domain.ValidarRegistroUsuarioUseCase
 import com.rescatapp.features.auth.domain.model.SesionUsuario
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -130,5 +134,38 @@ class RegistroUsuarioViewModelTest {
         assertNotNull(estado.errorGeneral)
         assertTrue(estado.errorGeneral!!.contains("Ya existe una cuenta"))
         assertNull(estado.sesionExitosa)
+    }
+
+    @Test
+    fun consumirSesionExitosaLimpiaSesionDelEstado() = runTest {
+        viewModel.onNombreCambiado("Fernanda Ruiz")
+        viewModel.onCorreoCambiado("fernanda@example.com")
+        viewModel.onContrasenaCambia("secreta123")
+        viewModel.onConfirmarContrasenaCambia("secreta123")
+        viewModel.registrarUsuario()
+
+        assertNotNull(viewModel.uiState.value.sesionExitosa)
+        viewModel.consumirSesionExitosa()
+        assertNull(viewModel.uiState.value.sesionExitosa)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun llamadasMultiplesDuranteCargaSonIgnoradas() = runTest(StandardTestDispatcher()) {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        viewModel.onNombreCambiado("Fernanda Ruiz")
+        viewModel.onCorreoCambiado("fernanda@example.com")
+        viewModel.onContrasenaCambia("secreta123")
+        viewModel.onConfirmarContrasenaCambia("secreta123")
+
+        var contadorInvocaciones = 0
+        viewModel.registrarUsuario { contadorInvocaciones++ }
+        assertTrue(viewModel.uiState.value.cargando)
+
+        // Segunda llamada mientras cargando es true
+        viewModel.registrarUsuario { contadorInvocaciones++ }
+
+        testScheduler.advanceUntilIdle()
+        assertEquals(1, contadorInvocaciones)
     }
 }
