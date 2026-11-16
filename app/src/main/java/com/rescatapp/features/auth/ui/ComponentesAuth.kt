@@ -21,6 +21,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.BarraSuperior
 import com.rescatapp.core.designsystem.components.BotonPrincipal
@@ -68,6 +69,7 @@ internal fun BotonEnviarAuth(
     habilitado: Boolean,
     onClick: () -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
     if (cargando) {
         Box(
             modifier = Modifier.fillMaxWidth().height(52.dp),
@@ -76,7 +78,14 @@ internal fun BotonEnviarAuth(
             CircularProgressIndicator()
         }
     } else {
-        BotonPrincipal(texto = texto, onClick = onClick, habilitado = habilitado)
+        BotonPrincipal(
+            texto = texto,
+            onClick = {
+                focusManager.clearFocus()
+                onClick()
+            },
+            habilitado = habilitado
+        )
     }
 }
 

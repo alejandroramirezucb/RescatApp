@@ -11,15 +11,16 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.BotonPrincipal
+import com.rescatapp.core.designsystem.components.BotonSecundario
 import com.rescatapp.core.designsystem.theme.Rojo
 import com.rescatapp.core.designsystem.theme.Verde
 import com.rescatapp.core.util.formatearDinero
@@ -55,9 +56,7 @@ internal fun PagoRechazado(
     TituloResultado(Icons.Default.ErrorOutline, "Pago no procesado", Rojo)
     Text(text = motivo, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
     BotonPrincipal(texto = "Generar nuevo QR y reintentar", onClick = onReintentar)
-    OutlinedButton(onClick = onPagarEnEfectivo, modifier = Modifier.fillMaxWidth()) {
-        Text("Pagar en efectivo al retirar")
-    }
+    BotonSecundario(texto = "Pagar en efectivo al retirar", onClick = onPagarEnEfectivo)
 }
 
 @Composable
@@ -69,7 +68,11 @@ private fun TituloResultado(icono: ImageVector, titulo: String, color: Color) {
 @Composable
 private fun FilaComprobante(etiqueta: String, valor: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(etiqueta, style = MaterialTheme.typography.bodySmall)
-        Text(valor, style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = etiqueta,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(valor, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
     }
 }

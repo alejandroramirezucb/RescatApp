@@ -1,16 +1,21 @@
 package com.rescatapp.features.auth.ui.login
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rescatapp.core.designsystem.components.BotonSecundario
 import com.rescatapp.core.designsystem.components.CampoConError
 import com.rescatapp.features.auth.ui.BotonEnviarAuth
 import com.rescatapp.features.auth.ui.EnlaceAuth
@@ -32,12 +37,14 @@ fun LoginScreen(
     }
 
     PantallaAuth(titulo = "Iniciar sesión", onVolver = onVolver) {
-        Text("¡Bienvenido a RescatApp!", style = MaterialTheme.typography.headlineSmall)
-        Text(
-            text = "Inicia sesión para rescatar alimentos o gestionar tu comercio",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("¡Bienvenido a RescatApp!", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = "Inicia sesión para rescatar alimentos o gestionar tu comercio",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         MensajeErrorAuth(estado.errorGeneral)
         CampoConError(
             etiqueta = "Correo electrónico",
@@ -63,24 +70,26 @@ fun LoginScreen(
             habilitado = estado.botonHabilitado,
             onClick = viewModel::iniciarSesion
         )
-        Text(
-            text = "O accede con cuentas demo",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        OutlinedButton(
-            onClick = { viewModel.iniciarSesionDemo(esNegocio = false) },
-            enabled = !estado.cargando,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text("Entrar como cliente demo")
-        }
-        OutlinedButton(
-            onClick = { viewModel.iniciarSesionDemo(esNegocio = true) },
-            enabled = !estado.cargando,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Entrar como negocio demo")
+            Text(
+                text = "O accede con una cuenta demo",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            BotonSecundario(
+                texto = "Entrar como cliente demo",
+                onClick = { viewModel.iniciarSesionDemo(esNegocio = false) },
+                habilitado = !estado.cargando
+            )
+            BotonSecundario(
+                texto = "Entrar como negocio demo",
+                onClick = { viewModel.iniciarSesionDemo(esNegocio = true) },
+                habilitado = !estado.cargando
+            )
         }
         EnlaceAuth("¿No tienes una cuenta?", "Regístrate aquí", onIrARegistro)
     }

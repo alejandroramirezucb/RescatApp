@@ -183,7 +183,8 @@ Cuentas de demostración: `invitado@example.com` / `cliente123` (cliente) y `con
 | --- | --- |
 | Tarjeta de oferta (usada en Inicio y Explorar) | [TarjetaOferta.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaOferta.kt#L31) |
 | Tarjeta de pedido | [TarjetaPedido.kt](app/src/main/java/com/rescatapp/core/designsystem/components/TarjetaPedido.kt) |
-| Campo de texto con mensaje de error | [CampoConError.kt](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L12) |
+| Campo de texto con mensaje de error y botón para mostrar u ocultar la contraseña | [CampoConError.kt](app/src/main/java/com/rescatapp/core/designsystem/components/CampoConError.kt#L35) |
+| Botones principal y secundario (misma altura y forma) | [BotonPrincipal.kt](app/src/main/java/com/rescatapp/core/designsystem/components/BotonPrincipal.kt#L17) · [BotonSecundario.kt](app/src/main/java/com/rescatapp/core/designsystem/components/BotonSecundario.kt#L16) |
 | Fila de rescates, ahorro y kg (Inicio y Perfil) | [FilaImpacto.kt](app/src/main/java/com/rescatapp/core/designsystem/components/FilaImpacto.kt) |
 | Todos los componentes | [core/designsystem/components/](app/src/main/java/com/rescatapp/core/designsystem/components) |
 | Colores y tema | [Color.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/Color.kt) · [RescatAppTheme.kt](app/src/main/java/com/rescatapp/core/designsystem/theme/RescatAppTheme.kt#L28) |

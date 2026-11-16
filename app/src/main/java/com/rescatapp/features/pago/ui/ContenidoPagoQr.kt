@@ -3,9 +3,7 @@ package com.rescatapp.features.pago.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -19,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.BotonPrincipal
+import com.rescatapp.core.designsystem.components.BotonSecundario
 import com.rescatapp.core.designsystem.theme.Rojo
 import com.rescatapp.core.designsystem.theme.Verde
 import com.rescatapp.core.util.formatearDinero
@@ -50,16 +49,25 @@ internal fun ContenidoPagoQr(
             color = MaterialTheme.colorScheme.primary
         )
         CodigoQrCanvas(datosQr.codigoQrPayload)
-        Text(
-            text = if (segundosRestantes > 0) {
-                "Válido por: %02d:%02d min".format(segundosRestantes / 60, segundosRestantes % 60)
-            } else {
-                "Código QR expirado"
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = if (segundosRestantes <= 60) Rojo else Verde
-        )
-        Text("Ref: ${datosQr.referenciaTransaccion}", style = MaterialTheme.typography.bodySmall)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = if (segundosRestantes > 0) {
+                    "Válido por: %02d:%02d min".format(
+                        segundosRestantes / 60,
+                        segundosRestantes % 60
+                    )
+                } else {
+                    "Código QR expirado"
+                },
+                style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
+                color = if (segundosRestantes <= 60) Rojo else Verde
+            )
+            Text(
+                text = "Ref: ${datosQr.referenciaTransaccion}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Text(
             text = "Escanea el código desde tu app bancaria o usa los botones de simulación:",
             style = MaterialTheme.typography.bodySmall,
@@ -71,15 +79,13 @@ internal fun ContenidoPagoQr(
             onClick = { onSimularPago(true) },
             habilitado = segundosRestantes > 0
         )
-        OutlinedButton(
+        BotonSecundario(
+            texto = "Simular pago rechazado",
             onClick = { onSimularPago(false) },
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Rojo),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Simular pago rechazado")
-        }
+            colorTexto = Rojo
+        )
         TextButton(onClick = onCancelar) {
-            Text("Cancelar o cambiar método")
+            Text("Cancelar pago")
         }
     }
 }
