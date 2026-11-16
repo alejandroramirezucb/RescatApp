@@ -6,6 +6,7 @@ import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.TipoNotificacion
+import com.rescatapp.core.util.formatearDinero
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,197 +15,113 @@ class GestorNotificaciones @Inject constructor(
     private val repositorioNotificaciones: RepositorioNotificaciones,
     private val notificadorSistema: NotificadorSistemaAndroid
 ) {
-    suspend fun notificarPedidoEnPreparacion(pedido: Pedido) {
-        val titulo = "👨‍🍳 ¡Tu pedido está en preparación!"
-        val mensaje =
-            "Tu pedido #${pedido.id} (${pedido.nombreOferta}) en ${pedido.comercio} ya se está preparando."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_EN_PREPARACION,
-            rolDestino = RolUsuario.CLIENTE,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_EN_PREPARACION
-        )
-    }
+    suspend fun notificarReservaConfirmadaCliente(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.PEDIDO_RESERVADO,
+        RolUsuario.CLIENTE,
+        "¡Reserva confirmada!",
+        "Has reservado ${pedido.nombreOferta} en ${pedido.comercio}. " +
+            "Retiro: ${pedido.horaRetiroDesde} - ${pedido.horaRetiroHasta}. " +
+            "Código: ${pedido.codigoRescate}."
+    )
 
-    suspend fun notificarPedidoListo(pedido: Pedido) {
-        val titulo = "🛍️ ¡Tu pedido está listo para retirar!"
-        val mensaje =
-            "Tu pedido #${pedido.id} (${pedido.nombreOferta}) está listo en ${pedido.comercio}." +
-                " Retíralo antes de las ${pedido.horaRetiroHasta}. Código: ${pedido.codigoRescate}."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_LISTO,
-            rolDestino = RolUsuario.CLIENTE,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_LISTO
-        )
-    }
+    suspend fun notificarNuevoPedidoVendedor(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.NUEVO_PEDIDO_VENDEDOR,
+        RolUsuario.NEGOCIO,
+        "¡Nuevo pedido recibido!",
+        "Nuevo pedido #${pedido.id}: ${pedido.nombreOferta} por " +
+            "${pedido.precioPagado.formatearDinero()}. Código: ${pedido.codigoRescate}."
+    )
 
-    suspend fun notificarPedidoRecogido(pedido: Pedido) {
-        val ahorroFormateado = "%.2f".format(pedido.ahorro)
-        val titulo = "🌱 ¡Pedido completado!"
-        val mensaje =
-            "¡Gracias por rescatar comida en ${pedido.comercio}! " +
-                "Salvaste ${pedido.pesoKg} kg de alimentos y ahorraste Bs. $ahorroFormateado."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_RECOGIDO,
-            rolDestino = RolUsuario.CLIENTE,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_RECOGIDO
-        )
-    }
+    suspend fun notificarPedidoEnPreparacion(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.PEDIDO_EN_PREPARACION,
+        RolUsuario.CLIENTE,
+        "¡Tu pedido está en preparación!",
+        "Tu pedido #${pedido.id} (${pedido.nombreOferta}) en ${pedido.comercio} " +
+            "ya se está preparando."
+    )
 
-    suspend fun notificarPedidoCanceladoCliente(pedido: Pedido) {
-        val titulo = "❌ Pedido cancelado"
-        val mensaje = "Tu pedido #${pedido.id} (${pedido.nombreOferta}) ha sido cancelado."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_CANCELADO,
-            rolDestino = RolUsuario.CLIENTE,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_CANCELADO
-        )
-    }
+    suspend fun notificarPedidoListo(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.PEDIDO_LISTO,
+        RolUsuario.CLIENTE,
+        "¡Tu pedido está listo para retirar!",
+        "Tu pedido #${pedido.id} (${pedido.nombreOferta}) está listo en ${pedido.comercio}. " +
+            "Retíralo antes de las ${pedido.horaRetiroHasta}. Código: ${pedido.codigoRescate}."
+    )
 
-    suspend fun notificarPedidoCanceladoVendedor(pedido: Pedido) {
-        val titulo = "⚠️ Pedido cancelado"
-        val mensaje =
-            "El pedido #${pedido.id} (${pedido.nombreOferta}) fue cancelado. Se restituyó 1 unidad al inventario."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_CANCELADO,
-            rolDestino = RolUsuario.NEGOCIO,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id + 10000,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_CANCELADO
-        )
-    }
+    suspend fun notificarPedidoRecogido(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.PEDIDO_RECOGIDO,
+        RolUsuario.CLIENTE,
+        "¡Pedido completado!",
+        "¡Gracias por rescatar comida en ${pedido.comercio}! Salvaste ${pedido.pesoKg} kg " +
+            "de alimentos y ahorraste ${pedido.ahorro.formatearDinero()}."
+    )
 
-    suspend fun notificarNuevoPedidoVendedor(pedido: Pedido) {
-        val precioFormateado = "%.2f".format(pedido.precioPagado)
-        val titulo = "🔔 ¡Nuevo pedido recibido!"
-        val mensaje =
-            "Nuevo pedido #${pedido.id}: ${pedido.nombreOferta} por Bs. $precioFormateado." +
-                " Código: ${pedido.codigoRescate}."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.NUEVO_PEDIDO_VENDEDOR,
-            rolDestino = RolUsuario.NEGOCIO,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id + 20000,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.NUEVO_PEDIDO_VENDEDOR
-        )
-    }
+    suspend fun notificarPedidoCanceladoCliente(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.PEDIDO_CANCELADO,
+        RolUsuario.CLIENTE,
+        "Pedido cancelado",
+        "Tu pedido #${pedido.id} (${pedido.nombreOferta}) ha sido cancelado."
+    )
 
-    suspend fun notificarReservaConfirmadaCliente(pedido: Pedido) {
-        val titulo = "🎉 ¡Reserva confirmada!"
-        val mensaje =
-            "Has reservado ${pedido.nombreOferta} en ${pedido.comercio}." +
-                " Retiro: ${pedido.horaRetiroDesde} - ${pedido.horaRetiroHasta}." +
-                " Código: ${pedido.codigoRescate}."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_RESERVADO,
-            rolDestino = RolUsuario.CLIENTE,
-            pedidoId = pedido.id,
-            ofertaId = pedido.ofertaId
-        )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = pedido.id,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.PEDIDO_RESERVADO
-        )
-    }
+    suspend fun notificarPedidoCanceladoVendedor(pedido: Pedido) = notificarPedido(
+        pedido,
+        TipoNotificacion.PEDIDO_CANCELADO,
+        RolUsuario.NEGOCIO,
+        "Pedido cancelado",
+        "El pedido #${pedido.id} (${pedido.nombreOferta}) fue cancelado. " +
+            "Se restituyó 1 unidad al inventario."
+    )
 
-    suspend fun notificarOfertaAgotada(oferta: Oferta) {
-        val titulo = "📦 ¡Oferta agotada!"
-        val mensaje = "Tu oferta '${oferta.nombre}' ha agotado todas sus unidades disponibles."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
+    suspend fun notificarOfertaAgotada(oferta: Oferta) = notificar(
+        Notificacion(
+            titulo = "¡Oferta agotada!",
+            mensaje = "Tu oferta '${oferta.nombre}' ha agotado todas sus unidades disponibles.",
             tipo = TipoNotificacion.OFERTA_AGOTADA,
             rolDestino = RolUsuario.NEGOCIO,
             ofertaId = oferta.id
         )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = oferta.id + 30000,
-            titulo = titulo,
-            mensaje = mensaje,
-            tipo = TipoNotificacion.OFERTA_AGOTADA
-        )
-    }
+    )
 
-    suspend fun notificarOfertaPublicada(oferta: Oferta) {
-        val precioFormateado = "%.2f".format(oferta.precioRescate)
-        val titulo = "✨ Oferta publicada con éxito"
-        val mensaje =
-            "'${oferta.nombre}' ya está disponible en la app" +
-                " (${oferta.cantidadDisponible} unidades a Bs. $precioFormateado)."
-        val notificacion = Notificacion(
-            titulo = titulo,
-            mensaje = mensaje,
+    suspend fun notificarOfertaPublicada(oferta: Oferta) = notificar(
+        Notificacion(
+            titulo = "Oferta publicada con éxito",
+            mensaje = "'${oferta.nombre}' ya está disponible en la app " +
+                "(${oferta.cantidadDisponible} unidades a ${oferta.precioRescate.formatearDinero()}).",
             tipo = TipoNotificacion.OFERTA_PUBLICADA,
             rolDestino = RolUsuario.NEGOCIO,
             ofertaId = oferta.id
         )
-        repositorioNotificaciones.agregar(notificacion)
-        notificadorSistema.mostrarNotificacion(
-            id = oferta.id + 40000,
+    )
+
+    private suspend fun notificarPedido(
+        pedido: Pedido,
+        tipo: TipoNotificacion,
+        rolDestino: RolUsuario,
+        titulo: String,
+        mensaje: String
+    ) = notificar(
+        Notificacion(
             titulo = titulo,
             mensaje = mensaje,
-            tipo = TipoNotificacion.OFERTA_PUBLICADA
+            tipo = tipo,
+            rolDestino = rolDestino,
+            pedidoId = pedido.id,
+            ofertaId = pedido.ofertaId
+        )
+    )
+
+    private suspend fun notificar(notificacion: Notificacion) {
+        repositorioNotificaciones.agregar(notificacion)
+        notificadorSistema.mostrarNotificacion(
+            id = notificacion.id.hashCode(),
+            titulo = notificacion.titulo,
+            mensaje = notificacion.mensaje
         )
     }
 }

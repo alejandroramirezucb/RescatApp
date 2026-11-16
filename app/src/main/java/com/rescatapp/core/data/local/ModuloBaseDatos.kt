@@ -84,13 +84,7 @@ object ModuloBaseDatos {
                 """.trimIndent()
             )
             for (usuario in UsuariosDeEjemplo.todos) {
-                val negocioSql = if (usuario.nombreNegocio !=
-                    null
-                ) {
-                    "'${usuario.nombreNegocio}'"
-                } else {
-                    "NULL"
-                }
+                val negocioSql = usuario.nombreNegocio?.let { "'$it'" } ?: "NULL"
                 db.execSQL(
                     """
                     INSERT OR IGNORE INTO usuarios (id, nombre, correo, contrasenaHash, rol, telefono, direccion, nombreNegocio, fechaCreacion)

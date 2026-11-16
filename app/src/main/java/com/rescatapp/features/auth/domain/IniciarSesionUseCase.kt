@@ -23,5 +23,5 @@ class IniciarSesionUseCase @Inject constructor(
     }
 
     suspend fun demo(esNegocio: Boolean): ResultadoOperacion =
-        repositorioAutenticacion.iniciarSesionRapidaDemo(esNegocio)
+        repositorioAutenticacion.iniciarSesionDemo(esNegocio)
 }

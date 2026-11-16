@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.rescatapp.core.data.RepositorioNotificaciones
 import com.rescatapp.core.data.local.FakeNotificacionDao
-import com.rescatapp.core.data.pedidosDeEjemplo
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Oferta
@@ -79,8 +78,7 @@ class GestorNotificacionesTest {
         assertTrue(notif.mensaje.contains("Pan artesanal"))
         assertEquals(10, notif.pedidoId)
 
-        assertEquals(1, notificadorSistema.notificacionesEmitidas.size)
-        assertEquals(10, notificadorSistema.notificacionesEmitidas.first().id)
+        assertEquals(listOf(notif.titulo), notificadorSistema.notificacionesEmitidas)
     }
 
     @Test
@@ -140,24 +138,10 @@ class GestorNotificacionesTest {
     }
 
     private class FakeNotificadorSistema(context: Context) : NotificadorSistemaAndroid(context) {
-        data class Emision(
-            val id: Int,
-            val titulo: String,
-            val mensaje: String,
-            val tipo: TipoNotificacion
-        )
+        val notificacionesEmitidas = mutableListOf<String>()
 
-        val notificacionesEmitidas = mutableListOf<Emision>()
-
-        override fun mostrarNotificacion(
-            id: Int,
-            titulo: String,
-            mensaje: String,
-            tipo: TipoNotificacion
-        ) {
-            notificacionesEmitidas.add(Emision(id, titulo, mensaje, tipo))
+        override fun mostrarNotificacion(id: Int, titulo: String, mensaje: String) {
+            notificacionesEmitidas.add(titulo)
         }
-
-        override fun crearCanalesDeNotificacion() {}
     }
 }

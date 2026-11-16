@@ -25,7 +25,6 @@ class DetalleViewModelTest {
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
     private val repositorioOfertas = crearRepositorioOfertas()
-    private val pasarelaPagoInstantanea = PasarelaPagoSimulada(tiempoEsperaMs = 0L)
 
     @Test
     fun muestraLaOfertaRecibidaEnLaRuta() = runTest {
@@ -39,17 +38,20 @@ class DetalleViewModelTest {
     fun indicaCuandoLaOfertaNoExiste() = runTest {
         val viewModel = crearViewModel(ofertaId = 99)
         observarDuranteLaPrueba(viewModel.uiState)
+
         assertTrue(viewModel.uiState.value.noEncontrada)
     }
 
     @Test
-    fun reservarActualizaLaCantidadYMuestraUnMensaje() = runTest {
+    fun reservarCierraLaPasarelaActualizaLaCantidadYMuestraUnMensaje() = runTest {
         val viewModel = crearViewModel(ofertaId = 13)
         observarDuranteLaPrueba(viewModel.uiState)
+        viewModel.abrirPasarelaPago()
 
         viewModel.reservar()
 
         val estado = viewModel.uiState.value
+        assertFalse(estado.pasarela.visible)
         assertEquals(2, estado.oferta?.cantidadDisponible)
         assertEquals("Reservaste Pack Croissants. Puedes verlo en Pedidos.", estado.mensaje)
     }
@@ -66,114 +68,67 @@ class DetalleViewModelTest {
     }
 
     @Test
-    fun abrirPasarelaPagoInicializaEstadoEnPendienteConQrSimple() = runTest {
+    fun abrirPasarelaPagoIniciaPendienteConQrSimple() = runTest {
         val viewModel = crearViewModel(ofertaId = 14)
         observarDuranteLaPrueba(viewModel.uiState)
 
         viewModel.abrirPasarelaPago()
 
-        val estado = viewModel.uiState.value
-        assertTrue(estado.mostrandoPasarelaPago)
-        assertEquals(EstadoPago.PENDIENTE, estado.estadoPago)
-        assertEquals(MetodoPago.QR_SIMPLE, estado.metodoPagoSeleccionado)
-        assertNull(estado.datosQrPago)
-        assertNull(estado.errorPago)
+        val pasarela = viewModel.uiState.value.pasarela
+        assertTrue(pasarela.visible)
+        assertEquals(EstadoPago.PENDIENTE, pasarela.estado)
+        assertEquals(MetodoPago.QR_SIMPLE, pasarela.metodo)
+        assertNull(pasarela.datosQr)
     }
 
     @Test
-    fun seleccionarMetodoPagoCambiaElMetodoSeleccionado() = runTest {
+    fun seleccionarMetodoPagoCambiaElMetodo() = runTest {
         val viewModel = crearViewModel(ofertaId = 14)
         observarDuranteLaPrueba(viewModel.uiState)
         viewModel.abrirPasarelaPago()
 
         viewModel.seleccionarMetodoPago(MetodoPago.EFECTIVO)
-        assertEquals(MetodoPago.EFECTIVO, viewModel.uiState.value.metodoPagoSeleccionado)
 
-        viewModel.seleccionarMetodoPago(MetodoPago.QR_SIMPLE)
-        assertEquals(MetodoPago.QR_SIMPLE, viewModel.uiState.value.metodoPagoSeleccionado)
+        assertEquals(MetodoPago.EFECTIVO, viewModel.uiState.value.pasarela.metodo)
     }
 
     @Test
-    fun generarQrPagoCreaDatosDePagoConMontoDeLaOferta() = runTest {
+    fun generarQrPagoUsaElMontoDeLaOferta() = runTest {
         val viewModel = crearViewModel(ofertaId = 14)
         observarDuranteLaPrueba(viewModel.uiState)
         viewModel.abrirPasarelaPago()
 
         viewModel.generarQrPago()
 
-        val datosQr = viewModel.uiState.value.datosQrPago
-        assertNotNull(datosQr)
-        assertEquals(25.0, datosQr?.monto ?: 0.0, 0.001)
-        assertEquals(EstadoPago.PENDIENTE, viewModel.uiState.value.estadoPago)
+        assertEquals(25.0, viewModel.uiState.value.pasarela.datosQr?.monto ?: 0.0, 0.001)
     }
 
     @Test
-    fun simularPagoQrExitosoActualizaAprobadoYComprobante() = runTest {
+    fun simularPagoQrAprobadoGeneraComprobante() = runTest {
         val viewModel = crearViewModel(ofertaId = 14)
         observarDuranteLaPrueba(viewModel.uiState)
         viewModel.abrirPasarelaPago()
         viewModel.generarQrPago()
 
-        viewModel.simularPagoQr(simularExito = true)
+        viewModel.simularPagoQr(aprobado = true)
 
-        val estado = viewModel.uiState.value
-        assertEquals(EstadoPago.APROBADO, estado.estadoPago)
-        assertNotNull(estado.comprobantePago)
-        assertEquals(MetodoPago.QR_SIMPLE, estado.comprobantePago?.metodoPago)
+        val pasarela = viewModel.uiState.value.pasarela
+        assertEquals(EstadoPago.APROBADO, pasarela.estado)
+        assertNotNull(pasarela.comprobante)
     }
 
     @Test
-    fun simularPagoQrRechazadoActualizaEstadoRechazadoConError() = runTest {
+    fun simularPagoQrRechazadoMuestraError() = runTest {
         val viewModel = crearViewModel(ofertaId = 14)
         observarDuranteLaPrueba(viewModel.uiState)
         viewModel.abrirPasarelaPago()
         viewModel.generarQrPago()
 
-        viewModel.simularPagoQr(simularExito = false)
+        viewModel.simularPagoQr(aprobado = false)
 
-        val estado = viewModel.uiState.value
-        assertEquals(EstadoPago.RECHAZADO, estado.estadoPago)
-        assertNotNull(estado.errorPago)
-    }
-
-    @Test
-    fun completarReservaTrasPagoAprobadoCierraPasarelaYGeneraReserva() = runTest {
-        val viewModel = crearViewModel(ofertaId = 14)
-        observarDuranteLaPrueba(viewModel.uiState)
-        viewModel.abrirPasarelaPago()
-        viewModel.generarQrPago()
-        viewModel.simularPagoQr(simularExito = true)
-
-        viewModel.completarReservaTrasPagoAprobado()
-
-        val estado = viewModel.uiState.value
-        assertFalse(estado.mostrandoPasarelaPago)
-        assertEquals("Reservaste Pack Sorpresa. Puedes verlo en Pedidos.", estado.mensaje)
-    }
-
-    @Test
-    fun confirmarPagoEfectivoCierraPasarelaYGeneraReserva() = runTest {
-        val viewModel = crearViewModel(ofertaId = 14)
-        observarDuranteLaPrueba(viewModel.uiState)
-        viewModel.abrirPasarelaPago()
-        viewModel.seleccionarMetodoPago(MetodoPago.EFECTIVO)
-
-        viewModel.confirmarPagoEfectivo()
-
-        val estado = viewModel.uiState.value
-        assertFalse(estado.mostrandoPasarelaPago)
-        assertEquals("Reservaste Pack Sorpresa. Puedes verlo en Pedidos.", estado.mensaje)
-    }
-
-    @Test
-    fun cerrarPasarelaPagoOcultaElDialogo() = runTest {
-        val viewModel = crearViewModel(ofertaId = 14)
-        observarDuranteLaPrueba(viewModel.uiState)
-        viewModel.abrirPasarelaPago()
-        assertTrue(viewModel.uiState.value.mostrandoPasarelaPago)
-
-        viewModel.cerrarPasarelaPago()
-        assertFalse(viewModel.uiState.value.mostrandoPasarelaPago)
+        val pasarela = viewModel.uiState.value.pasarela
+        assertEquals(EstadoPago.RECHAZADO, pasarela.estado)
+        assertNotNull(pasarela.error)
     }
 
     private fun crearViewModel(ofertaId: Int) = DetalleViewModel(
@@ -183,6 +138,6 @@ class DetalleViewModelTest {
             repositorioOfertas,
             RepositorioPedidos(FakePedidoDao())
         ),
-        pasarelaPago = pasarelaPagoInstantanea
+        pasarelaPago = PasarelaPagoSimulada(esperaMs = 0L)
     )
 }

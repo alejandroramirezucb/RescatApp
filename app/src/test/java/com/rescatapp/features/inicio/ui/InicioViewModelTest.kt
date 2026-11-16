@@ -1,8 +1,10 @@
 package com.rescatapp.features.inicio.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
+import com.rescatapp.core.data.RepositorioNotificaciones
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.data.crearRepositorioOfertas
+import com.rescatapp.core.data.local.FakeNotificacionDao
 import com.rescatapp.core.data.local.FakePedidoDao
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
@@ -55,6 +57,7 @@ class InicioViewModelTest {
         repositorioOfertas = repositorioOfertas,
         repositorioPedidos = repositorioPedidos,
         calcularImpacto = CalcularImpactoUseCase(),
-        seleccionarOfertas = SeleccionarOfertasInicioUseCase()
+        seleccionarOfertas = SeleccionarOfertasInicioUseCase(),
+        repositorioNotificaciones = RepositorioNotificaciones(FakeNotificacionDao())
     )
 }

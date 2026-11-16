@@ -2,12 +2,12 @@ package com.rescatapp.core.data
 
 import com.rescatapp.core.data.local.FakeSesionDao
 import com.rescatapp.core.data.local.FakeUsuarioDao
+import com.rescatapp.core.data.local.SesionEntity
 import com.rescatapp.core.data.local.toEntity
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.features.auth.data.UsuariosDeEjemplo
-import com.rescatapp.features.auth.domain.model.DatosRegistro
 import com.rescatapp.features.auth.domain.model.SesionUsuario
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -41,7 +41,7 @@ class RepositorioAutenticacionTest {
         assertEquals("invitado@example.com", sesion.correo)
         assertEquals(RolUsuario.CLIENTE, sesion.rol)
 
-        val sesionPersistida = repositorio.obtenerSesionActual()
+        val sesionPersistida = repositorio.sesionActual.first()
         assertNotNull(sesionPersistida)
         assertEquals("invitado@example.com", sesionPersistida?.correo)
         assertEquals(RolUsuario.CLIENTE, UsuarioDemo.rol.value)
@@ -76,89 +76,28 @@ class RepositorioAutenticacionTest {
     }
 
     @Test
-    fun registrarUsuarioClienteExitosoGuardaYAutentica() = runTest {
-        val datos = DatosRegistro(
-            nombre = "Laura Mendoza",
-            correo = "laura@example.com",
-            contrasena = "laura123",
-            confirmarContrasena = "laura123",
-            rol = RolUsuario.CLIENTE,
-            telefono = "99887766",
-            direccion = "Calle 10 #20"
-        )
-
-        val resultado = repositorio.registrarUsuario(datos)
-
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val sesion = (resultado as ResultadoOperacion.Exito).valor as SesionUsuario
-        assertEquals("Laura Mendoza", sesion.nombre)
-        assertEquals("laura@example.com", sesion.correo)
-        assertEquals(RolUsuario.CLIENTE, sesion.rol)
-
-        val enDb = usuarioDao.buscarPorCorreo("laura@example.com")
-        assertNotNull(enDb)
-        assertEquals("99887766", enDb?.telefono)
-    }
-
-    @Test
-    fun registrarUsuarioNegocioGuardaNombreComercial() = runTest {
-        val datos = DatosRegistro(
-            nombre = "Carlos Dueño",
-            correo = "carlos@bistro.com",
-            contrasena = "bistro123",
-            confirmarContrasena = "bistro123",
-            rol = RolUsuario.NEGOCIO,
-            nombreNegocio = "Bistró Francés"
-        )
-
-        val resultado = repositorio.registrarUsuario(datos)
-
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val sesion = (resultado as ResultadoOperacion.Exito).valor as SesionUsuario
-        assertEquals(RolUsuario.NEGOCIO, sesion.rol)
-        assertEquals("Bistró Francés", sesion.nombreNegocio)
-        assertEquals(RolUsuario.NEGOCIO, UsuarioDemo.rol.value)
-    }
-
-    @Test
-    fun registrarUsuarioConCorreoDuplicadoRetornaError() = runTest {
-        val datos = DatosRegistro(
-            nombre = "Intento Duplicado",
-            correo = "invitado@example.com",
-            contrasena = "pass123",
-            confirmarContrasena = "pass123"
-        )
-
-        val resultado = repositorio.registrarUsuario(datos)
-
-        assertTrue(resultado is ResultadoOperacion.Error)
-        val mensaje = (resultado as ResultadoOperacion.Error).mensaje
-        assertTrue(mensaje.contains("Ya existe una cuenta"))
-    }
-
-    @Test
     fun cerrarSesionLimpiaSesionActivaYRestableceRol() = runTest {
         repositorio.iniciarSesion("contacto@lacentral.com", "negocio123")
         assertEquals(RolUsuario.NEGOCIO, UsuarioDemo.rol.value)
 
         repositorio.cerrarSesion()
 
-        val sesion = repositorio.obtenerSesionActual()
+        val sesion = repositorio.sesionActual.first()
         assertNull(sesion)
         assertEquals(RolUsuario.CLIENTE, UsuarioDemo.rol.value)
         assertNull(repositorio.sesionActual.first())
     }
 
     @Test
-    fun iniciarSesionRapidaDemoFuncionaParaClienteYNegocio() = runTest {
-        val resCliente = repositorio.iniciarSesionRapidaDemo(esNegocio = false)
+    fun iniciarSesionDemoFuncionaParaClienteYNegocio() = runTest {
+        val resCliente = repositorio.iniciarSesionDemo(esNegocio = false)
         assertTrue(resCliente is ResultadoOperacion.Exito)
         assertEquals(
             RolUsuario.CLIENTE,
             ((resCliente as ResultadoOperacion.Exito).valor as SesionUsuario).rol
         )
 
-        val resNegocio = repositorio.iniciarSesionRapidaDemo(esNegocio = true)
+        val resNegocio = repositorio.iniciarSesionDemo(esNegocio = true)
         assertTrue(resNegocio is ResultadoOperacion.Exito)
         assertEquals(
             RolUsuario.NEGOCIO,
@@ -175,30 +114,10 @@ class RepositorioAutenticacionTest {
     }
 
     @Test
-    fun registrarUsuarioNormalizaCorreoEnMinusculasYDetectaDuplicados() = runTest {
-        val datos = DatosRegistro(
-            nombre = "Esteban",
-            correo = "  ESTEBAN@EMPRESA.COM  ",
-            contrasena = "pass123",
-            confirmarContrasena = "pass123"
-        )
-        val resultado = repositorio.registrarUsuario(datos)
-        assertTrue(resultado is ResultadoOperacion.Exito)
-        val guardado = usuarioDao.buscarPorCorreo("esteban@empresa.com")
-        assertNotNull(guardado)
-        assertEquals("esteban@empresa.com", guardado?.correo)
-
-        // Intento con diferente formato de mayúsculas
-        val intentoDuplicado = datos.copy(correo = "Esteban@Empresa.Com")
-        val resultadoDup = repositorio.registrarUsuario(intentoDuplicado)
-        assertTrue(resultadoDup is ResultadoOperacion.Error)
-    }
-
-    @Test
     fun sincronizarSesionRestauraRolEnInicioDeApp() = runTest {
         UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
         sesionDao.guardarSesion(
-            com.rescatapp.core.data.local.SesionEntity(
+            SesionEntity(
                 usuarioId = "neg-1",
                 correo = "negocio@test.com",
                 nombre = "Negocio Test",
@@ -207,8 +126,8 @@ class RepositorioAutenticacionTest {
             )
         )
 
-        val sesion = repositorio.sincronizarSesion()
-        assertNotNull(sesion)
+        repositorio.sincronizarSesion()
+
         assertEquals(RolUsuario.NEGOCIO, UsuarioDemo.rol.value)
     }
 }

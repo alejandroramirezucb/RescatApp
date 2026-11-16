@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.designsystem.theme.NaranjaVivo
 import com.rescatapp.core.designsystem.theme.TextoSecundario
@@ -71,5 +72,17 @@ private fun EtiquetaDestino(etiqueta: String, seleccionado: Boolean) {
                     shape = RoundedCornerShape(2.dp)
                 )
         )
+    }
+}
+
+internal fun NavController.navegarAPestana(destino: DestinoPrincipal) {
+    if (destino == DestinoPrincipal.INICIO) {
+        popBackStack(Rutas.INICIO, inclusive = false, saveState = true)
+        return
+    }
+    navigate(destino.ruta) {
+        popUpTo(Rutas.INICIO) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 }

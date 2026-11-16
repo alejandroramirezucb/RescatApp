@@ -1,7 +1,6 @@
 package com.rescatapp.features.inicio.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,19 +8,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Paid
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.Spa
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,13 +24,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.components.BotonNotificaciones
 import com.rescatapp.core.designsystem.theme.Naranja
 
 @Composable
 internal fun EncabezadoNegocio(
     nombre: String,
-    conteoNoLeidas: Int = 0,
-    onVerNotificaciones: () -> Unit = {}
+    conteoNoLeidas: Int,
+    onVerNotificaciones: () -> Unit
 ) {
     Column {
         Box(
@@ -68,28 +62,7 @@ internal fun EncabezadoNegocio(
                     style = MaterialTheme.typography.headlineSmall
                 )
             }
-            IconButton(
-                onClick = onVerNotificaciones,
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-            ) {
-                BadgedBox(
-                    badge = {
-                        if (conteoNoLeidas > 0) {
-                            Badge {
-                                Text(if (conteoNoLeidas > 99) "99+" else conteoNoLeidas.toString())
-                            }
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notificaciones",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
+            BotonNotificaciones(conteoNoLeidas, onVerNotificaciones)
         }
     }
 }

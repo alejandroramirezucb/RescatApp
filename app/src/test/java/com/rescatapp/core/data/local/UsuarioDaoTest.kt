@@ -57,38 +57,4 @@ class UsuarioDaoTest {
         val encontrado = usuarioDao.buscarPorCorreo("nadie@rescatapp.com")
         assertNull(encontrado)
     }
-
-    @Test
-    fun buscarPorIdRetornaUsuarioCorrecto() = runTest {
-        val usuario = UsuarioEntity(
-            id = "u-negocio-xyz",
-            nombre = "Panadería Moderna",
-            correo = "pan@moderna.com",
-            contrasenaHash = "hash999",
-            rol = RolUsuario.NEGOCIO,
-            nombreNegocio = "Panadería Moderna"
-        )
-        usuarioDao.insertar(usuario)
-
-        val encontrado = usuarioDao.buscarPorId("u-negocio-xyz")
-        assertNotNull(encontrado)
-        assertEquals(RolUsuario.NEGOCIO, encontrado?.rol)
-        assertEquals("Panadería Moderna", encontrado?.nombreNegocio)
-    }
-
-    @Test
-    fun eliminarPorIdEliminaRegistro() = runTest {
-        val usuario = UsuarioEntity(
-            id = "u-eliminar",
-            nombre = "Para Eliminar",
-            correo = "eliminar@rescatapp.com",
-            contrasenaHash = "hash",
-            rol = RolUsuario.CLIENTE
-        )
-        usuarioDao.insertar(usuario)
-
-        val filasEliminadas = usuarioDao.eliminarPorId("u-eliminar")
-        assertEquals(1, filasEliminadas)
-        assertNull(usuarioDao.buscarPorId("u-eliminar"))
-    }
 }

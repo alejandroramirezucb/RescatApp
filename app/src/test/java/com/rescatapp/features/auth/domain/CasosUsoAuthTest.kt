@@ -28,8 +28,6 @@ class CasosUsoAuthTest {
     private lateinit var validarRegistro: ValidarRegistroUsuarioUseCase
     private lateinit var iniciarSesion: IniciarSesionUseCase
     private lateinit var registrarUsuario: RegistrarUsuarioUseCase
-    private lateinit var cerrarSesion: CerrarSesionUseCase
-    private lateinit var observarSesion: ObservarSesionUsuarioUseCase
 
     @Before
     fun preparar() {
@@ -41,8 +39,6 @@ class CasosUsoAuthTest {
         validarRegistro = ValidarRegistroUsuarioUseCase()
         iniciarSesion = IniciarSesionUseCase(repositorio, validarLogin)
         registrarUsuario = RegistrarUsuarioUseCase(repositorio, validarRegistro)
-        cerrarSesion = CerrarSesionUseCase(repositorio)
-        observarSesion = ObservarSesionUsuarioUseCase(repositorio)
     }
 
     @Test
@@ -62,7 +58,7 @@ class CasosUsoAuthTest {
         )
         assertTrue(resultado is ResultadoOperacion.Exito)
 
-        val sesion = observarSesion().first()
+        val sesion = repositorio.sesionActual.first()
         assertEquals("invitado@example.com", sesion?.correo)
     }
 
@@ -100,9 +96,9 @@ class CasosUsoAuthTest {
     @Test
     fun cerrarSesionLimpiaLaSesionObservada() = runTest {
         iniciarSesion(CredencialesLogin(correo = "invitado@example.com", contrasena = "cliente123"))
-        assertEquals("invitado@example.com", observarSesion().first()?.correo)
+        assertEquals("invitado@example.com", repositorio.sesionActual.first()?.correo)
 
-        cerrarSesion()
-        assertNull(observarSesion().first())
+        repositorio.cerrarSesion()
+        assertNull(repositorio.sesionActual.first())
     }
 }

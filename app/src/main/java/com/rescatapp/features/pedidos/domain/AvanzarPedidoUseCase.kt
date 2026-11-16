@@ -19,18 +19,13 @@ class AvanzarPedidoUseCase @Inject constructor(
         val pedidoActualizado = pedido.copy(estado = siguienteEstado)
         repositorioPedidos.actualizar(pedidoActualizado)
 
-        when (siguienteEstado) {
-            EstadoPedido.PREPARANDO -> gestorNotificaciones?.notificarPedidoEnPreparacion(
-                pedidoActualizado
-            )
-
-            EstadoPedido.LISTO -> gestorNotificaciones?.notificarPedidoListo(pedidoActualizado)
-
-            EstadoPedido.RECOGIDO -> gestorNotificaciones?.notificarPedidoRecogido(
-                pedidoActualizado
-            )
-
-            else -> Unit
+        gestorNotificaciones?.let {
+            when (siguienteEstado) {
+                EstadoPedido.PREPARANDO -> it.notificarPedidoEnPreparacion(pedidoActualizado)
+                EstadoPedido.LISTO -> it.notificarPedidoListo(pedidoActualizado)
+                EstadoPedido.RECOGIDO -> it.notificarPedidoRecogido(pedidoActualizado)
+                else -> Unit
+            }
         }
 
         return ResultadoOperacion.Exito(pedidoActualizado)

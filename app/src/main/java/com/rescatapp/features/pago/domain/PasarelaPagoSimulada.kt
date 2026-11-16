@@ -1,110 +1,56 @@
 package com.rescatapp.features.pago.domain
 
 import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.pago.model.ComprobantePago
 import com.rescatapp.features.pago.model.DatosQrPago
-import com.rescatapp.features.pago.model.EstadoPago
-import com.rescatapp.features.pago.model.MetodoPago
-import com.rescatapp.features.pago.model.ResultadoPago
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.delay
 
 @Singleton
-class PasarelaPagoSimulada @Inject constructor() {
+class PasarelaPagoSimulada(private val esperaMs: Long) {
 
-    var tiempoEsperaMs: Long = TIEMPO_SIMULACION_MS
+    @Inject
+    constructor() : this(ESPERA_MS)
 
-    constructor(tiempoEsperaMs: Long) : this() {
-        this.tiempoEsperaMs = tiempoEsperaMs
-    }
+    private var ultimaTransaccion = 1000
 
-    private val secuenciaTransaccion = AtomicInteger(1000)
-    private val formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
-
-    fun generarQrParaOferta(
-        oferta: Oferta,
-        expiracionSegundos: Int = TIEMPO_EXPIRACION_DEFAULT_SEGUNDOS
-    ): DatosQrPago {
-        val idTransaccion = secuenciaTransaccion.incrementAndGet()
-        val referencia = "QR-$idTransaccion"
-        val fechaActual = LocalDateTime.now().format(formatoFecha)
-        val payload = "SIMPLE-QR|BOL|RESCATAPP|REF-$idTransaccion|OFERTA-${oferta.id}|" +
-            "${oferta.comercio}|${oferta.precioRescate}|$fechaActual"
-
+    fun generarQrParaOferta(oferta: Oferta): DatosQrPago {
+        ultimaTransaccion++
+        val referencia = "QR-$ultimaTransaccion"
         return DatosQrPago(
             referenciaTransaccion = referencia,
-            codigoQrPayload = payload,
+            codigoQrPayload = "SIMPLE-QR|BOL|RESCATAPP|$referencia|OFERTA-${oferta.id}|" +
+                "${oferta.comercio}|${oferta.precioRescate}",
             monto = oferta.precioRescate,
-            comercio = oferta.comercio,
-            concepto = "Reserva de ${oferta.nombre}",
-            expiracionSegundos = expiracionSegundos,
-            fechaHoraEmision = fechaActual
+            comercio = oferta.comercio
         )
     }
 
-    suspend fun procesarPagoQr(
-        datosQr: DatosQrPago,
-        simularExito: Boolean = true,
-        tiempoEsperaMs: Long = this.tiempoEsperaMs
-    ): ResultadoPago {
-        if (tiempoEsperaMs > 0) {
-            delay(tiempoEsperaMs)
-        }
-
-        if (datosQr.estaExpirado) {
-            return ResultadoPago.Rechazado("El código QR ha expirado. Por favor genera uno nuevo.")
-        }
-
-        return if (simularExito) {
-            val fechaActual = LocalDateTime.now().format(formatoFecha)
-            val randomSuffix = System.currentTimeMillis() % 10000
-            val numeroComprobante = "TRX-${datosQr.referenciaTransaccion}-$randomSuffix"
-            ResultadoPago.Exito(
-                comprobante = ComprobantePago(
-                    numeroTransaccion = numeroComprobante,
-                    referencia = datosQr.referenciaTransaccion,
-                    monto = datosQr.monto,
-                    comercio = datosQr.comercio,
-                    concepto = datosQr.concepto,
-                    metodoPago = MetodoPago.QR_SIMPLE,
-                    fechaHora = fechaActual,
-                    estado = EstadoPago.APROBADO
-                )
-            )
-        } else {
-            ResultadoPago.Rechazado(
+    suspend fun procesarPagoQr(datosQr: DatosQrPago, aprobado: Boolean): ResultadoOperacion {
+        delay(esperaMs)
+        if (!aprobado) {
+            return ResultadoOperacion.Error(
                 "La entidad bancaria rechazó la transacción simulada " +
                     "(fondos insuficientes o límite excedido)."
             )
         }
-    }
-
-    suspend fun procesarPagoEfectivo(oferta: Oferta, tiempoEsperaMs: Long = 0L): ResultadoPago {
-        if (tiempoEsperaMs > 0) {
-            delay(tiempoEsperaMs)
-        }
-        val idTransaccion = secuenciaTransaccion.incrementAndGet()
-        val fechaActual = LocalDateTime.now().format(formatoFecha)
-        return ResultadoPago.Exito(
-            comprobante = ComprobantePago(
-                numeroTransaccion = "EFEC-$idTransaccion",
-                referencia = "EFEC-$idTransaccion",
-                monto = oferta.precioRescate,
-                comercio = oferta.comercio,
-                concepto = "Pago en local: ${oferta.nombre}",
-                metodoPago = MetodoPago.EFECTIVO,
-                fechaHora = fechaActual,
-                estado = EstadoPago.APROBADO
+        return ResultadoOperacion.Exito(
+            ComprobantePago(
+                numeroTransaccion = "TRX-${datosQr.referenciaTransaccion}",
+                referencia = datosQr.referenciaTransaccion,
+                monto = datosQr.monto,
+                comercio = datosQr.comercio,
+                fechaHora = LocalDateTime.now().format(FORMATO_FECHA)
             )
         )
     }
 
-    companion object {
-        const val TIEMPO_EXPIRACION_DEFAULT_SEGUNDOS = 300
-        const val TIEMPO_SIMULACION_MS = 1200L
+    private companion object {
+        const val ESPERA_MS = 1200L
+        val FORMATO_FECHA: DateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
     }
 }

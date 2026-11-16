@@ -21,13 +21,6 @@ class FakeNotificacionDao(notificacionesIniciales: List<Notificacion> = emptyLis
         }
     }
 
-    override suspend fun insertarTodas(notificaciones: List<NotificacionEntity>) {
-        entidades.update { lista ->
-            (notificaciones + lista.filterNot { item -> notificaciones.any { it.id == item.id } })
-                .sortedByDescending { it.fechaHora }
-        }
-    }
-
     override fun observarPorRol(rol: RolUsuario): Flow<List<NotificacionEntity>> =
         entidades.map { lista -> lista.filter { it.rolDestino == rol } }
 

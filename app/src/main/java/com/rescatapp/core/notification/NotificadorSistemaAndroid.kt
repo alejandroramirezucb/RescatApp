@@ -13,7 +13,6 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.rescatapp.MainActivity
 import com.rescatapp.R
-import com.rescatapp.core.model.TipoNotificacion
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,109 +21,41 @@ import javax.inject.Singleton
 open class NotificadorSistemaAndroid @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-    companion object {
-        const val CANAL_PEDIDOS_CLIENTE = "canal_pedidos_cliente"
-        const val CANAL_PEDIDOS_VENDEDOR = "canal_pedidos_vendedor"
-        const val CANAL_OFERTAS = "canal_ofertas"
-    }
-
-    init {
-        crearCanalesDeNotificacion()
-    }
-
-    open fun crearCanalesDeNotificacion() {
-        val notificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
-                ?: return
-
-        val canalCliente = NotificationChannel(
-            CANAL_PEDIDOS_CLIENTE,
-            "Pedidos Cliente",
+    open fun crearCanal() {
+        val canal = NotificationChannel(
+            CANAL_RESCATAPP,
+            "Pedidos y ofertas",
             NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Notificaciones sobre el estado de tus pedidos de rescate"
-            enableVibration(true)
-            enableLights(true)
-            setShowBadge(true)
-        }
-
-        val canalVendedor = NotificationChannel(
-            CANAL_PEDIDOS_VENDEDOR,
-            "Ventas y Pedidos Recientes",
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            description = "Notificaciones para comercios sobre nuevos pedidos y reservas"
-            enableVibration(true)
-            enableLights(true)
-            setShowBadge(true)
-        }
-
-        val canalOfertas = NotificationChannel(
-            CANAL_OFERTAS,
-            "Ofertas y Rescates",
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = "Avisos sobre disponibilidad de ofertas y publicaciones"
-            enableLights(true)
-            setShowBadge(true)
-        }
-
-        notificationManager.createNotificationChannels(
-            listOf(canalCliente, canalVendedor, canalOfertas)
         )
+        context.getSystemService(NotificationManager::class.java).createNotificationChannel(canal)
     }
 
-    open fun mostrarNotificacion(id: Int, titulo: String, mensaje: String, tipo: TipoNotificacion) {
-        val notificationManagerCompat = NotificationManagerCompat.from(context)
-        if (!notificationManagerCompat.areNotificationsEnabled()) {
+    open fun mostrarNotificacion(id: Int, titulo: String, mensaje: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
             return
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val permisoConcedido = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-            if (!permisoConcedido) return
-        }
-
-        val (canalId, categoria) = when (tipo) {
-            TipoNotificacion.NUEVO_PEDIDO_VENDEDOR ->
-                Pair(CANAL_PEDIDOS_VENDEDOR, NotificationCompat.CATEGORY_EVENT)
-
-            TipoNotificacion.OFERTA_AGOTADA,
-            TipoNotificacion.OFERTA_PUBLICADA ->
-                Pair(CANAL_OFERTAS, NotificationCompat.CATEGORY_RECOMMENDATION)
-
-            else ->
-                Pair(CANAL_PEDIDOS_CLIENTE, NotificationCompat.CATEGORY_STATUS)
-        }
-
-        val intent = Intent(context, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
+        val abrirApp = PendingIntent.getActivity(
             context,
             id,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
         )
-
-        val notification = NotificationCompat.Builder(context, canalId)
+        val notificacion = NotificationCompat.Builder(context, CANAL_RESCATAPP)
             .setSmallIcon(R.drawable.ic_notificacion)
             .setContentTitle(titulo)
             .setContentText(mensaje)
             .setStyle(NotificationCompat.BigTextStyle().bigText(mensaje))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setDefaults(NotificationCompat.DEFAULT_ALL)
-            .setCategory(categoria)
             .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
+            .setContentIntent(abrirApp)
             .build()
+        NotificationManagerCompat.from(context).notify(id, notificacion)
+    }
 
-        runCatching {
-            notificationManagerCompat.notify(id, notification)
-        }
+    companion object {
+        const val CANAL_RESCATAPP = "canal_rescatapp"
     }
 }

@@ -30,8 +30,11 @@ class RepositorioNotificaciones @Inject constructor(private val notificacionDao:
         notificacionDao.marcarTodasComoLeidas(rol)
     }
 
-    suspend fun eliminar(id: String): Boolean = notificacionDao.eliminarPorId(id) > 0
+    suspend fun eliminar(id: String) {
+        notificacionDao.eliminarPorId(id)
+    }
 
-    suspend fun eliminarTodas(rol: RolUsuario): Boolean =
-        notificacionDao.eliminarTodasPorRol(rol) > 0
+    suspend fun eliminarTodas(rol: RolUsuario) {
+        notificacionDao.eliminarTodasPorRol(rol)
+    }
 }

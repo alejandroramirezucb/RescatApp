@@ -13,9 +13,10 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Naranja
@@ -50,6 +51,11 @@ fun CampoConError(
             },
             isError = error != null,
             keyboardOptions = KeyboardOptions(keyboardType = tipoTeclado),
+            visualTransformation = if (tipoTeclado == KeyboardType.Password) {
+                PasswordVisualTransformation()
+            } else {
+                VisualTransformation.None
+            },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(

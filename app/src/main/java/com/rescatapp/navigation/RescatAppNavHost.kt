@@ -15,7 +15,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -121,7 +120,7 @@ fun RescatAppNavHost() {
             }
             composable(Rutas.LOGIN) {
                 LoginScreen(
-                    onLoginExitoso = { volver() },
+                    onLoginExitoso = volver,
                     onIrARegistro = {
                         navController.navigate(Rutas.REGISTRO_USUARIO) {
                             popUpTo(Rutas.LOGIN) { inclusive = true }
@@ -132,7 +131,7 @@ fun RescatAppNavHost() {
             }
             composable(Rutas.REGISTRO_USUARIO) {
                 RegistroUsuarioScreen(
-                    onRegistroExitoso = { volver() },
+                    onRegistroExitoso = volver,
                     onIrALogin = {
                         navController.navigate(Rutas.LOGIN) {
                             popUpTo(Rutas.REGISTRO_USUARIO) { inclusive = true }
@@ -142,17 +141,5 @@ fun RescatAppNavHost() {
                 )
             }
         }
-    }
-}
-
-private fun NavController.navegarAPestana(destino: DestinoPrincipal) {
-    if (destino == DestinoPrincipal.INICIO) {
-        popBackStack(Rutas.INICIO, inclusive = false, saveState = true)
-        return
-    }
-    navigate(destino.ruta) {
-        popUpTo(Rutas.INICIO) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
     }
 }

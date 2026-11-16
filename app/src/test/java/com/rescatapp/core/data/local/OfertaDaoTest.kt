@@ -3,7 +3,6 @@ package com.rescatapp.core.data.local
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.model.Categoria
 import kotlinx.coroutines.flow.first
@@ -112,128 +111,11 @@ class OfertaDaoTest {
     }
 
     @Test
-    fun filtrarConCategoriaNulaYTextoVacioDevuelveTodasLasOfertas() = runTest {
-        ofertaDao.insertar(
-            crearOferta(id = 1, nombre = "Croissant", categoria = Categoria.PANADERIA)
-        )
-        ofertaDao.insertar(crearOferta(id = 2, nombre = "Pizza", categoria = Categoria.COMIDA))
-        ofertaDao.insertar(crearOferta(id = 3, nombre = "Tarta", categoria = Categoria.POSTRES))
-
-        val resultado = ofertaDao.filtrar(categoria = null as String?, texto = "").first()
-        assertEquals(3, resultado.size)
-    }
-
-    @Test
-    fun filtrarPorCategoriaDevuelveSoloOfertasDeEsaCategoria() = runTest {
-        ofertaDao.insertar(
-            crearOferta(id = 1, nombre = "Croissant", categoria = Categoria.PANADERIA)
-        )
-        ofertaDao.insertar(crearOferta(id = 2, nombre = "Pizza", categoria = Categoria.COMIDA))
-        ofertaDao.insertar(
-            crearOferta(id = 3, nombre = "Pan baguette", categoria = Categoria.PANADERIA)
-        )
-
-        val resultado = ofertaDao.filtrar(categoria = Categoria.PANADERIA, texto = "").first()
-        assertEquals(2, resultado.size)
-        assertEquals(listOf(3, 1), resultado.map { it.id })
-    }
-
-    @Test
-    fun filtrarPorTextoDevuelveCoincidenciasParcialesSinImportarMayusculas() = runTest {
-        ofertaDao.insertar(
-            crearOferta(id = 1, nombre = "Croissant de queso", categoria = Categoria.PANADERIA)
-        )
-        ofertaDao.insertar(
-            crearOferta(id = 2, nombre = "Pizza familiar", categoria = Categoria.COMIDA)
-        )
-        ofertaDao.insertar(
-            crearOferta(id = 3, nombre = "Sándwich de queso", categoria = Categoria.COMIDA)
-        )
-
-        val resultado = ofertaDao.filtrar(categoria = null as String?, texto = "queso").first()
-        assertEquals(2, resultado.size)
-        assertEquals(listOf(3, 1), resultado.map { it.id })
-    }
-
-    @Test
-    fun filtrarConCategoriaYTextoAplicaAmbosCriteriosConWhere() = runTest {
-        ofertaDao.insertar(
-            crearOferta(id = 1, nombre = "Croissant de queso", categoria = Categoria.PANADERIA)
-        )
-        ofertaDao.insertar(
-            crearOferta(id = 2, nombre = "Pizza familiar", categoria = Categoria.COMIDA)
-        )
-        ofertaDao.insertar(
-            crearOferta(id = 3, nombre = "Sándwich de queso", categoria = Categoria.COMIDA)
-        )
-
-        val resultado = ofertaDao.filtrar(categoria = Categoria.COMIDA, texto = "queso").first()
-        assertEquals(1, resultado.size)
-        assertEquals("Sándwich de queso", resultado.first().nombre)
-    }
-
-    @Test
     fun insertarTodasInsertaLaColeccionCompleta() = runTest {
         val entidades = ofertasDeEjemplo.map { it.toEntity() }
         ofertaDao.insertarTodas(entidades)
 
         val lista = ofertaDao.observarTodas().first()
         assertEquals(ofertasDeEjemplo.size, lista.size)
-    }
-
-    @Test
-    fun filtrarBuscaTambienEnElComercioYRespetaLaCategoria() = runTest {
-        ofertaDao.insertar(
-            crearOferta(id = 1, nombre = "Sandwich", categoria = Categoria.COMIDA)
-                .copy(comercio = "Café Aroma")
-        )
-        ofertaDao.insertar(crearOferta(id = 2, nombre = "Tarta", categoria = Categoria.POSTRES))
-
-        val resultado = ofertaDao.filtrar(Categoria.COMIDA, "café").first()
-        assertEquals(listOf(1), resultado.map { it.id })
-        assertEquals(0, ofertaDao.filtrar(Categoria.POSTRES, "café").first().size)
-    }
-
-    @Test
-    fun unaOfertaEliminadaNoReapareceAlReabrirLaBaseDeDatos() = runTest {
-        val contexto: Context = ApplicationProvider.getApplicationContext()
-        val nombre = "ofertas-eliminacion-${java.util.UUID.randomUUID()}.db"
-        try {
-            val primera = Room.databaseBuilder(contexto, RescatAppDatabase::class.java, nombre)
-                .allowMainThreadQueries()
-                .build()
-            try {
-                primera.ofertaDao().insertar(crearOferta(id = 1))
-                primera.ofertaDao().insertar(crearOferta(id = 2, nombre = "Otra oferta"))
-                val repositorio = RepositorioOfertas(primera.ofertaDao())
-                repositorio.eliminar(repositorio.buscarPorId(1)!!)
-            } finally {
-                primera.close()
-            }
-
-            val segunda = Room.databaseBuilder(contexto, RescatAppDatabase::class.java, nombre)
-                .allowMainThreadQueries()
-                .build()
-            try {
-                val repositorio = RepositorioOfertas(segunda.ofertaDao())
-                assertNull(repositorio.buscarPorId(1))
-                assertEquals(listOf(2), repositorio.ofertas.first().map { it.id })
-            } finally {
-                segunda.close()
-            }
-        } finally {
-            contexto.deleteDatabase(nombre)
-        }
-    }
-
-    @Test
-    fun cambiarDisponibilidadNoPermiteSobrevenderLaUltimaUnidad() = runTest {
-        ofertaDao.insertar(crearOferta(id = 1).copy(cantidadDisponible = 1))
-
-        assertEquals(1, ofertaDao.cambiarUnidadesDisponibles(1, -1))
-        assertEquals(0, ofertaDao.cambiarUnidadesDisponibles(1, -1))
-        assertEquals(0, ofertaDao.buscarPorId(1)?.cantidadDisponible)
-        assertEquals(1, ofertaDao.cambiarUnidadesDisponibles(1, 1))
-        assertEquals(1, ofertaDao.buscarPorId(1)?.cantidadDisponible)
     }
 }

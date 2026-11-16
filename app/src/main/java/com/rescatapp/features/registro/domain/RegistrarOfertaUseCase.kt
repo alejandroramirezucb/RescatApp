@@ -7,9 +7,6 @@ import com.rescatapp.core.notification.GestorNotificaciones
 import com.rescatapp.core.util.aDecimalPositivoOrNull
 import com.rescatapp.core.util.aEnteroPositivoOrNull
 import javax.inject.Inject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class RegistrarOfertaUseCase @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas,
@@ -19,11 +16,7 @@ class RegistrarOfertaUseCase @Inject constructor(
         val oferta = campos.aOfertaOrNull()
             ?: return ResultadoOperacion.Error("Revisa los datos de la oferta")
         val ofertaAgregada = repositorioOfertas.agregar(oferta)
-        if (gestorNotificaciones != null) {
-            CoroutineScope(Dispatchers.IO).launch {
-                gestorNotificaciones.notificarOfertaPublicada(ofertaAgregada)
-            }
-        }
+        gestorNotificaciones?.notificarOfertaPublicada(ofertaAgregada)
         return ResultadoOperacion.Exito(ofertaAgregada)
     }
 

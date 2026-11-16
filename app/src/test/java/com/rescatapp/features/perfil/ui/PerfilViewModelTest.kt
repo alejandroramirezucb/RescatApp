@@ -56,8 +56,7 @@ class PerfilViewModelTest {
 
     @Test
     fun sesionActivaActualizaNombreCorreoYEstadoAutenticado() = runTest {
-        val viewModel =
-            PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase(), repositorioAutenticacion)
+        val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
 
         assertFalse(viewModel.uiState.value.estaAutenticado)
@@ -79,8 +78,7 @@ class PerfilViewModelTest {
 
     @Test
     fun sesionNegocioMuestraNombreNegocio() = runTest {
-        val viewModel =
-            PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase(), repositorioAutenticacion)
+        val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
 
         fakeSesionDao.guardarSesion(
@@ -100,8 +98,7 @@ class PerfilViewModelTest {
 
     @Test
     fun cerrarSesionLimpiaLaSesionEnPerfil() = runTest {
-        val viewModel =
-            PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase(), repositorioAutenticacion)
+        val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
 
         fakeSesionDao.guardarSesion(
@@ -120,5 +117,6 @@ class PerfilViewModelTest {
         assertNull(viewModel.uiState.value.sesion)
     }
 
-    private fun crearViewModel() = PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase())
+    private fun crearViewModel() =
+        PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase(), repositorioAutenticacion)
 }

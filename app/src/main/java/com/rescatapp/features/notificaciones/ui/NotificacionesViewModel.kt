@@ -28,14 +28,13 @@ class NotificacionesViewModel @Inject constructor(
             ) { notificaciones, noLeidas ->
                 NotificacionesUiState(
                     notificaciones = notificaciones,
-                    conteoNoLeidas = noLeidas,
-                    rol = rol
+                    conteoNoLeidas = noLeidas
                 )
             }
         }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
-            initialValue = NotificacionesUiState(rol = UsuarioDemo.rol.value)
+            initialValue = NotificacionesUiState()
         )
 
     fun marcarComoLeida(id: String) {

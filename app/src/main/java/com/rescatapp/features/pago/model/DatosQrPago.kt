@@ -5,10 +5,5 @@ data class DatosQrPago(
     val codigoQrPayload: String,
     val monto: Double,
     val comercio: String,
-    val concepto: String,
-    val expiracionSegundos: Int = 300,
-    val fechaHoraEmision: String
-) {
-    val estaExpirado: Boolean
-        get() = expiracionSegundos <= 0
-}
+    val expiracionSegundos: Int = 300
+)

@@ -13,10 +13,8 @@ import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.auth.domain.model.SesionUsuario
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -24,20 +22,15 @@ import kotlinx.coroutines.launch
 class PerfilViewModel @Inject constructor(
     repositorioPedidos: RepositorioPedidos,
     private val calcularImpacto: CalcularImpactoUseCase,
-    private val repositorioAutenticacion: RepositorioAutenticacion? = null
+    private val repositorioAutenticacion: RepositorioAutenticacion
 ) : ViewModel() {
-
-    private val flujoSesion: Flow<SesionUsuario?> =
-        repositorioAutenticacion?.sesionActual ?: flowOf(null)
 
     val uiState: StateFlow<PerfilUiState> = combine(
         repositorioPedidos.pedidos,
         UsuarioDemo.rol,
-        flujoSesion
+        repositorioAutenticacion.sesionActual
     ) { pedidos, rol, sesion ->
-        val rolEfectivo = sesion?.rol ?: rol
-        val pedidosFiltrados = seleccionarPedidosPorRol(pedidos, rolEfectivo, sesion?.nombreNegocio)
-        crearEstado(pedidosFiltrados, rolEfectivo, sesion)
+        crearEstado(pedidos, sesion?.rol ?: rol, sesion)
     }.stateIn(
         scope = viewModelScope,
         started = suscripcionPantalla,
@@ -45,32 +38,23 @@ class PerfilViewModel @Inject constructor(
     )
 
     fun cerrarSesion() {
-        viewModelScope.launch {
-            repositorioAutenticacion?.cerrarSesion()
-        }
+        viewModelScope.launch { repositorioAutenticacion.cerrarSesion() }
     }
 
     private fun crearEstado(
         pedidos: List<Pedido>,
-        rol: RolUsuario = UsuarioDemo.rol.value,
-        sesion: SesionUsuario? = null
+        rol: RolUsuario,
+        sesion: SesionUsuario?
     ): PerfilUiState {
-        val esNegocio = (sesion?.rol ?: rol) == RolUsuario.NEGOCIO
-        val nombre = sesion?.let {
-            if (it.esNegocio && !it.nombreNegocio.isNullOrBlank()) it.nombreNegocio else it.nombre
-        } ?: if (esNegocio) UsuarioDemo.NEGOCIO_DEMO else UsuarioDemo.NOMBRE
-
-        val correo =
-            sesion?.correo ?: if (esNegocio) UsuarioDemo.CORREO_NEGOCIO else UsuarioDemo.CORREO
-        val inicial =
-            sesion?.inicial
-                ?: if (esNegocio) UsuarioDemo.NEGOCIO_DEMO.take(1) else UsuarioDemo.inicial
-
+        val esNegocio = rol == RolUsuario.NEGOCIO
         return PerfilUiState(
-            impacto = calcularImpacto(pedidos),
-            nombre = nombre,
-            correo = correo,
-            inicial = inicial,
+            impacto = calcularImpacto(
+                seleccionarPedidosPorRol(pedidos, rol, sesion?.nombreNegocio)
+            ),
+            nombre = sesion?.let { it.nombreNegocio ?: it.nombre }
+                ?: if (esNegocio) UsuarioDemo.NEGOCIO_DEMO else UsuarioDemo.NOMBRE,
+            correo = sesion?.correo
+                ?: if (esNegocio) UsuarioDemo.CORREO_NEGOCIO else UsuarioDemo.CORREO,
             esNegocio = esNegocio,
             sesion = sesion
         )

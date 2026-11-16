@@ -38,7 +38,6 @@ class NotificacionesViewModelTest {
         val estado = viewModel.uiState.value
         assertTrue(estado.notificaciones.isEmpty())
         assertEquals(0, estado.conteoNoLeidas)
-        assertEquals(RolUsuario.CLIENTE, estado.rol)
     }
 
     @Test

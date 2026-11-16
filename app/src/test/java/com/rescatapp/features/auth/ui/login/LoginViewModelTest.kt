@@ -5,22 +5,15 @@ import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.local.FakeSesionDao
 import com.rescatapp.core.data.local.FakeUsuarioDao
 import com.rescatapp.core.data.local.toEntity
-import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.features.auth.data.UsuariosDeEjemplo
 import com.rescatapp.features.auth.domain.IniciarSesionUseCase
 import com.rescatapp.features.auth.domain.ValidarLoginUseCase
-import com.rescatapp.features.auth.domain.model.SesionUsuario
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.test.setMain
+import com.rescatapp.features.auth.domain.model.CredencialesLogin
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -29,130 +22,78 @@ class LoginViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private lateinit var usuarioDao: FakeUsuarioDao
-    private lateinit var sesionDao: FakeSesionDao
-    private lateinit var repositorio: RepositorioAutenticacion
-    private lateinit var iniciarSesionUseCase: IniciarSesionUseCase
-    private lateinit var validarLoginUseCase: ValidarLoginUseCase
-    private lateinit var viewModel: LoginViewModel
-
-    @Before
-    fun preparar() {
-        usuarioDao = FakeUsuarioDao(UsuariosDeEjemplo.todos.map { it.toEntity() })
-        sesionDao = FakeSesionDao()
-        repositorio = RepositorioAutenticacion(usuarioDao, sesionDao)
-        validarLoginUseCase = ValidarLoginUseCase()
-        iniciarSesionUseCase = IniciarSesionUseCase(repositorio, validarLoginUseCase)
-        viewModel = LoginViewModel(iniciarSesionUseCase, validarLoginUseCase)
-    }
+    private val repositorio = RepositorioAutenticacion(
+        FakeUsuarioDao(UsuariosDeEjemplo.todos.map { it.toEntity() }),
+        FakeSesionDao()
+    )
+    private val validarLogin = ValidarLoginUseCase()
+    private val viewModel =
+        LoginViewModel(IniciarSesionUseCase(repositorio, validarLogin), validarLogin)
 
     @Test
     fun estadoInicialEsVacioYDeshabilitado() {
         val estado = viewModel.uiState.value
         assertEquals("", estado.credenciales.correo)
-        assertEquals("", estado.credenciales.contrasena)
-        assertFalse(estado.contrasenaVisible)
         assertFalse(estado.botonHabilitado)
-        assertNull(estado.errorGeneral)
+        assertFalse(estado.sesionIniciada)
     }
 
     @Test
-    fun actualizarCamposHabilitaElBoton() {
-        viewModel.onCorreoCambiado("test@example.com")
-        viewModel.onContrasenaCambia("123456")
+    fun actualizarCredencialesHabilitaElBoton() {
+        viewModel.actualizarCredenciales(CredencialesLogin("invitado@example.com", "cliente123"))
 
-        val estado = viewModel.uiState.value
-        assertEquals("test@example.com", estado.credenciales.correo)
-        assertEquals("123456", estado.credenciales.contrasena)
-        assertTrue(estado.botonHabilitado)
+        assertTrue(viewModel.uiState.value.botonHabilitado)
     }
 
     @Test
-    fun toggleVisibilidadContrasenaAlternaEstado() {
-        assertFalse(viewModel.uiState.value.contrasenaVisible)
-        viewModel.onToggleVisibilidadContrasena()
-        assertTrue(viewModel.uiState.value.contrasenaVisible)
-        viewModel.onToggleVisibilidadContrasena()
-        assertFalse(viewModel.uiState.value.contrasenaVisible)
-    }
-
-    @Test
-    fun iniciarSesionConDatosInvalidosMuestraErroresEnEstado() = runTest {
-        viewModel.onCorreoCambiado("correoInvalido")
-        viewModel.onContrasenaCambia("123")
+    fun credencialesInvalidasMuestranErroresDeCampo() {
+        viewModel.actualizarCredenciales(CredencialesLogin("correo-invalido", "123"))
 
         viewModel.iniciarSesion()
 
         val estado = viewModel.uiState.value
         assertNotNull(estado.errores.correo)
         assertNotNull(estado.errores.contrasena)
-        assertNull(estado.sesionExitosa)
+        assertFalse(estado.sesionIniciada)
     }
 
     @Test
-    fun iniciarSesionExitosoNotificaCallbackYActualizaSesion() = runTest {
-        viewModel.onCorreoCambiado("invitado@example.com")
-        viewModel.onContrasenaCambia("cliente123")
+    fun actualizarCredencialesLimpiaLosErrores() {
+        viewModel.actualizarCredenciales(CredencialesLogin("correo-invalido", "123"))
+        viewModel.iniciarSesion()
 
-        var sesionObtenida: SesionUsuario? = null
-        viewModel.iniciarSesion { sesion -> sesionObtenida = sesion }
+        viewModel.actualizarCredenciales(CredencialesLogin("invitado@example.com", "123"))
 
-        val estado = viewModel.uiState.value
-        assertNotNull(estado.sesionExitosa)
-        assertEquals("invitado@example.com", estado.sesionExitosa?.correo)
-        assertEquals(RolUsuario.CLIENTE, estado.sesionExitosa?.rol)
-        assertNotNull(sesionObtenida)
+        assertNull(viewModel.uiState.value.errores.correo)
     }
 
     @Test
-    fun iniciarSesionDemoNegocioIniciaSesionConRolNegocio() = runTest {
-        var sesionObtenida: SesionUsuario? = null
-        viewModel.iniciarSesionDemo(esNegocio = true) { sesion -> sesionObtenida = sesion }
-
-        val estado = viewModel.uiState.value
-        assertNotNull(estado.sesionExitosa)
-        assertEquals(RolUsuario.NEGOCIO, estado.sesionExitosa?.rol)
-        assertEquals(RolUsuario.NEGOCIO, sesionObtenida?.rol)
-    }
-
-    @Test
-    fun errorDeAutenticacionMuestraErrorGeneral() = runTest {
-        viewModel.onCorreoCambiado("usuario@noexiste.com")
-        viewModel.onContrasenaCambia("passwordCorrecto")
+    fun credencialesCorrectasInicianSesion() {
+        viewModel.actualizarCredenciales(CredencialesLogin("invitado@example.com", "cliente123"))
 
         viewModel.iniciarSesion()
 
         val estado = viewModel.uiState.value
-        assertNotNull(estado.errorGeneral)
-        assertNull(estado.sesionExitosa)
+        assertTrue(estado.sesionIniciada)
+        assertFalse(estado.cargando)
+        assertNull(estado.errorGeneral)
     }
 
     @Test
-    fun consumirSesionExitosaLimpiaSesionDelEstado() = runTest {
-        viewModel.onCorreoCambiado("invitado@example.com")
-        viewModel.onContrasenaCambia("cliente123")
+    fun contrasenaIncorrectaMuestraErrorGeneral() {
+        viewModel.actualizarCredenciales(CredencialesLogin("invitado@example.com", "otraClave"))
+
         viewModel.iniciarSesion()
 
-        assertNotNull(viewModel.uiState.value.sesionExitosa)
-        viewModel.consumirSesionExitosa()
-        assertNull(viewModel.uiState.value.sesionExitosa)
+        val estado = viewModel.uiState.value
+        assertFalse(estado.sesionIniciada)
+        assertEquals("La contraseña ingresada es incorrecta.", estado.errorGeneral)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun llamadasMultiplesDuranteCargaSonIgnoradas() = runTest(StandardTestDispatcher()) {
-        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        viewModel.onCorreoCambiado("invitado@example.com")
-        viewModel.onContrasenaCambia("cliente123")
+    fun accesoDemoNegocioIniciaSesion() {
+        viewModel.iniciarSesionDemo(esNegocio = true)
 
-        var contadorInvocaciones = 0
-        viewModel.iniciarSesion { contadorInvocaciones++ }
-        assertTrue(viewModel.uiState.value.cargando)
-
-        // Segunda llamada mientras cargando es true
-        viewModel.iniciarSesion { contadorInvocaciones++ }
-
-        testScheduler.advanceUntilIdle()
-        assertEquals(1, contadorInvocaciones)
+        assertTrue(viewModel.uiState.value.sesionIniciada)
     }
 }

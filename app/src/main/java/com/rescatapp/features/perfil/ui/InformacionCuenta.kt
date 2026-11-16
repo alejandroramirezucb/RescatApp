@@ -59,7 +59,7 @@ internal fun PreferenciasPerfil(onVerNotificaciones: () -> Unit = {}) {
 }
 
 @Composable
-private fun TarjetaPerfil(titulo: String, contenido: @Composable () -> Unit) {
+internal fun TarjetaPerfil(titulo: String, contenido: @Composable () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),

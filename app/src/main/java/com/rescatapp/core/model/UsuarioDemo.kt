@@ -11,9 +11,6 @@ object UsuarioDemo {
     const val NEGOCIO_DEMO = "Panadería La Central"
     const val CORREO_NEGOCIO = "contacto@lacentral.com"
 
-    val inicial: String
-        get() = NOMBRE.take(1)
-
     private val rolActual = MutableStateFlow(RolUsuario.CLIENTE)
     val rol: StateFlow<RolUsuario> = rolActual.asStateFlow()
 

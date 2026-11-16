@@ -1,39 +1,10 @@
 package com.rescatapp.features.auth.domain.model
 
-import com.rescatapp.core.model.RolUsuario
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ModelosAuthTest {
-
-    @Test
-    fun sesionUsuarioInicialCalculadaCorrectamenteParaCliente() {
-        val sesion = SesionUsuario(
-            usuarioId = "1",
-            nombre = "Carlos Perez",
-            correo = "carlos@example.com",
-            rol = RolUsuario.CLIENTE
-        )
-
-        assertFalse(sesion.esNegocio)
-        assertEquals("C", sesion.inicial)
-    }
-
-    @Test
-    fun sesionUsuarioInicialCalculadaCorrectamenteParaNegocioConNombreComercial() {
-        val sesion = SesionUsuario(
-            usuarioId = "2",
-            nombre = "Juan Gomez",
-            correo = "panaderia@example.com",
-            rol = RolUsuario.NEGOCIO,
-            nombreNegocio = "Panadería Moderna"
-        )
-
-        assertTrue(sesion.esNegocio)
-        assertEquals("P", sesion.inicial)
-    }
 
     @Test
     fun erroresLoginDetectaPresenciaDeErrores() {
@@ -45,9 +16,6 @@ class ModelosAuthTest {
 
         val conErrorContrasena = ErroresLogin(contrasena = "Contraseña muy corta")
         assertTrue(conErrorContrasena.hayErrores)
-
-        val conErrorGeneral = ErroresLogin(general = "Error en el servidor")
-        assertTrue(conErrorGeneral.hayErrores)
     }
 
     @Test

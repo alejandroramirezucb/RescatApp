@@ -20,7 +20,7 @@ class RescatAppApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        notificadorSistema.crearCanalesDeNotificacion()
+        notificadorSistema.crearCanal()
         CoroutineScope(Dispatchers.IO).launch {
             repositorioAutenticacion.sincronizarSesion()
         }

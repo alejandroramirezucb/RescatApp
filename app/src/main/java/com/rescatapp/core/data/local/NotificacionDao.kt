@@ -13,9 +13,6 @@ interface NotificacionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertar(notificacion: NotificacionEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertarTodas(notificaciones: List<NotificacionEntity>)
-
     @Query("SELECT * FROM notificaciones WHERE rolDestino = :rol ORDER BY fechaHora DESC")
     fun observarPorRol(rol: RolUsuario): Flow<List<NotificacionEntity>>
 

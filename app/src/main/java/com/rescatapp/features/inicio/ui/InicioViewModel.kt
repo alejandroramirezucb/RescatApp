@@ -13,10 +13,8 @@ import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
@@ -25,16 +23,13 @@ class InicioViewModel @Inject constructor(
     repositorioPedidos: RepositorioPedidos,
     private val calcularImpacto: CalcularImpactoUseCase,
     private val seleccionarOfertas: SeleccionarOfertasInicioUseCase,
-    repositorioNotificaciones: RepositorioNotificaciones? = null
+    repositorioNotificaciones: RepositorioNotificaciones
 ) : ViewModel() {
-    private val noLeidasFlow: Flow<Int> =
-        repositorioNotificaciones?.contarNoLeidas(RolUsuario.CLIENTE) ?: flowOf(0)
-
     val uiState: StateFlow<InicioUiState> =
         combine(
             repositorioOfertas.ofertas,
             repositorioPedidos.pedidos,
-            noLeidasFlow,
+            repositorioNotificaciones.contarNoLeidas(RolUsuario.CLIENTE),
             ::crearEstado
         ).stateIn(
             scope = viewModelScope,

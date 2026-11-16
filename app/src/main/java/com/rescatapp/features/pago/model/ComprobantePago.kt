@@ -5,8 +5,5 @@ data class ComprobantePago(
     val referencia: String,
     val monto: Double,
     val comercio: String,
-    val concepto: String,
-    val metodoPago: MetodoPago,
-    val fechaHora: String,
-    val estado: EstadoPago = EstadoPago.APROBADO
+    val fechaHora: String
 )

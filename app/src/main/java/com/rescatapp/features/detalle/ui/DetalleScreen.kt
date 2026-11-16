@@ -44,21 +44,17 @@ fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewMo
     val estadoSnackbar = remember { SnackbarHostState() }
     EfectoMensajeTemporal(estado.mensaje, estadoSnackbar, viewModel::limpiarMensaje)
 
-    if (estado.mostrandoPasarelaPago) {
+    if (estado.pasarela.visible) {
         estado.oferta?.let { oferta ->
             PasarelaPagoDialog(
                 oferta = oferta,
-                datosQr = estado.datosQrPago,
-                estadoPago = estado.estadoPago,
-                comprobante = estado.comprobantePago,
-                metodoSeleccionado = estado.metodoPagoSeleccionado,
-                errorPago = estado.errorPago,
+                estado = estado.pasarela,
                 onSeleccionarMetodo = viewModel::seleccionarMetodoPago,
                 onGenerarQr = viewModel::generarQrPago,
                 onSimularPagoQr = viewModel::simularPagoQr,
-                onConfirmarPagoEfectivo = viewModel::confirmarPagoEfectivo,
-                onCompletarReservaTrasPago = viewModel::completarReservaTrasPagoAprobado,
-                onDescartar = viewModel::cerrarPasarelaPago
+                onPagarEnEfectivo = viewModel::reservar,
+                onCompletarReserva = viewModel::reservar,
+                onCerrar = viewModel::cerrarPasarelaPago
             )
         }
     }
