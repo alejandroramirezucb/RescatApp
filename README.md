@@ -67,7 +67,7 @@ La barra inferior adapta sus pestañas según el rol activo:
 
 ### Dos flujos integrados: Cliente y Negocio
 
-La app implementa los flujos de cliente y negocio. Se alternan desde Perfil mediante el botón de cambio de rol de demostración.
+La app implementa los flujos de cliente y negocio. Se alternan iniciando sesión con una cuenta de cliente o negocio, o desde Perfil con el botón de cambio de rol de demostración (visible sin sesión).
 
 | Flujo | Qué hace | Pantallas en Figma | En la app |
 | --- | --- | --- | --- |
@@ -85,7 +85,7 @@ Consecuencias en el código:
 | Qué | Dónde |
 | --- | --- |
 | Pantalla | [InicioScreen.kt](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L15) |
-| Encabezado: ubicación, saludo, notificaciones y buscador | [EncabezadoInicio](app/src/main/java/com/rescatapp/features/inicio/ui/EncabezadoInicio.kt#L25) |
+| Encabezado: ubicación, saludo, notificaciones y buscador | [EncabezadoInicio](app/src/main/java/com/rescatapp/features/inicio/ui/EncabezadoInicio.kt#L22) |
 | Bloque "Tu impacto esta semana" | [BloqueImpacto](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L33) |
 | Tarjetas "Explora por categoría" | [CategoriasInicio](app/src/main/java/com/rescatapp/features/inicio/ui/CategoriasInicio.kt#L28) |
 | Secciones "Ofertas cerca de ti", "Se están agotando", "Lo mejor de hoy" y "Puede interesarte" | [SeccionOfertas](app/src/main/java/com/rescatapp/features/inicio/ui/SeccionesInicio.kt#L54) |
@@ -108,12 +108,13 @@ Consecuencias en el código:
 
 | Qué | Dónde |
 | --- | --- |
-| Pantalla | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L40) |
-| Información de la oferta y botón Reservar | [InformacionOferta](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
+| Pantalla | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L42) |
+| Información de la oferta y botón Reservar | [InformacionOferta](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L83) |
 | Lee el id de la ruta con `SavedStateHandle` | [DetalleViewModel.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L26) |
 | Pasarela de pago simulada (QR Simple y Efectivo) | [PasarelaPagoDialog.kt](app/src/main/java/com/rescatapp/features/pago/ui/PasarelaPagoDialog.kt) · [PasarelaPagoSimulada.kt](app/src/main/java/com/rescatapp/features/pago/domain/PasarelaPagoSimulada.kt) |
 | Renderizador vectorial de QR en Canvas | [CodigoQrCanvas.kt](app/src/main/java/com/rescatapp/features/pago/ui/components/CodigoQrCanvas.kt) |
-| Diálogo de confirmación de reserva | [DialogoReserva.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DialogoReserva.kt#L22) |
+| Pago con QR (cuenta regresiva y simulación) y resultado del pago | [ContenidoPagoQr.kt](app/src/main/java/com/rescatapp/features/pago/ui/ContenidoPagoQr.kt) · [ResultadoPago.kt](app/src/main/java/com/rescatapp/features/pago/ui/ResultadoPago.kt) |
+| Estado de la pasarela (método, QR, comprobante y error) | [EstadoPasarela.kt](app/src/main/java/com/rescatapp/features/pago/model/EstadoPasarela.kt) |
 | Descuenta una unidad del stock de la oferta | [ReservarOfertaUseCase.kt](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
 
 ### Publicar oferta (formulario)
@@ -145,9 +146,10 @@ Consecuencias en el código:
 
 | Qué | Dónde |
 | --- | --- |
-| Pantalla | [PerfilScreen.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L25) |
+| Pantalla | [PerfilScreen.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilScreen.kt#L28) |
 | Encabezado con avatar, nombre, nivel de rescatista y cambio de rol | [EncabezadoPerfil.kt](app/src/main/java/com/rescatapp/features/perfil/ui/EncabezadoPerfil.kt#L21) |
-| Datos de la cuenta (correo, teléfono, dirección) | [InformacionCuenta.kt](app/src/main/java/com/rescatapp/features/perfil/ui/InformacionCuenta.kt#L18) |
+| Datos de la cuenta (correo, teléfono, dirección) | [InformacionCuenta.kt](app/src/main/java/com/rescatapp/features/perfil/ui/InformacionCuenta.kt#L33) |
+| Iniciar sesión, registrarse o cerrar sesión | [SesionPerfil.kt](app/src/main/java/com/rescatapp/features/perfil/ui/SesionPerfil.kt) |
 | Impacto acumulado y ODS | [SeccionSostenibilidadODS.kt](app/src/main/java/com/rescatapp/features/perfil/ui/SeccionSostenibilidadODS.kt#L16) |
 | Estado del perfil | [PerfilViewModel.kt](app/src/main/java/com/rescatapp/features/perfil/ui/PerfilViewModel.kt) |
 
@@ -157,10 +159,23 @@ Consecuencias en el código:
 | --- | --- |
 | Pantalla de Inicio de Sesión | [LoginScreen.kt](app/src/main/java/com/rescatapp/features/auth/ui/login/LoginScreen.kt) · [LoginViewModel.kt](app/src/main/java/com/rescatapp/features/auth/ui/login/LoginViewModel.kt) |
 | Pantalla de Registro (Cliente y Negocio) | [RegistroUsuarioScreen.kt](app/src/main/java/com/rescatapp/features/auth/ui/registro/RegistroUsuarioScreen.kt) · [RegistroUsuarioViewModel.kt](app/src/main/java/com/rescatapp/features/auth/ui/registro/RegistroUsuarioViewModel.kt) |
-| Casos de uso de autenticación | [IniciarSesionUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/IniciarSesionUseCase.kt) · [RegistrarUsuarioUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/RegistrarUsuarioUseCase.kt) · [CerrarSesionUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/CerrarSesionUseCase.kt) |
+| Casos de uso de autenticación | [IniciarSesionUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/IniciarSesionUseCase.kt) · [RegistrarUsuarioUseCase.kt](app/src/main/java/com/rescatapp/features/auth/domain/RegistrarUsuarioUseCase.kt) |
 | Repositorio con persistencia de sesión Room | [RepositorioAutenticacion.kt](app/src/main/java/com/rescatapp/core/data/RepositorioAutenticacion.kt) |
 | Entidades y DAOs | [UsuarioEntity.kt](app/src/main/java/com/rescatapp/core/data/local/UsuarioEntity.kt) · [SesionEntity.kt](app/src/main/java/com/rescatapp/core/data/local/SesionEntity.kt) |
 | Seguridad y Hashing de contraseñas | [SeguridadAuth.kt](app/src/main/java/com/rescatapp/features/auth/data/SeguridadAuth.kt) |
+| Componentes comunes de Login y Registro | [ComponentesAuth.kt](app/src/main/java/com/rescatapp/features/auth/ui/ComponentesAuth.kt) |
+
+Cuentas de demostración: `invitado@example.com` / `cliente123` (cliente) y `contacto@lacentral.com` / `negocio123` (negocio).
+
+### Notificaciones
+
+| Qué | Dónde |
+| --- | --- |
+| Pantalla con historial, marcar como leídas y limpiar | [NotificacionesScreen.kt](app/src/main/java/com/rescatapp/features/notificaciones/ui/NotificacionesScreen.kt) · [TarjetaNotificacion.kt](app/src/main/java/com/rescatapp/features/notificaciones/ui/TarjetaNotificacion.kt) |
+| Avisos de reserva, cambios de estado, cancelación y ofertas | [GestorNotificaciones.kt](app/src/main/java/com/rescatapp/core/notification/GestorNotificaciones.kt) |
+| Notificación del sistema Android (un canal) | [NotificadorSistemaAndroid.kt](app/src/main/java/com/rescatapp/core/notification/NotificadorSistemaAndroid.kt) |
+| Guardado en Room y conteo de no leídas | [RepositorioNotificaciones.kt](app/src/main/java/com/rescatapp/core/data/RepositorioNotificaciones.kt) · [NotificacionDao.kt](app/src/main/java/com/rescatapp/core/data/local/NotificacionDao.kt) |
+| Campana con conteo en Inicio | [BotonNotificaciones.kt](app/src/main/java/com/rescatapp/core/designsystem/components/BotonNotificaciones.kt) |
 
 ### Componentes compartidos
 
@@ -186,19 +201,20 @@ com.rescatapp
 │
 ├── core/                            Módulos y utilidades compartidas
 │   ├── data/
-│   │   ├── local/                   Persistencia Room para ofertas y pedidos
+│   │   ├── local/                   Persistencia Room para ofertas, pedidos, notificaciones, usuarios y sesión
 │   │   │   ├── RescatAppTypeConverters.kt
 │   │   │   ├── PedidoDao.kt
 │   │   │   ├── RescatAppDatabase.kt y ModuloBaseDatos.kt
-│   │   │   └── PedidoEntity.kt, OfertaEntity.kt y OfertaDao.kt
+│   │   │   └── Entidades y DAOs de cada tabla
 │   │   ├── remote/                  Servicios remotos con Retrofit
 │   │   │   ├── ApiService.kt        GET, POST, PUT, DELETE
 │   │   │   ├── OfertaDto.kt         DTO y mapeadores hacia el dominio
 │   │   │   ├── RetrofitClient.kt    Cliente con límite de tiempo y BASE_URL
 │   │   │   └── FuenteOfertasRemotas, RepositorioOfertasRemotas y módulo Hilt
-│   │   └── RepositorioOfertas.kt y RepositorioPedidos.kt (datos locales en Room)
+│   │   └── Repositorios locales: ofertas, pedidos, notificaciones y autenticación
 │   ├── domain/                      Casos de uso transversales (cálculo de impacto y roles)
-│   ├── model/                       Modelos de dominio puros (Oferta, Pedido, Categoria, etc.)
+│   ├── model/                       Modelos de dominio puros (Oferta, Pedido, Notificacion, etc.)
+│   ├── notification/                Gestor de notificaciones y notificador del sistema
 │   ├── designsystem/                Tema accesible (colores, tipografía) y componentes visuales
 │   └── util/                        Conversores seguros, formateadores y extensiones
 │
@@ -208,7 +224,10 @@ com.rescatapp
 │   ├── detalle/                     domain/ + ui/ (Información completa y reserva)
 │   ├── registro/                    domain/ + ui/ (Formulario de publicación y validaciones)
 │   ├── pedidos/                     domain/ + ui/ (Seguimiento, avance de estados y cancelación)
-│   └── perfil/                      ui/ (Métricas del usuario y cambio de rol)
+│   ├── perfil/                      ui/ (Métricas del usuario, sesión y cambio de rol)
+│   ├── auth/                        data/ + domain/ + ui/ (Inicio de sesión y registro de usuarios)
+│   ├── notificaciones/              ui/ (Historial de notificaciones)
+│   └── pago/                        domain/ + model/ + ui/ (Pasarela de pago simulada)
 │
 └── navigation/                      Configuración de rutas, NavHost y barra inferior
 ```
@@ -250,14 +269,14 @@ Las operaciones remotas no modifican las ofertas locales ni se sincronizan con R
 
 | Paso | Qué pasa | Dónde |
 | --- | --- | --- |
-| 1 | El cliente toca "Reservar" | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L64) |
-| 2 | El ViewModel pide la reserva | [DetalleViewModel.reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L36) |
+| 1 | El cliente toca "Reservar" y paga con QR o elige efectivo en la pasarela | [DetalleScreen.kt](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L49) |
+| 2 | El ViewModel pide la reserva | [DetalleViewModel.reservar()](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleViewModel.kt#L94) |
 | 3 | El caso de uso valida que haya unidades | [ReservarOfertaUseCase](app/src/main/java/com/rescatapp/features/detalle/domain/ReservarOfertaUseCase.kt#L12) |
 | 4 | Se descuenta una unidad de la oferta en Room | `cambiarUnidadesDisponibles()` en `RepositorioOfertas.kt` |
 | 5 | Se crea el pedido en estado Reservado en Room | `crearPedido()` y `agregar()` en `RepositorioPedidos.kt` |
 | 6 | Los repositorios emiten las listas actualizadas | `RepositorioOfertas.ofertas` y `RepositorioPedidos.pedidos` |
 | 7 | Cada ViewModel combina los datos y crea un `UiState` nuevo | [InicioViewModel](app/src/main/java/com/rescatapp/features/inicio/ui/InicioViewModel.kt) · [PedidosViewModel](app/src/main/java/com/rescatapp/features/pedidos/ui/PedidosViewModel.kt) |
-| 8 | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L41) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20) |
+| 8 | Cada pantalla lo lee con `collectAsStateWithLifecycle()` y Compose redibuja solo lo que cambió | [DetalleScreen](app/src/main/java/com/rescatapp/features/detalle/ui/DetalleScreen.kt#L43) · [InicioScreen](app/src/main/java/com/rescatapp/features/inicio/ui/InicioScreen.kt#L20) |
 
 Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil observan las listas y se actualizan automáticamente.
 
@@ -279,7 +298,7 @@ Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil observan las listas y se 
 | **Publicar oferta** solo aparece en el flujo negocio | En Figma es `Crear Oferta - Negocio`; en la app cliente el botón está oculto ([DestinoPrincipal.kt](app/src/main/java/com/rescatapp/navigation/DestinoPrincipal.kt#L21)). |
 | Íconos de Material en lugar de emojis y fotos | No hay fotos por producto; se usa un ícono por categoría. |
 | Naranja más oscuro (`#C2410C`) para texto | El naranja original sobre blanco no alcanza el contraste mínimo de 4.5:1. |
-| Perfil sin menú (pagos, ayuda, cerrar sesión…) | Sin backend esas opciones serían botones que no hacen nada. |
+| Perfil sin menú de pagos ni ayuda | Sin backend esas opciones serían botones que no hacen nada. |
 | Sin lector QR ni pantalla independiente de Stats | El negocio gestiona estados con botones y consulta métricas en Inicio. |
 | El corazón de favoritos es solo visual; no hay calificaciones ni distancia | Un favorito real y la calificación requieren datos y acciones que la app no tiene. |
 
@@ -287,7 +306,7 @@ Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil observan las listas y se 
 
 ## Persistencia local con Room
 
-Room persiste ofertas y pedidos mediante `OfertaEntity`, `PedidoEntity`, sus DAOs, convertidores y `RescatAppDatabase`. Los repositorios realizan escrituras suspendidas y observan sus tablas mediante `Flow`; el módulo Hilt precarga los datos de ejemplo.
+Room persiste ofertas, pedidos, notificaciones, usuarios y la sesión activa mediante sus entidades, DAOs, convertidores y `RescatAppDatabase` (versión 3, con migraciones 1→2 y 2→3). Los repositorios realizan escrituras suspendidas y observan sus tablas mediante `Flow`; el módulo Hilt precarga los datos de ejemplo.
 
 El issue #71 agrega gestión remota separada: publicar, editar o eliminar en MockAPI no modifica el catálogo local de Room. No hay sincronización automática ni caché persistente de las respuestas remotas.
 
@@ -317,7 +336,7 @@ El consumo de servicios remotos está configurado con Retrofit y OkHttp contra u
 4. En una tarjeta remota, **Editar** valida unidades (enteras, 0 o más), precio de rescate (positivo y menor al normal) y horario (`HH:mm`, fin posterior al inicio), y envía PUT. **Eliminar** requiere confirmación y envía DELETE.
 5. Las mutaciones muestran progreso, bloquean acciones duplicadas y actualizan la lista solo después del éxito. Si fallan, conservan los datos anteriores y ofrecen **Reintentar operación**. Una cancelación de corrutina no se presenta como error de red. El cliente tiene un límite de 30 segundos por llamada.
 
-**Pruebas:** `OfertasNegocioViewModelTest` usa un repositorio remoto falso con respuestas suspendidas para verificar las transiciones y el CRUD; `RepositorioOfertasRemotasTest` comprueba el contrato HTTP con MockWebServer; `OfertasNegocioScreenTest` comprueba carga/error, publicación, validación y confirmación de eliminación con Compose y Robolectric.
+**Pruebas:** `OfertasNegocioViewModelTest` y `OfertasNegocioOperacionesRemotasTest` usan una fuente remota falsa (`FuenteRemotaFalsa`) con respuestas suspendidas para verificar las transiciones y el CRUD; `RepositorioOfertasRemotasTest` comprueba el contrato HTTP con MockWebServer; `OfertasNegocioScreenTest` y `OfertasNegocioEdicionScreenTest` comprueban carga/error, publicación, validación y confirmación de eliminación con Compose y Robolectric.
 
 ```powershell
 .\gradlew.bat spotlessCheck :app:testDebugUnitTest :app:assembleDebug
@@ -408,11 +427,11 @@ El siguiente guion permite comprobar en vivo los 12 pasos exigidos en la Secció
 
 **1. ¿Cuál es la función de NavHost y NavController?**\
 El `NavController` guarda en qué pantalla estamos y la pila de pantallas anteriores; es quien ejecuta la navegación. El `NavHost` es el contenedor que dibuja la pantalla que corresponde a la ruta actual, y en él se declara un `composable(ruta)` por pantalla.\
-Código: [rememberNavController()](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L34) · [NavHost y sus composable](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L56).
+Código: [rememberNavController()](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L44) · [NavHost y sus composable](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L70).
 
 **2. ¿Cuál es la diferencia entre navigate() y popBackStack()?**\
 `navigate(ruta)` agrega una pantalla encima de la pila (por ejemplo, `navigate("detalle/14")`). `popBackStack()` quita la pantalla actual y regresa a la anterior en el historial de navegación sin generar pantallas duplicadas.\
-Código: [navigate a Detalle](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L37) · [popBackStack](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L38).
+Código: [navigate a Detalle](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L47) · [popBackStack](app/src/main/java/com/rescatapp/navigation/RescatAppNavHost.kt#L51).
 
 **3. ¿Por qué separaron las pantallas en archivos diferentes?**\
 Cada archivo tiene una sola responsabilidad: facilita la lectura, la realización de pruebas unitarias y evita conflictos al trabajar concurrentemente cinco desarrolladores en Git.
