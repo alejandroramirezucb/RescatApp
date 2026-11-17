@@ -1,120 +1,122 @@
 package com.rescatapp.features.perfil.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Business
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.Business
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
 internal fun InformacionCuenta(estado: PerfilUiState) {
     TarjetaPerfil(titulo = "Información de la cuenta") {
         FilaDatoPerfil(
-            icono = if (estado.esNegocio) Icons.Default.Business else Icons.Default.Person,
+            icono = if (estado.esNegocio) Icons.Outlined.Business else Icons.Outlined.Person,
             etiqueta = if (estado.esNegocio) "Comercio" else "Usuario",
             valor = estado.nombre
         )
-        FilaDatoPerfil(Icons.Default.Email, "Correo", estado.correo)
+        FilaDatoPerfil(Icons.Outlined.Email, "Correo", estado.correo)
     }
 }
 
 @Composable
 internal fun PreferenciasPerfil(onVerNotificaciones: () -> Unit = {}) {
-    TarjetaPerfil(titulo = "Preferencias y alertas") {
-        FilaDatoPerfil(
-            icono = Icons.Default.Notifications,
-            etiqueta = "Notificaciones",
-            valor = "Alertas inmediatas de pedidos y ofertas",
-            modifier = Modifier.clickable { onVerNotificaciones() }
-        )
-        FilaDatoPerfil(
-            icono = Icons.Default.Tune,
-            etiqueta = "Radio de rescate",
-            valor = "Hasta 5 km a la redonda"
-        )
+    Surface(
+        onClick = onVerNotificaciones,
+        color = MaterialTheme.colorScheme.surface,
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Notifications,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(text = "Notificaciones", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = "Consulta los avisos de pedidos y ofertas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                imageVector = Icons.Outlined.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 }
 
 @Composable
 internal fun TarjetaPerfil(titulo: String, contenido: @Composable () -> Unit) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(text = titulo, style = MaterialTheme.typography.titleSmall)
+            Text(text = titulo, style = MaterialTheme.typography.titleMedium)
             contenido()
         }
     }
 }
 
 @Composable
-private fun FilaDatoPerfil(
-    icono: ImageVector,
-    etiqueta: String,
-    valor: String,
-    modifier: Modifier = Modifier
-) {
+private fun FilaDatoPerfil(icono: ImageVector, etiqueta: String, valor: String) {
     Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                    CircleShape
-                ),
-            contentAlignment = Alignment.Center
+        Icon(
+            imageVector = icono,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(
-                imageVector = icono,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp)
-            )
-        }
-        Column {
             Text(
                 text = etiqueta,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(
-                text = valor,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
-            )
+            Text(text = valor, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }

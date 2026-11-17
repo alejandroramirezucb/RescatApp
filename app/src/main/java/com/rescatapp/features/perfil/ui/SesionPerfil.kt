@@ -1,15 +1,10 @@
 package com.rescatapp.features.perfil.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.components.BotonPrincipal
+import com.rescatapp.core.designsystem.components.BotonSecundario
 
 @Composable
 internal fun SesionPerfil(
@@ -18,35 +13,27 @@ internal fun SesionPerfil(
     onIrARegistro: () -> Unit,
     onCerrarSesion: () -> Unit
 ) {
-    TarjetaPerfil(titulo = "Cuenta y autenticación") {
+    TarjetaPerfil(titulo = if (estado.estaAutenticado) "Tu sesión" else "Accede a tu cuenta") {
         Text(
             text = if (estado.estaAutenticado) {
-                "Sesión iniciada como ${estado.nombre} (${estado.correo})."
+                "Tienes una sesión iniciada con ${estado.correo}."
             } else {
-                "Inicia sesión o regístrate para sincronizar tus pedidos y gestionar tu perfil."
+                "Estás explorando con un perfil de demostración. " +
+                    "Puedes iniciar sesión o crear una cuenta."
             },
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (estado.estaAutenticado) {
-                OutlinedButton(onClick = onCerrarSesion, modifier = Modifier.weight(1f)) {
-                    Text("Cerrar sesión")
-                }
-                Button(onClick = onIrALogin, modifier = Modifier.weight(1f)) {
-                    Text("Cambiar cuenta")
-                }
-            } else {
-                Button(onClick = onIrALogin, modifier = Modifier.weight(1f)) {
-                    Text("Iniciar sesión")
-                }
-                OutlinedButton(onClick = onIrARegistro, modifier = Modifier.weight(1f)) {
-                    Text("Registrarse")
-                }
-            }
+        if (estado.estaAutenticado) {
+            BotonPrincipal(texto = "Cambiar cuenta", onClick = onIrALogin)
+            BotonSecundario(
+                texto = "Cerrar sesión",
+                onClick = onCerrarSesion,
+                colorTexto = MaterialTheme.colorScheme.error
+            )
+        } else {
+            BotonPrincipal(texto = "Iniciar sesión", onClick = onIrALogin)
+            BotonSecundario(texto = "Registrarse", onClick = onIrARegistro)
         }
     }
 }
