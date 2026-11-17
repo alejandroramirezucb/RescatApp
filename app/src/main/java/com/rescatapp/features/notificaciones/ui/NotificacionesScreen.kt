@@ -37,6 +37,17 @@ fun NotificacionesScreen(
     viewModel: NotificacionesViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    estado.error?.let { mensaje ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = viewModel::limpiarError,
+            text = { Text(mensaje) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = viewModel::limpiarError) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
     NotificacionesContenido(
         estado = estado,
         onVolver = onVolver,

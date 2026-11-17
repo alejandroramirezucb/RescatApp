@@ -32,7 +32,14 @@ class ValidarOfertaUseCase @Inject constructor(private val validarCampos: Valida
             precioRescate = erroresCampos.precioRescate,
             cantidadDisponible = erroresCampos.cantidadDisponible,
             horaRetiroDesde = erroresCampos.horaRetiroDesde,
-            horaRetiroHasta = erroresCampos.horaRetiroHasta
+            horaRetiroHasta = erroresCampos.horaRetiroHasta,
+            fechaRetiro = "Indica una fecha valida desde hoy (AAAA-MM-DD)".takeIf {
+                val fecha = runCatching {
+                    java.time.LocalDate.parse(campos.fechaRetiro)
+                }.getOrNull()
+                fecha == null ||
+                    fecha.isBefore(java.time.LocalDate.now(java.time.ZoneId.of("America/La_Paz")))
+            }
         )
     }
 }

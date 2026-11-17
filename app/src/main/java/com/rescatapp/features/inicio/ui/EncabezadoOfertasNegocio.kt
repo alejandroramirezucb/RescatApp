@@ -44,7 +44,7 @@ internal fun EncabezadoOfertasNegocio() {
                 )
             }
             Text(
-                text = UsuarioDemo.NEGOCIO_DEMO,
+                text = UsuarioDemo.negocioActual,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)

@@ -21,3 +21,7 @@ AGENTS.md
 
 .DS_Store
 Thumbs.db
+
+# Capturas de datos para migracion: no publicar registros en Git.
+/supabase/migracion/capturas/
+/supabase.local.properties

@@ -10,9 +10,10 @@ class AvanzarPedidoUseCase @Inject constructor(
     private val repositorioPedidos: RepositorioPedidos,
     private val gestorNotificaciones: GestorNotificaciones? = null
 ) {
-    suspend operator fun invoke(pedidoId: Int): ResultadoOperacion {
+    suspend operator fun invoke(pedidoId: Int, codigoRescate: String? = null): ResultadoOperacion {
         val pedido = repositorioPedidos.buscarPorId(pedidoId)
             ?: return ResultadoOperacion.Error(MensajesPedidos.PEDIDO_NO_ENCONTRADO)
+        if (repositorioPedidos.conectado) return repositorioPedidos.avanzar(pedido, codigoRescate)
         val siguienteEstado = pedido.estado.siguiente()
             ?: return ResultadoOperacion.Error("El pedido ya está ${pedido.estado.etiqueta}")
 

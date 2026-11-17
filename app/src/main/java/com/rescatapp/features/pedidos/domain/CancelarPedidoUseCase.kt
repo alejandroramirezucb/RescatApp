@@ -13,6 +13,7 @@ class CancelarPedidoUseCase @Inject constructor(
     private val gestorNotificaciones: GestorNotificaciones? = null
 ) {
     suspend operator fun invoke(pedidoId: Int): ResultadoOperacion {
+        if (repositorioPedidos.conectado) return repositorioPedidos.cancelar(pedidoId)
         val pedido = repositorioPedidos.buscarPorId(pedidoId)
             ?: return ResultadoOperacion.Error(MensajesPedidos.PEDIDO_NO_ENCONTRADO)
         if (pedido.estado != EstadoPedido.RESERVADO) {

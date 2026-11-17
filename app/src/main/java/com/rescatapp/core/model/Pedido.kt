@@ -15,11 +15,13 @@ data class Pedido(
     val horaRetiroHasta: String,
     val estado: EstadoPedido,
     val imagenUri: String? = null,
-    val fecha: LocalDate = LocalDate.now()
+    val fecha: LocalDate = LocalDate.now(),
+    val codigoServidor: String? = null,
+    val fechaRetiro: LocalDate = fecha
 ) {
     val estaActivo: Boolean
         get() = !estado.esFinal
 
     val codigoRescate: String
-        get() = "#APV-100$id"
+        get() = codigoServidor ?: "#APV-100$id"
 }

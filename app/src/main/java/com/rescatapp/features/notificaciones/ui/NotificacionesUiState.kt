@@ -4,5 +4,6 @@ import com.rescatapp.core.model.Notificacion
 
 data class NotificacionesUiState(
     val notificaciones: List<Notificacion> = emptyList(),
-    val conteoNoLeidas: Int = 0
+    val conteoNoLeidas: Int = 0,
+    val error: String? = null
 )

@@ -9,13 +9,14 @@ data class RegistroUsuarioUiState(
     val errores: ErroresRegistro = ErroresRegistro(),
     val cargando: Boolean = false,
     val errorGeneral: String? = null,
-    val sesionIniciada: Boolean = false
+    val sesionIniciada: Boolean = false,
+    val confirmacionPendiente: Boolean = false
 ) {
     val esNegocio: Boolean
         get() = datos.rol == RolUsuario.NEGOCIO
 
     val botonHabilitado: Boolean
-        get() = !cargando &&
+        get() = !cargando && !confirmacionPendiente &&
             datos.nombre.isNotBlank() &&
             datos.correo.isNotBlank() &&
             datos.contrasena.isNotBlank() &&

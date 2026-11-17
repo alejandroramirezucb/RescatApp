@@ -57,6 +57,8 @@ internal fun EditorOferta(
     var precioRescate by remember { mutableStateOf(oferta.precioRescate.toString()) }
     var horaDesde by remember { mutableStateOf(oferta.horaRetiroDesde) }
     var horaHasta by remember { mutableStateOf(oferta.horaRetiroHasta) }
+    var fecha by remember { mutableStateOf(oferta.fechaRetiro.toString()) }
+    val fechaValida = runCatching { java.time.LocalDate.parse(fecha) }.getOrNull()
     var mostrarErrores by remember { mutableStateOf(false) }
     val validarCampos = remember { ValidadorCamposOferta() }
     val errores = validarCampos(
@@ -72,13 +74,14 @@ internal fun EditorOferta(
         {
             gestorFoco.clearFocus()
             mostrarErrores = true
-            if (!errores.hayErrores) {
+            if (!errores.hayErrores && fechaValida != null) {
                 onGuardar(
                     oferta.copy(
                         cantidadDisponible = cantidad.trim().toInt(),
                         precioRescate = checkNotNull(precioRescate.aDecimalOrNull()),
                         horaRetiroDesde = horaDesde.trim(),
-                        horaRetiroHasta = horaHasta.trim()
+                        horaRetiroHasta = horaHasta.trim(),
+                        fechaRetiro = checkNotNull(fechaValida)
                     )
                 )
             }
@@ -120,6 +123,16 @@ internal fun EditorOferta(
                 tipoTeclado = KeyboardType.Decimal,
                 destacarBordeNaranja = true,
                 onValorCambiado = { precioRescate = it }
+            )
+            CampoConError(
+                etiqueta = "Fecha de retiro",
+                valor = fecha,
+                onValorCambiado = { fecha = it },
+                ejemplo = "AAAA-MM-DD",
+                error = "Fecha no valida".takeIf {
+                    mostrarErrores &&
+                        fechaValida == null
+                }
             )
             Text(text = "Horario de retiro", style = MaterialTheme.typography.titleSmall)
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

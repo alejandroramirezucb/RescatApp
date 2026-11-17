@@ -31,6 +31,7 @@ class PedidosViewModel @Inject constructor(
     private val pestana = MutableStateFlow(PestanaPedidos.ACTIVOS)
     private val mensaje = MutableStateFlow<String?>(null)
     private var cancelacionEnCurso = false
+    private var avanceEnCurso = false
 
     val uiState: StateFlow<PedidosUiState> =
         combine(
@@ -60,9 +61,19 @@ class PedidosViewModel @Inject constructor(
         pestana.value = pestanaElegida
     }
 
-    fun avanzar(pedidoId: Int) {
+    fun avanzar(pedidoId: Int, codigoRescate: String? = null) {
+        if (avanceEnCurso) return
+        avanceEnCurso = true
         viewModelScope.launch {
-            mostrarErrorSiFalla(avanzarPedido(pedidoId))
+            try {
+                mostrarErrorSiFalla(avanzarPedido(pedidoId, codigoRescate))
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                mensaje.value = "No se pudo actualizar el pedido. Intenta nuevamente."
+            } finally {
+                avanceEnCurso = false
+            }
         }
     }
 

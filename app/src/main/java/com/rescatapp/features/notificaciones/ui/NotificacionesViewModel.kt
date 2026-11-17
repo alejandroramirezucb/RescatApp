@@ -7,7 +7,9 @@ import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -20,15 +22,19 @@ class NotificacionesViewModel @Inject constructor(
     private val repositorioNotificaciones: RepositorioNotificaciones
 ) : ViewModel() {
 
+    private val mensaje = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<NotificacionesUiState> =
         UsuarioDemo.rol.flatMapLatest { rol ->
             combine(
                 repositorioNotificaciones.observarPorRol(rol),
-                repositorioNotificaciones.contarNoLeidas(rol)
-            ) { notificaciones, noLeidas ->
+                repositorioNotificaciones.contarNoLeidas(rol),
+                mensaje
+            ) { notificaciones, noLeidas, error ->
                 NotificacionesUiState(
                     notificaciones = notificaciones,
-                    conteoNoLeidas = noLeidas
+                    conteoNoLeidas = noLeidas,
+                    error = error
                 )
             }
         }.stateIn(
@@ -38,26 +44,42 @@ class NotificacionesViewModel @Inject constructor(
         )
 
     fun marcarComoLeida(id: String) {
-        viewModelScope.launch {
+        operar {
             repositorioNotificaciones.marcarComoLeida(id)
         }
     }
 
     fun marcarTodasComoLeidas() {
-        viewModelScope.launch {
+        operar {
             repositorioNotificaciones.marcarTodasComoLeidas(UsuarioDemo.rol.value)
         }
     }
 
     fun eliminar(id: String) {
-        viewModelScope.launch {
+        operar {
             repositorioNotificaciones.eliminar(id)
         }
     }
 
     fun limpiarTodas() {
-        viewModelScope.launch {
+        operar {
             repositorioNotificaciones.eliminarTodas(UsuarioDemo.rol.value)
+        }
+    }
+    fun limpiarError() {
+        mensaje.value = null
+    }
+
+    private fun operar(accion: suspend () -> Unit) {
+        viewModelScope.launch {
+            try {
+                accion()
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                mensaje.value =
+                    "No se pudo actualizar la notificacion. Revisa tu conexion y reintenta."
+            }
         }
     }
 }

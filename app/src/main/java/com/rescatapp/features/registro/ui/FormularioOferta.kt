@@ -94,6 +94,15 @@ fun FormularioOferta(
             onValorCambiado = { onCampoCambiado(campos.copy(cantidadDisponible = it)) },
             error = errores.cantidadDisponible
         )
+        CampoConError(
+            etiqueta = "Fecha de retiro",
+            valor = campos.fechaRetiro,
+            ejemplo = "2026-11-18",
+            onValorCambiado = {
+                onCampoCambiado(campos.copy(fechaRetiro = it))
+            },
+            error = errores.fechaRetiro
+        )
         FilaCamposOferta(
             primero = { espacio ->
                 CampoConError(

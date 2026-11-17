@@ -14,7 +14,7 @@ Aplicación Android para rescatar alimentos. Los comercios publican sus excedent
 4. [Estructura del proyecto](#estructura-del-proyecto)
 5. [Arquitectura](#arquitectura)
 6. [Persistencia local con Room](#persistencia-local-con-room)
-7. [Consumo de API REST con Retrofit y MockAPI](#consumo-de-api-rest-con-retrofit-y-mockapi)
+7. [Conexion REST con Supabase](#conexion-rest-con-supabase)
 8. [Dónde se cumple cada punto de la guía técnica](#dónde-se-cumple-cada-punto-de-la-guía-técnica)
 9. [Guion de la demostración técnica (12 pasos)](#guion-de-la-demostración-técnica-12-pasos)
 10. [Preguntas de la defensa técnica](#preguntas-de-la-defensa-técnica)
@@ -26,8 +26,9 @@ Aplicación Android para rescatar alimentos. Los comercios publican sus excedent
 ## Cómo ejecutar
 
 1. Abrir la carpeta del proyecto en Android Studio.
-2. Esperar la sincronización de Gradle.
-3. Elegir un emulador o dispositivo físico y presionar **Run**.
+2. Copiar `supabase.local.properties.example` a `supabase.local.properties` y completar la URL y la clave publica de Supabase.
+3. Esperar la sincronización de Gradle.
+4. Elegir un emulador o dispositivo físico y presionar **Run**.
 
 | Comando | Qué hace |
 | --- | --- |
@@ -49,7 +50,7 @@ El [CI de GitHub](.github/workflows/android.yml) valida compilación, pruebas y 
 | **Navigation Compose** | Navegación multipantalla con `NavController`, `NavHost` y rutas tipadas |
 | **Hilt (Dagger)** | Inyección de dependencias para repositorios, DAOs, base de datos y ViewModels |
 | **Room Database** | Persistencia local en SQLite con `@Entity`, `@Dao`, `TypeConverters` y flujos `Flow` |
-| **Retrofit 2 + OkHttp + Gson** | Cliente HTTP para consumo de API REST sobre MockAPI con operaciones CRUD |
+| **OkHttp + Gson** | Conexion REST con Supabase Auth, PostgreSQL y Storage |
 | **StateFlow + ViewModel** | Manejo de estado reactivo desacoplado del ciclo de vida de la UI |
 | **JUnit + Coroutines Test** | Pruebas unitarias para reglas de negocio, persistencia y estado |
 | **Spotless + ktlint** | Formato de código automatizado y uniforme |
@@ -165,7 +166,7 @@ Consecuencias en el código:
 | Seguridad y Hashing de contraseñas | [SeguridadAuth.kt](app/src/main/java/com/rescatapp/features/auth/data/SeguridadAuth.kt) |
 | Componentes comunes de Login y Registro | [ComponentesAuth.kt](app/src/main/java/com/rescatapp/features/auth/ui/ComponentesAuth.kt) |
 
-Cuentas de demostración: `invitado@example.com` / `cliente123` (cliente) y `contacto@lacentral.com` / `negocio123` (negocio).
+Usar las cuentas confirmadas creadas en Supabase. No hay acceso de negocio sin autenticacion ni contrasenas de demostracion incorporadas.
 
 ### Notificaciones
 
@@ -207,11 +208,8 @@ com.rescatapp
 │   │   │   ├── PedidoDao.kt
 │   │   │   ├── RescatAppDatabase.kt y ModuloBaseDatos.kt
 │   │   │   └── Entidades y DAOs de cada tabla
-│   │   ├── remote/                  Servicios remotos con Retrofit
-│   │   │   ├── ApiService.kt        GET, POST, PUT, DELETE
-│   │   │   ├── OfertaDto.kt         DTO y mapeadores hacia el dominio
-│   │   │   ├── RetrofitClient.kt    Cliente con límite de tiempo y BASE_URL
-│   │   │   └── FuenteOfertasRemotas, RepositorioOfertasRemotas y módulo Hilt
+│   │   ├── remote/                  Contrato de ofertas remotas e inyeccion Hilt
+│   │   │   └── FuenteOfertasRemotas y ModuloOfertasRemotas
 │   │   └── Repositorios locales: ofertas, pedidos, notificaciones y autenticación
 │   ├── domain/                      Casos de uso transversales (cálculo de impacto y roles)
 │   ├── model/                       Modelos de dominio puros (Oferta, Pedido, Notificacion, etc.)
@@ -236,7 +234,7 @@ com.rescatapp
 | Carpeta | Contiene | Enlace |
 | --- | --- | --- |
 | `core/model` | `Oferta`, `Pedido`, los enum y el resultado de las operaciones | [abrir](app/src/main/java/com/rescatapp/core/model) |
-| `core/data` | Persistencia local Room, servicios remotos Retrofit y repositorios | [abrir](app/src/main/java/com/rescatapp/core/data) |
+| `core/data` | Repositorios, cache Room y conexion REST con Supabase | [abrir](app/src/main/java/com/rescatapp/core/data) |
 | `core/domain` | `CalcularImpactoUseCase`, `SeleccionarPedidosPorRol` | [abrir](app/src/main/java/com/rescatapp/core/domain) |
 | `core/designsystem` | Tema y componentes visuales | [abrir](app/src/main/java/com/rescatapp/core/designsystem) |
 | `core/util` | `Conversiones`, `Formateadores` | [abrir](app/src/main/java/com/rescatapp/core/util) |
@@ -260,11 +258,12 @@ Screen  ──►  ViewModel  ──►  UseCase  ──►  Repositorio
 - **`core` no importa ninguna feature.**
 - Solo [navigation/](app/src/main/java/com/rescatapp/navigation) conoce todas las pantallas.
 
-### Catálogo local y ofertas en línea
+### Catalogo compartido y cache por cuenta
 
-Los repositorios locales de ofertas y pedidos persisten sus datos en Room y exponen flujos reactivos `Flow`. En **Mis ofertas**, las pestañas **Activas** y **Finalizadas** muestran el catálogo local; **En línea** consulta y gestiona las publicaciones del negocio en MockAPI mediante Retrofit.
-
-Las operaciones remotas no modifican las ofertas locales ni se sincronizan con Room. El ViewModel mantiene el estado remoto y la interfaz lo observa con `collectAsStateWithLifecycle()`. El catálogo local permanece en Room al reiniciar el proceso; las respuestas remotas se mantienen por separado en el ViewModel.
+Supabase es la fuente compartida de ofertas, pedidos y notificaciones. Los
+repositorios exponen flujos reactivos de la misma conexion. Room conserva una
+cache separada por cuenta; no se atribuyen los antiguos datos locales a los
+usuarios reales. Consultar [la conexion Android](docs/supabase/conexion-android.md).
 
 ### Flujo de una reserva (estado y recomposición)
 
@@ -286,7 +285,7 @@ Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil observan las listas y se 
 | Decisión | Por qué |
 | --- | --- |
 | **Hilt** para inyección de dependencias | Los ViewModels reciben repositorios y casos de uso sin crearlos a mano. Con `@Singleton`, todas las pantallas comparten la misma instancia de cada componente. |
-| **Repositorios locales y fuente remota separada** | Los repositorios locales observan Room; `FuenteOfertasRemotas` permite inyectar Retrofit o una implementación falsa para pruebas. |
+| **Supabase y cache por cuenta** | Repositorios compartidos, permisos RLS y snapshots Room separados por usuario |
 | **`Flow` y `StateFlow`** | Permiten propagar cambios automáticamente desde SQLite hacia la UI sin recargas manuales. |
 | **Un caso de uso por regla** | Cada clase hace una sola cosa (principio de responsabilidad única) y se prueba de forma aislada. |
 | **Formato con Spotless** | Todo el equipo escribe con el mismo estilo; el CI rechaza código sin formatear. |
@@ -307,49 +306,44 @@ Resultado: Detalle, Explorar, Inicio, Pedidos y Perfil observan las listas y se 
 
 ## Persistencia local con Room
 
-Room persiste ofertas, pedidos, notificaciones, usuarios y la sesión activa mediante sus entidades, DAOs, convertidores y `RescatAppDatabase` (versión 3, con migraciones 1→2 y 2→3). Los repositorios realizan escrituras suspendidas y observan sus tablas mediante `Flow`; el módulo Hilt precarga los datos de ejemplo.
+La conexion usa `supabase_cache.db` para guardar snapshots por cuenta y recurso.
+El servidor conserva los datos compartidos y privados; Room permite recuperar
+la ultima lectura del usuario sin mezclar cuentas. Los tokens se cifran con
+Android Keystore y no se guardan en Room.
 
-El issue #71 agrega gestión remota separada: publicar, editar o eliminar en MockAPI no modifica el catálogo local de Room. No hay sincronización automática ni caché persistente de las respuestas remotas.
+La estructura anterior de `rescatapp.db` se conserva para compatibilidad con las
+migraciones y pruebas locales; no es la fuente del flujo conectado ni se importa
+automaticamente a Supabase.
 
 ---
 
-## Consumo de API REST con Retrofit y MockAPI
+## Conexion REST con Supabase
 
-El consumo de servicios remotos está configurado con Retrofit y OkHttp contra un proyecto dedicado en **MockAPI.io**:
+La URL base y la clave publica se leen de `supabase.local.properties` o de las
+variables de entorno equivalentes. El archivo local esta excluido de Git.
 
-* **Permiso de red:** Declarado en [AndroidManifest.xml](app/src/main/AndroidManifest.xml) con `<uses-permission android:name="android.permission.INTERNET" />`.
-* **Contrato ApiService:**
-  * `@GET("ofertas") suspend fun obtenerOfertas(): List<OfertaDto>`
-  * `@POST("ofertas") suspend fun crearOferta(@Body oferta: OfertaDto): OfertaDto`
-  * `@PUT("ofertas/{id}") suspend fun actualizarOferta(@Path("id") id: String, @Body oferta: OfertaDto): OfertaDto`
-  * `@DELETE("ofertas/{id}") suspend fun eliminarOferta(@Path("id") id: String)`
-* **Modelos DTO y desacoplamiento:** Gson convierte las respuestas a `OfertaDto`; los mapeadores transforman los DTO a modelos de dominio y rechazan identificadores remotos inválidos.
-* **Manejo de estados asíncronos:** La capa de presentación maneja `EstadoRemoto`:
-  * **Cargando:** muestra un `CircularProgressIndicator` mientras la petición está en curso.
-  * **Éxito:** presenta las ofertas remotas del negocio, cada una identificada como **En línea**. Una respuesta vacía muestra un estado vacío.
-  * **Error:** distingue conexión, servidor y conversión, mostrando un mensaje legible y **Reintentar** para repetir el GET.
+| Recurso | Ruta |
+| --- | --- |
+| Autenticacion y sesiones | `/auth/v1/...` |
+| Ofertas, perfiles y negocios | `/rest/v1/ofertas`, `/rest/v1/perfiles`, `/rest/v1/negocios` |
+| Pedidos y notificaciones | `/rest/v1/pedidos`, `/rest/v1/notificaciones` |
+| Reservas, cancelaciones, estados y eliminacion | `/rest/v1/rpc/...` |
+| Fotografias | `/storage/v1/...` |
 
-### Mis ofertas en línea — issue #71
+`SupabaseHttp` realiza las solicitudes con OkHttp y Gson.
+`SupabaseConexion` coordina autenticacion, cache, Storage y operaciones seguras.
+`FuenteOfertasSupabase` implementa el contrato que consume Mis ofertas mediante
+Hilt. Los permisos RLS y las RPC validan al usuario en el servidor.
 
-1. Cambiar a rol negocio en Perfil y abrir **Mis ofertas**.
-2. Seleccionar **En línea**: ejecuta GET al entrar, muestra progreso y luego éxito o error. Repetir la selección o recomponer la pantalla no duplica solicitudes en curso.
-3. En **Activas**, pulsar **Publicar en línea**: envía POST, usa el ID del servidor, abre **En línea** y vuelve a consultar las publicaciones. Si falla esa consulta posterior, reintentar repite solo GET, no POST.
-4. En una tarjeta remota, **Editar** valida unidades (enteras, 0 o más), precio de rescate (positivo y menor al normal) y horario (`HH:mm`, fin posterior al inicio), y envía PUT. **Eliminar** requiere confirmación y envía DELETE.
-5. Las mutaciones muestran progreso, bloquean acciones duplicadas y actualizan la lista solo después del éxito. Si fallan, conservan los datos anteriores y ofrecen **Reintentar operación**. Una cancelación de corrutina no se presenta como error de red. El cliente tiene un límite de 30 segundos por llamada.
+El catalogo se actualiza despues de las escrituras y cada 10 segundos mientras
+la app esta visible. Las operaciones de reserva y cancelacion modifican el stock
+en el servidor. Eliminar una oferta conserva los pedidos anteriores.
 
-**Pruebas:** `OfertasNegocioViewModelTest` y `OfertasNegocioOperacionesRemotasTest` usan una fuente remota falsa (`FuenteRemotaFalsa`) con respuestas suspendidas para verificar las transiciones y el CRUD; `RepositorioOfertasRemotasTest` comprueba el contrato HTTP con MockWebServer; `OfertasNegocioScreenTest` y `OfertasNegocioEdicionScreenTest` comprueban carga/error, publicación, validación y confirmación de eliminación con Compose y Robolectric.
+La integracion anterior y su URL se retiraron. Los campos `origen=mockapi`,
+`legacy_id` y los nombres `mockapi-*.jpg` identifican los datos ya importados;
+no realizan conexiones al servicio anterior.
 
-```powershell
-.\gradlew.bat spotlessCheck :app:testDebugUnitTest :app:assembleDebug
-```
-
-**Comprobación manual:** desconectar Internet y entrar a **En línea**, comprobar el error, reconectar y pulsar **Reintentar**. Publicar una oferta local, editar la publicación y eliminarla después de probar también **Cancelar**. Verificar las etiquetas de origen y que los indicadores desaparezcan tanto ante éxito como ante error.
-
-### Validación de edición — issue #78
-
-El diálogo de edición muestra errores debajo de cada campo y bloquea el guardado si la cantidad no es un entero mayor o igual a 0, el precio no es positivo y menor al normal o el horario no cumple `HH:mm` con fin posterior al inicio. Los errores se actualizan al corregir los campos después del primer intento de guardar.
-
-Las reglas están en `core/domain/ValidadorCamposOferta`, compartido por `ValidarOfertaUseCase` y el diálogo: no se duplican reglas en la interfaz. El registro sigue exigiendo cantidad mayor a 0; la edición admite 0 para marcar una oferta agotada. Las pruebas del validador cubren valores vacíos, texto no numérico, límites, formatos, horarios y datos válidos; la prueba Compose verifica el error inline y el guardado posterior.
+Configuracion y flujos de uso: [conexion-android.md](docs/supabase/conexion-android.md).
 
 ---
 
@@ -387,10 +381,10 @@ Las reglas están en `core/domain/ValidadorCamposOferta`, compartido por `Valida
   ```
 * **Recuperación completa:** Al seleccionar la categoría "Todas" y limpiar el texto, la consulta recupera la lista completa de registros.
 
-### §3.6. Consumo de API REST con Retrofit
-* **Conexión a MockAPI:** `BASE_URL` funcional con `ApiService`, DTOs de red y mapeadores de dominio.
-* **Operaciones CRUD:** Soporte completo de operaciones `GET`, `POST`, `PUT` y `DELETE` remotas.
-* **Permiso de Internet:** Declarado en el manifest de la aplicación.
+### §3.6. Consumo de API REST con Supabase
+* **Conexion:** URL configurable, cliente OkHttp y serializacion Gson.
+* **Operaciones:** GET, POST, PATCH y DELETE segun el recurso; reservas y estados mediante RPC.
+* **Permisos:** Internet en Android y RLS por usuario en el servidor.
 
 ### §3.7. Manejo de estados de carga y errores
 * **Indicador de progreso:** `CircularProgressIndicator` visible mientras se consulta el backend.
@@ -415,11 +409,11 @@ El siguiente guion permite comprobar en vivo los 12 pasos exigidos en la Secció
 | **4** | Corregir datos válidos (Pack Croissants · Panadería · 40 · 20 · 4 un. · 18:00 a 20:00) y pulsar "Publicar oferta" | La pantalla se cierra y la oferta aparece de primera en Explorar e Inicio | Reflejo en listado |
 | **5** | Tocar la oferta recién creada en la lista | Abre la pantalla **Detalle** mostrando precio normal, precio de rescate, ahorro, peso y horario | Detalle de registro |
 | **6** | Desde el flujo de negocio, editar la oferta cambiando el precio o stock | El cambio se guarda y se refleja inmediatamente en toda la app sin recargar | Actualización de registro |
-| **7** | En Mis ofertas → En línea, pulsar "Eliminar" y confirmar | La oferta desaparece del servidor y de la lista remota | DELETE remoto con confirmación |
-| **8** | Cerrar y volver a abrir la app | Las publicaciones remotas se recuperan al entrar a En línea; los cambios locales se conservan en Room | Persistencia local con Room |
+| **7** | Eliminar una oferta propia y confirmar | Se oculta del catalogo; el historial de pedidos se conserva |
+| **8** | Cerrar y volver a abrir la app | Se restaura la sesion y se sincronizan los datos de esa cuenta |
 | **9** | En Explorar, escribir "Pan" y seleccionar "Panadería" | Se filtra mediante SQL; al limpiar texto y volver a "Todas" se restaura la lista | Filtro SQL con Room |
-| **10** | Ir a la pestaña "En línea" en Mis ofertas | Se muestra un indicador de carga mientras Retrofit ejecuta el `GET` sobre MockAPI y lista las ofertas remotas | Consulta GET remota |
-| **11** | Pulsar "Publicar en línea" sobre una oferta local | Se ejecuta `POST` contra MockAPI y el registro aparece en el servidor remoto | Operaciones remotas adicionales |
+| **10** | Consultar Mis ofertas | Se muestran las ofertas vinculadas al propietario autenticado |
+| **11** | Crear una oferta | Se guarda directamente en Supabase y aparece en el catalogo compartido |
 | **12** | Desconectar el Wi-Fi / Datos en el emulador y pulsar "Reintentar" | Se captura el error de red, no hay crash y se muestra el banner de fallo con botón de reintento | Estados de carga y error |
 
 ---
@@ -441,7 +435,7 @@ Cada archivo tiene una sola responsabilidad: facilita la lectura, la realizació
 Room es una capa de abstracción sobre SQLite. Los datos residen en el almacenamiento interno del dispositivo. Gracias a `@Dao` y funciones `suspend`, las operaciones de inserción y actualización se graban permanentemente en disco, de modo que si el sistema destruye el proceso, los datos continúan presentes al reiniciar la app.
 
 **5. ¿Cómo funciona la arquitectura Single Source of Truth (SSOT)?**\
-Room es la fuente de los datos locales, observada mediante `Flow`. El ViewModel de Mis ofertas mantiene el estado remoto por separado; no inserta las respuestas de MockAPI en Room.
+Supabase es la fuente compartida. La conexion publica flujos para las pantallas y Room mantiene una cache separada por cuenta.
 
 **6. ¿Cómo se implementa el filtro dinámico con WHERE en Room?**\
 La consulta de `OfertaDao` filtra los registros locales por categoría y texto:
@@ -455,7 +449,7 @@ Si el parámetro de categoría es nulo, la condición se anula y SQLite devuelve
 - **Argumentos de ruta**, solo con identificadores mínimos: [detalle/{ofertaId}](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L19) y [explorar?categoria=POSTRES](app/src/main/java/com/rescatapp/navigation/Rutas.kt#L16). El ViewModel de destino los lee con `SavedStateHandle`.
 - **Repositorios compartidos**: los datos locales residen en Room y los observan los ViewModels con flujos reactivos.
 
-**8. ¿Cómo se manejan los errores de red en Retrofit sin colgar la app?**\
+**8. ¿Como se manejan los errores de red sin colgar la app?**\
 El repositorio propaga los errores y el ViewModel los traduce a mensajes para conexión, HTTP o conversión. En el GET se expone `EstadoRemoto.Error(mensaje)`; en las mutaciones se conserva la lista y se expone el error de operación. Compose muestra el mensaje y la acción de reintento correspondiente.
 
 **9. ¿Qué previene que se queden estados de carga colgados?**\

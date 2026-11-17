@@ -18,8 +18,7 @@ internal fun SesionPerfil(
             text = if (estado.estaAutenticado) {
                 "Tienes una sesión iniciada con ${estado.correo}."
             } else {
-                "Estás explorando con un perfil de demostración. " +
-                    "Puedes iniciar sesión o crear una cuenta."
+                "Estas explorando como invitado. Inicia sesion para guardar tus pedidos en tu cuenta."
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant

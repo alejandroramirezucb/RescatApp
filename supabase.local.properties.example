@@ -1,0 +1,5 @@
+# Copiar a supabase.local.properties en la raiz del proyecto.
+# No usar comillas. No pegar contrasenas, claves secretas ni service_role.
+# Android leera este archivo cuando se implemente la integracion.
+SUPABASE_URL=https://TU_PROYECTO.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_REEMPLAZAR

@@ -38,7 +38,8 @@ internal fun TarjetaOfertaNegocio(
     procesando: Boolean,
     onEditar: () -> Unit,
     onPublicar: (() -> Unit)?,
-    onEliminar: () -> Unit
+    onEliminar: () -> Unit,
+    onCambiarEstado: (() -> Unit)? = null
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -71,7 +72,11 @@ internal fun TarjetaOfertaNegocio(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = if (esRemota) "En línea" else "Local",
+                        text = if (esRemota) {
+                            "${oferta.estadoPublicacion} | Retiro ${oferta.fechaRetiro}"
+                        } else {
+                            "Local"
+                        },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.labelMedium
                     )
@@ -90,6 +95,11 @@ internal fun TarjetaOfertaNegocio(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.End
             ) {
+                onCambiarEstado?.let {
+                    TextButton(onClick = it, enabled = habilitada) {
+                        Text(if (oferta.estadoPublicacion == "PAUSADA") "Reactivar" else "Pausar")
+                    }
+                }
                 if (!esRemota) {
                     onPublicar?.let {
                         TextButton(onClick = it, enabled = habilitada) {

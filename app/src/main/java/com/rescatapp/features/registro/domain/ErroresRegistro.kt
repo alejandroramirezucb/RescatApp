@@ -10,7 +10,8 @@ data class ErroresRegistro(
     val precioRescate: String? = null,
     val cantidadDisponible: String? = null,
     val horaRetiroDesde: String? = null,
-    val horaRetiroHasta: String? = null
+    val horaRetiroHasta: String? = null,
+    val fechaRetiro: String? = null
 ) {
     val hayErrores: Boolean
         get() = listOfNotNull(
@@ -23,6 +24,7 @@ data class ErroresRegistro(
             precioRescate,
             cantidadDisponible,
             horaRetiroDesde,
-            horaRetiroHasta
+            horaRetiroHasta,
+            fechaRetiro
         ).isNotEmpty()
 }

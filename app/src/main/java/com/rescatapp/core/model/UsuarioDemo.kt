@@ -11,6 +11,13 @@ object UsuarioDemo {
     const val NEGOCIO_DEMO = "Panadería La Central"
     const val CORREO_NEGOCIO = "contacto@lacentral.com"
 
+    var negocioActual: String = NEGOCIO_DEMO
+        private set
+
+    fun actualizarNegocio(nombre: String?) {
+        negocioActual = nombre ?: NEGOCIO_DEMO
+    }
+
     private val rolActual = MutableStateFlow(RolUsuario.CLIENTE)
     val rol: StateFlow<RolUsuario> = rolActual.asStateFlow()
 

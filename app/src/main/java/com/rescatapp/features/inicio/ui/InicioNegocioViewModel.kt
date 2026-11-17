@@ -28,26 +28,30 @@ class InicioNegocioViewModel @Inject constructor(
 
     val uiState: StateFlow<InicioNegocioUiState> =
         combine(
-            repositorioOfertas.ofertas,
+            repositorioOfertas.propias,
             repositorioPedidos.pedidos,
             repositorioNotificaciones.contarNoLeidas(RolUsuario.NEGOCIO)
         ) { ofertas, pedidos, noLeidas ->
-            val negocio = UsuarioDemo.NEGOCIO_DEMO
-            val ofertasNegocio = ofertas.filter { it.comercio == negocio }
+            val negocio = UsuarioDemo.negocioActual
+            val ofertasNegocio = ofertas
             val pedidosNegocio = seleccionarPedidosPorRol(pedidos, RolUsuario.NEGOCIO)
             val pedidosVigentes = pedidosNegocio.filter {
-                it.estado != EstadoPedido.CANCELADO
+                it.estado == EstadoPedido.RECOGIDO &&
+                    it.fecha == java.time.LocalDate.now(java.time.ZoneId.of("America/La_Paz"))
             }
             val ventasTotal = pedidosVigentes.sumOf { it.precioPagado }
             val rescatadosTotal = pedidosNegocio.count {
-                it.estado == EstadoPedido.RECOGIDO || it.estado == EstadoPedido.LISTO
+                it.estado == EstadoPedido.RECOGIDO
             }
 
             InicioNegocioUiState(
                 nombreNegocio = negocio,
                 ventasHoy = ventasTotal.formatearDinero(),
                 cantidadPedidos = pedidosNegocio.size,
-                ofertasActivas = ofertasNegocio.count { !it.estaAgotada },
+                ofertasActivas = ofertasNegocio.count {
+                    !it.estaAgotada &&
+                        it.estadoPublicacion == "ACTIVA"
+                },
                 rescatados = rescatadosTotal,
                 pedidosRecientes = pedidosNegocio.sortedByDescending { it.id },
                 ventasSemana = calcularVentasSemana(pedidosNegocio),

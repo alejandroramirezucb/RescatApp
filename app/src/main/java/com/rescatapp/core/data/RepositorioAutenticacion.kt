@@ -20,15 +20,22 @@ import kotlinx.coroutines.flow.map
 @Singleton
 class RepositorioAutenticacion @Inject constructor(
     private val usuarioDao: UsuarioDao,
-    private val sesionDao: SesionDao
+    private val sesionDao: SesionDao,
+    private val supabase: com.rescatapp.core.data.supabase.SupabaseConexion? = null
 ) {
-    val sesionActual: Flow<SesionUsuario?> = sesionDao.observarSesion().map { it?.toDomain() }
+    val sesionActual: Flow<SesionUsuario?> =
+        supabase?.sesion ?: sesionDao.observarSesion().map { it?.toDomain() }
 
     suspend fun sincronizarSesion() {
+        if (supabase != null) {
+            supabase.inicializar()
+            return
+        }
         sesionDao.obtenerSesion()?.let { UsuarioDemo.cambiarRol(it.rol) }
     }
 
     suspend fun iniciarSesion(correo: String, contrasena: String): ResultadoOperacion {
+        if (supabase != null) return supabase.login(correo, contrasena)
         val usuario = buscarUsuario(correo)
             ?: return ResultadoOperacion.Error(
                 "No existe una cuenta registrada con este correo electrónico."
@@ -40,6 +47,13 @@ class RepositorioAutenticacion @Inject constructor(
     }
 
     suspend fun iniciarSesionDemo(esNegocio: Boolean): ResultadoOperacion {
+        if (supabase !=
+            null
+        ) {
+            return ResultadoOperacion.Error(
+                "Ingresa con el correo y la contrasena de tu cuenta real."
+            )
+        }
         val correo = if (esNegocio) UsuarioDemo.CORREO_NEGOCIO else UsuarioDemo.CORREO
         val usuario = buscarUsuario(correo)
             ?: return ResultadoOperacion.Error("No se encontró la cuenta de demostración.")
@@ -47,6 +61,7 @@ class RepositorioAutenticacion @Inject constructor(
     }
 
     suspend fun registrarUsuario(datos: DatosRegistro): ResultadoOperacion {
+        if (supabase != null) return supabase.registrar(datos)
         if (buscarUsuario(datos.correo) != null) {
             return ResultadoOperacion.Error(
                 "Ya existe una cuenta registrada con este correo electrónico."
@@ -67,6 +82,10 @@ class RepositorioAutenticacion @Inject constructor(
     }
 
     suspend fun cerrarSesion() {
+        if (supabase != null) {
+            supabase.logout()
+            return
+        }
         sesionDao.limpiarSesion()
         UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
     }

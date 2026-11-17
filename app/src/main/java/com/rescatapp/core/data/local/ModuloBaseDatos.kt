@@ -97,33 +97,14 @@ object ModuloBaseDatos {
 
     @Provides
     @Singleton
-    fun proveerRescatAppDatabase(
-        @ApplicationContext contexto: Context,
-        databaseProvider: Provider<RescatAppDatabase>
-    ): RescatAppDatabase = Room.databaseBuilder(
-        contexto,
-        RescatAppDatabase::class.java,
-        RescatAppDatabase.NOMBRE_BASE_DATOS
-    ).addMigrations(MIGRACION_1_2, MIGRACION_2_3)
-        .addCallback(object : RoomDatabase.Callback() {
-            override fun onCreate(db: SupportSQLiteDatabase) {
-                super.onCreate(db)
-                CoroutineScope(Dispatchers.IO).launch {
-                    val database = databaseProvider.get()
-                    database.ofertaDao().insertarTodas(
-                        ofertasDeEjemplo.map { it.toEntity() }
-                    )
-                    database.pedidoDao().insertarTodos(
-                        pedidosDeEjemplo.map { it.toEntity() }
-                    )
-                    database.usuarioDao().insertarTodos(
-                        UsuariosDeEjemplo.todos.map { it.toEntity() }
-                    )
-                }
-            }
-        })
-        .fallbackToDestructiveMigration(dropAllTables = true)
-        .build()
+    fun proveerRescatAppDatabase(@ApplicationContext contexto: Context): RescatAppDatabase =
+        Room.databaseBuilder(
+            contexto,
+            RescatAppDatabase::class.java,
+            RescatAppDatabase.NOMBRE_BASE_DATOS
+        ).addMigrations(MIGRACION_1_2, MIGRACION_2_3)
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
 
     @Provides
     fun proveerPedidoDao(database: RescatAppDatabase): PedidoDao = database.pedidoDao()

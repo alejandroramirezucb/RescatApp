@@ -48,7 +48,11 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
                 pedidoParaConfirmarRetiro = null
                 viewModel.avanzar(pedido.id)
             },
-            onDescartar = { pedidoParaConfirmarRetiro = null }
+            onDescartar = { pedidoParaConfirmarRetiro = null },
+            onCodigoConfirmado = { codigo ->
+                pedidoParaConfirmarRetiro = null
+                viewModel.avanzar(pedido.id, codigo)
+            }
         )
     }
 

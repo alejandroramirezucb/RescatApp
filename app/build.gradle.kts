@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
@@ -24,6 +26,17 @@ spotless {
     }
 }
 
+val supabase = Properties().apply {
+    val archivo = rootProject.file("supabase.local.properties")
+    if (archivo.exists()) archivo.inputStream().use { load(it) }
+}
+fun configuracionSupabase(nombre: String): String {
+    val valor = System.getenv(nombre) ?: supabase.getProperty(nombre).orEmpty()
+    require(valor.isNotBlank()) { "Configura $nombre en supabase.local.properties o en el entorno" }
+    require(!valor.contains('"') && !valor.contains('\\') && !valor.contains('\n'))
+    return "\"$valor\""
+}
+
 android {
     namespace = "com.rescatapp"
     compileSdk = 37
@@ -34,10 +47,13 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "SUPABASE_URL", configuracionSupabase("SUPABASE_URL"))
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", configuracionSupabase("SUPABASE_PUBLISHABLE_KEY"))
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {
@@ -62,8 +78,8 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.coil.compose)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.gson)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.hilt.compiler)

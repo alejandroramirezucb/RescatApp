@@ -10,6 +10,6 @@ import dagger.hilt.components.SingletonComponent
 abstract class ModuloOfertasRemotas {
     @Binds
     abstract fun proveerFuenteOfertasRemotas(
-        repositorio: RepositorioOfertasRemotas
+        repositorio: com.rescatapp.core.data.supabase.FuenteOfertasSupabase
     ): FuenteOfertasRemotas
 }

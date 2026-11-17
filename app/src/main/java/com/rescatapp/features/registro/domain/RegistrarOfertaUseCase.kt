@@ -33,7 +33,9 @@ class RegistrarOfertaUseCase @Inject constructor(
             cantidadDisponible = cantidadDisponible.aEnteroPositivoOrNull() ?: return null,
             horaRetiroDesde = horaRetiroDesde.trim(),
             horaRetiroHasta = horaRetiroHasta.trim(),
-            imagenUri = imagenUri
+            imagenUri = imagenUri,
+            fechaRetiro =
+                runCatching { java.time.LocalDate.parse(fechaRetiro) }.getOrNull() ?: return null
         )
     }
 }

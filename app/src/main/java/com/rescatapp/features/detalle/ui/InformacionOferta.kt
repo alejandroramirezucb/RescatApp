@@ -132,7 +132,10 @@ internal fun InformacionOferta(oferta: Oferta, modifier: Modifier = Modifier) {
                     DatoRetiroOferta(
                         Icons.Outlined.AccessTime,
                         "Horario de retiro",
-                        formatearHorario(oferta.horaRetiroDesde, oferta.horaRetiroHasta)
+                        "${oferta.fechaRetiro} | ${formatearHorario(
+                            oferta.horaRetiroDesde,
+                            oferta.horaRetiroHasta
+                        )}"
                     )
                     DatoRetiroOferta(
                         Icons.Outlined.Scale,

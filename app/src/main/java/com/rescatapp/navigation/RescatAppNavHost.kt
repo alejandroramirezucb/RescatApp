@@ -12,8 +12,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,6 +27,7 @@ import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.core.notification.SolicitudPermisoNotificaciones
+import com.rescatapp.features.auth.ui.SupabaseAuthViewModel
 import com.rescatapp.features.auth.ui.login.LoginScreen
 import com.rescatapp.features.auth.ui.registro.RegistroUsuarioScreen
 import com.rescatapp.features.detalle.ui.DetalleScreen
@@ -40,8 +43,42 @@ import com.rescatapp.features.registro.ui.RegistroScreen
 @Composable
 fun RescatAppNavHost() {
     SolicitudPermisoNotificaciones()
+    val auth: SupabaseAuthViewModel = hiltViewModel()
+    val sesion by auth.sesion.collectAsStateWithLifecycle()
+    val listo by auth.inicializado.collectAsStateWithLifecycle()
+    val errorConexion by auth.errorSincronizacion.collectAsStateWithLifecycle()
+    val aviso by auth.aviso.collectAsStateWithLifecycle()
+    if (!listo) {
+        androidx.compose.material3.CircularProgressIndicator()
+        return
+    }
+    com.rescatapp.features.auth.ui.DialogoNuevaContrasena(auth)
+    aviso?.let { mensaje ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = auth::limpiarAviso,
+            title = { Text("Acceso a tu cuenta") },
+            text = { Text(mensaje) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = auth::limpiarAviso) {
+                    Text("Entendido")
+                }
+            }
+        )
+    }
 
     val navController = rememberNavController()
+    var cuentaAnterior by androidx.compose.runtime.remember {
+        androidx.compose.runtime.mutableStateOf(sesion?.usuarioId)
+    }
+    androidx.compose.runtime.LaunchedEffect(sesion?.usuarioId) {
+        if (cuentaAnterior != sesion?.usuarioId) {
+            cuentaAnterior = sesion?.usuarioId
+            navController.navigate(Rutas.INICIO) {
+                popUpTo(navController.graph.id) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
     val entradaActual by navController.currentBackStackEntryAsState()
     val destinoPrincipal = DestinoPrincipal.desdeRuta(entradaActual?.destination?.route)
     val verDetalle = { ofertaId: Int -> navController.navigate(Rutas.detalle(ofertaId)) }
@@ -52,6 +89,19 @@ fun RescatAppNavHost() {
     val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
 
     Scaffold(
+        topBar = {
+            errorConexion?.let { mensaje ->
+                androidx.compose.foundation.layout.Column {
+                    Text(
+                        mensaje,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+                    )
+                    androidx.compose.material3.TextButton(onClick = auth::sincronizar) {
+                        Text("Reintentar")
+                    }
+                }
+            }
+        },
         bottomBar = {
             destinoPrincipal?.let {
                 BarraNavegacionInferior(it, rol, navController::navegarAPestana)
@@ -101,9 +151,29 @@ fun RescatAppNavHost() {
                 DetalleScreen(onVolver = volver)
             }
             composable(Rutas.REGISTRO) {
-                RegistroScreen(onVolver = volver, onPublicado = volver)
+                if (sesion?.rol ==
+                    RolUsuario.NEGOCIO
+                ) {
+                    RegistroScreen(onVolver = volver, onPublicado = volver)
+                } else {
+                    LoginScreen(
+                        onLoginExitoso = volver,
+                        onIrARegistro = verRegistroUsuario,
+                        onVolver = volver
+                    )
+                }
             }
-            composable(Rutas.PEDIDOS) { PedidosScreen() }
+            composable(Rutas.PEDIDOS) {
+                if (sesion != null) {
+                    PedidosScreen()
+                } else {
+                    LoginScreen(
+                        onLoginExitoso = volver,
+                        onIrARegistro = verRegistroUsuario,
+                        onVolver = volver
+                    )
+                }
+            }
             composable(Rutas.PERFIL) {
                 PerfilScreen(
                     onVerNotificaciones = verNotificaciones,
@@ -111,7 +181,17 @@ fun RescatAppNavHost() {
                     onIrARegistro = verRegistroUsuario
                 )
             }
-            composable(Rutas.OFERTAS_NEGOCIO) { OfertasNegocioScreen() }
+            composable(Rutas.OFERTAS_NEGOCIO) {
+                if (sesion?.rol == RolUsuario.NEGOCIO) {
+                    OfertasNegocioScreen()
+                } else {
+                    LoginScreen(
+                        onLoginExitoso = volver,
+                        onIrARegistro = verRegistroUsuario,
+                        onVolver = volver
+                    )
+                }
+            }
             composable(Rutas.NOTIFICACIONES) {
                 NotificacionesScreen(
                     onVolver = volver,
@@ -126,7 +206,8 @@ fun RescatAppNavHost() {
                             popUpTo(Rutas.LOGIN) { inclusive = true }
                         }
                     },
-                    onVolver = volver
+                    onVolver = volver,
+                    onRecuperar = { navController.navigate("recuperar_acceso") }
                 )
             }
             composable(Rutas.REGISTRO_USUARIO) {
@@ -139,6 +220,9 @@ fun RescatAppNavHost() {
                     },
                     onVolver = volver
                 )
+            }
+            composable("recuperar_acceso") {
+                com.rescatapp.features.auth.ui.RecuperarAccesoScreen(onVolver = volver)
             }
         }
     }

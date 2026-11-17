@@ -32,13 +32,13 @@ class InicioViewModelTest {
         observarDuranteLaPrueba(viewModel.uiState)
         val estado = viewModel.uiState.value
 
-        assertEquals(4, estado.impacto.rescates)
+        assertEquals(2, estado.impacto.rescates)
         assertEquals(14, estado.ofertas.disponibles.size)
         assertEquals(4, estado.ofertas.porAgotarse.size)
     }
 
     @Test
-    fun unaReservaActualizaImpactoYSeccionesSinRecargar() = runTest {
+    fun unaReservaActualizaSeccionesPeroNoGeneraImpactoHastaRecogerse() = runTest {
         val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
         val packCroissants = repositorioOfertas.buscarPorId(13)!!
@@ -47,9 +47,9 @@ class InicioViewModelTest {
         repositorioPedidos.agregar(packCroissants.crearPedido(idPedido = 0))
 
         val estado = viewModel.uiState.value
-        assertEquals(5, estado.impacto.rescates)
-        assertEquals(117.0, estado.impacto.ahorrado, 0.001)
-        assertEquals(4.2, estado.impacto.kgAprovechados, 0.001)
+        assertEquals(2, estado.impacto.rescates)
+        assertEquals(47.0, estado.impacto.ahorrado, 0.001)
+        assertEquals(1.4, estado.impacto.kgAprovechados, 0.001)
         assertEquals(5, estado.ofertas.porAgotarse.size)
     }
 

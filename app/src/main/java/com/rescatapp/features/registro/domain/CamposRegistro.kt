@@ -13,5 +13,8 @@ data class CamposRegistro(
     val cantidadDisponible: String = "",
     val horaRetiroDesde: String = "",
     val horaRetiroHasta: String = "",
-    val imagenUri: String? = null
+    val imagenUri: String? = null,
+    val fechaRetiro: String = java.time.LocalDate.now(
+        java.time.ZoneId.of("America/La_Paz")
+    ).toString()
 )

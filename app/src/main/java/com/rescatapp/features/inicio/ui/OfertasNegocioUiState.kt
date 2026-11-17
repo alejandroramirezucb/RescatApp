@@ -24,7 +24,8 @@ data class OfertasNegocioUiState(
     val operacionEnCurso: OperacionOferta? = null,
     val operacionFallida: OperacionOferta? = null,
     val errorOperacion: String? = null,
-    val mensaje: String? = null
+    val mensaje: String? = null,
+    val sincronizadas: Boolean = false
 ) {
     val ocupado: Boolean
         get() = guardandoLocal || eliminandoLocal ||

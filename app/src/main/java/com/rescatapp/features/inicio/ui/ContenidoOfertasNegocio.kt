@@ -27,7 +27,8 @@ internal fun ListaOfertasNegocio(
     onEditar: (Oferta) -> Unit,
     onEliminar: (Oferta) -> Unit,
     onReintentarOperacion: () -> Unit,
-    onLimpiarMensaje: () -> Unit
+    onLimpiarMensaje: () -> Unit,
+    onCambiarEstado: ((Oferta) -> Unit)? = null
 ) {
     val esRemota = estado.pestana == PestanaOfertas.EN_LINEA
     val ofertas = when (estado.pestana) {
@@ -46,10 +47,12 @@ internal fun ListaOfertasNegocio(
         }
         item {
             Text(
-                text = if (esRemota) {
-                    "Ofertas publicadas en línea"
+                text = if (estado.sincronizadas) {
+                    "Ofertas de tu cuenta"
+                } else if (esRemota) {
+                    "Ofertas publicadas en linea"
                 } else {
-                    "Ofertas locales · En este dispositivo"
+                    "Ofertas locales"
                 },
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -66,7 +69,7 @@ internal fun ListaOfertasNegocio(
             item { ProgresoOfertas("Guardando cambios locales…") }
         }
         if (estado.eliminandoLocal) {
-            item { ProgresoOfertas("Eliminando oferta local.") }
+            item { ProgresoOfertas("Eliminando oferta.") }
         }
         estado.errorOperacion?.let { mensaje ->
             item {
@@ -120,7 +123,7 @@ internal fun ListaOfertasNegocio(
                 Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                     TarjetaOfertaNegocio(
                         oferta = oferta,
-                        esRemota = esRemota,
+                        esRemota = esRemota || estado.sincronizadas,
                         habilitada = !estado.ocupado,
                         procesando = estado.operacionEnCurso?.let {
                             it.oferta.id == oferta.id &&
@@ -132,7 +135,8 @@ internal fun ListaOfertasNegocio(
                         } else {
                             null
                         },
-                        onEliminar = { onEliminar(oferta) }
+                        onEliminar = { onEliminar(oferta) },
+                        onCambiarEstado = onCambiarEstado?.let { accion -> { accion(oferta) } }
                     )
                 }
             }

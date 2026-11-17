@@ -3,10 +3,10 @@ package com.rescatapp.features.inicio.ui
 import com.google.gson.JsonParseException
 import com.google.gson.stream.MalformedJsonException
 import com.rescatapp.core.data.remote.FuenteOfertasRemotas
+import com.rescatapp.core.data.supabase.ErrorSupabase
 import com.rescatapp.core.model.Oferta
 import java.io.EOFException
 import java.io.IOException
-import retrofit2.HttpException
 
 internal suspend fun FuenteOfertasRemotas.aplicarOperacion(
     operacion: OperacionOferta,
@@ -38,7 +38,7 @@ internal fun mensajeDeExito(tipo: TipoOperacionOferta): String = when (tipo) {
 }
 
 internal fun mensajeDeError(error: Exception): String = when (error) {
-    is HttpException -> "El servidor no pudo completar la operación. Inténtalo de nuevo."
+    is ErrorSupabase -> "El servidor no pudo completar la operación. Inténtalo de nuevo."
 
     is JsonParseException, is MalformedJsonException, is EOFException,
     is IllegalArgumentException, is NullPointerException ->

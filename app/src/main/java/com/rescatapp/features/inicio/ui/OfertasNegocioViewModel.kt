@@ -22,16 +22,32 @@ class OfertasNegocioViewModel @Inject constructor(
     private val repositorioRemoto: FuenteOfertasRemotas,
     private val editarOferta: EditarOfertaUseCase
 ) : ViewModel() {
-    private val estado = MutableStateFlow(OfertasNegocioUiState())
+    private val estado =
+        MutableStateFlow(OfertasNegocioUiState(sincronizadas = repositorioOfertas.conectado))
     val uiState = estado.asStateFlow()
     private var ofertasRemotas = emptyList<Oferta>()
 
     init {
         viewModelScope.launch {
-            repositorioOfertas.ofertas.collect { ofertas ->
-                val propias = ofertas.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
-                val (finalizadas, activas) = propias.partition(Oferta::estaAgotada)
-                estado.update { it.copy(activas = activas, finalizadas = finalizadas) }
+            repositorioOfertas.propias.collect { propias ->
+                val (finalizadas, activas) = propias.partition {
+                    it.estaAgotada ||
+                        it.estadoPublicacion != "ACTIVA"
+                }
+                if (repositorioOfertas.conectado) ofertasRemotas = propias
+                estado.update {
+                    it.copy(
+                        activas = activas,
+                        finalizadas = finalizadas,
+                        estadoRemoto = if (repositorioOfertas.conectado) {
+                            EstadoRemoto.Exito(
+                                propias
+                            )
+                        } else {
+                            it.estadoRemoto
+                        }
+                    )
+                }
             }
         }
     }
@@ -86,7 +102,10 @@ class OfertasNegocioViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 ofertasRemotas = repositorioRemoto.obtenerOfertasRemotas()
-                    .filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
+                    .filter {
+                        repositorioOfertas.conectado ||
+                            it.comercio == UsuarioDemo.NEGOCIO_DEMO
+                    }
                 estado.update { it.copy(estadoRemoto = EstadoRemoto.Exito(ofertasRemotas)) }
             } catch (cancelacion: CancellationException) {
                 estado.update { it.copy(estadoRemoto = EstadoRemoto.Exito(ofertasRemotas)) }
@@ -111,6 +130,27 @@ class OfertasNegocioViewModel @Inject constructor(
     }
 
     fun limpiarMensaje() = estado.update { it.copy(mensaje = null, errorLocal = null) }
+
+    fun cambiarEstado(oferta: Oferta) {
+        if (estado.value.ocupado) return
+        estado.update { it.copy(guardandoLocal = true) }
+        viewModelScope.launch {
+            try {
+                repositorioOfertas.cambiarEstado(oferta)
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (error: Exception) {
+                estado.update {
+                    it.copy(
+                        errorLocal =
+                            error.message ?: "No se pudo actualizar la oferta."
+                    )
+                }
+            } finally {
+                estado.update { it.copy(guardandoLocal = false) }
+            }
+        }
+    }
 
     private fun ejecutarOperacion(operacion: OperacionOferta) {
         if (estado.value.ocupado) return

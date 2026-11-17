@@ -12,6 +12,7 @@ class ReservarOfertaUseCase @Inject constructor(
     private val gestorNotificaciones: GestorNotificaciones? = null
 ) {
     suspend operator fun invoke(ofertaId: Int): ResultadoOperacion {
+        if (repositorioPedidos.conectado) return repositorioPedidos.reservar(ofertaId)
         val oferta = repositorioOfertas.buscarPorId(ofertaId)
             ?: return ResultadoOperacion.Error("Oferta no encontrada")
         if (oferta.estaAgotada) return ResultadoOperacion.Error("Esta oferta está agotada")

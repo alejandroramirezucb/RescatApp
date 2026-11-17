@@ -44,7 +44,7 @@ fun RegistroScreen(
         if (estado.campos.comercio.isBlank()) {
             viewModel.onCampoCambiado(
                 estado.campos.copy(
-                    comercio = UsuarioDemo.NEGOCIO_DEMO,
+                    comercio = UsuarioDemo.negocioActual,
                     categoria = com.rescatapp.core.model.Categoria.PANADERIA,
                     pesoKg = "1,0",
                     horaRetiroDesde = "18:00",
@@ -73,7 +73,7 @@ fun RegistroScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Comparte un nuevo pack", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        text = estado.campos.comercio.ifBlank { UsuarioDemo.NEGOCIO_DEMO },
+                        text = estado.campos.comercio.ifBlank { UsuarioDemo.negocioActual },
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

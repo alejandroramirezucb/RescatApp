@@ -42,7 +42,12 @@ class RegistroUsuarioViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     cargando = false,
-                    sesionIniciada = resultado is ResultadoOperacion.Exito,
+                    sesionIniciada =
+                        resultado is ResultadoOperacion.Exito &&
+                            resultado.valor !is com.rescatapp.core.data.supabase.RegistroPendiente,
+                    confirmacionPendiente =
+                        resultado is ResultadoOperacion.Exito &&
+                            resultado.valor is com.rescatapp.core.data.supabase.RegistroPendiente,
                     errorGeneral = (resultado as? ResultadoOperacion.Error)?.mensaje
                 )
             }

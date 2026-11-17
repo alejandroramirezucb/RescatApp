@@ -29,7 +29,8 @@ fun LoginScreen(
     onLoginExitoso: () -> Unit,
     onIrARegistro: () -> Unit,
     onVolver: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: LoginViewModel = hiltViewModel(),
+    onRecuperar: () -> Unit = {}
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val credenciales = estado.credenciales
@@ -69,37 +70,8 @@ fun LoginScreen(
             onClick = viewModel::iniciarSesion
         )
         EnlaceAuth("¿No tienes una cuenta?", "Regístrate aquí", onIrARegistro)
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceContainerLow
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text("Explora la demo", style = MaterialTheme.typography.titleSmall)
-                Text(
-                    text = "Prueba la experiencia de cliente o de negocio.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                TextButton(
-                    onClick = { viewModel.iniciarSesionDemo(esNegocio = false) },
-                    enabled = !estado.cargando,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                ) {
-                    Text("Entrar como cliente demo")
-                }
-                TextButton(
-                    onClick = { viewModel.iniciarSesionDemo(esNegocio = true) },
-                    enabled = !estado.cargando,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                ) {
-                    Text("Entrar como negocio demo")
-                }
-            }
+        TextButton(onClick = onRecuperar, enabled = !estado.cargando) {
+            Text("Olvide mi contrasena")
         }
     }
 }

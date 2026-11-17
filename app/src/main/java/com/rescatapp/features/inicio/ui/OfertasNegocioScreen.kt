@@ -34,7 +34,8 @@ fun OfertasNegocioScreen(viewModel: OfertasNegocioViewModel = hiltViewModel()) {
         onEliminar = viewModel::eliminarOfertaRemota,
         onEliminarLocal = viewModel::eliminarOfertaLocal,
         onReintentarOperacion = viewModel::reintentarOperacion,
-        onLimpiarMensaje = viewModel::limpiarMensaje
+        onLimpiarMensaje = viewModel::limpiarMensaje,
+        onCambiarEstado = viewModel::cambiarEstado
     )
 }
 
@@ -49,7 +50,8 @@ internal fun OfertasNegocioContenido(
     onEliminar: (Oferta) -> Unit,
     onEliminarLocal: (Oferta, () -> Unit) -> Unit,
     onReintentarOperacion: () -> Unit,
-    onLimpiarMensaje: () -> Unit
+    onLimpiarMensaje: () -> Unit,
+    onCambiarEstado: ((Oferta) -> Unit)? = null
 ) {
     var ofertaParaEditar by remember { mutableStateOf<Pair<Oferta, Boolean>?>(null) }
     var ofertaParaEliminar by remember { mutableStateOf<Pair<Oferta, Boolean>?>(null) }
@@ -71,7 +73,7 @@ internal fun OfertasNegocioContenido(
 
     ofertaParaEliminar?.let { (oferta, esRemota) ->
         DialogoConfirmacion(
-            titulo = if (esRemota) "Eliminar oferta en línea" else "Eliminar oferta local",
+            titulo = "Eliminar oferta",
             textoConfirmar = "Eliminar",
             textoDescartar = if (esRemota) "Cancelar" else "Volver",
             colorConfirmar = MaterialTheme.colorScheme.error,
@@ -93,7 +95,7 @@ internal fun OfertasNegocioContenido(
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     PreguntaEliminarOferta(oferta, esRemota = false)
-                    if (estado.eliminandoLocal) Text("Eliminando oferta local.")
+                    if (estado.eliminandoLocal) Text("Eliminando oferta.")
                     estado.errorLocal?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
             }
@@ -108,7 +110,8 @@ internal fun OfertasNegocioContenido(
         onEditar = { ofertaParaEditar = it to (estado.pestana == PestanaOfertas.EN_LINEA) },
         onEliminar = { ofertaParaEliminar = it to (estado.pestana == PestanaOfertas.EN_LINEA) },
         onReintentarOperacion = onReintentarOperacion,
-        onLimpiarMensaje = onLimpiarMensaje
+        onLimpiarMensaje = onLimpiarMensaje,
+        onCambiarEstado = onCambiarEstado
     )
 }
 
@@ -118,7 +121,7 @@ private fun PreguntaEliminarOferta(oferta: Oferta, esRemota: Boolean) {
         text = buildAnnotatedString {
             append("¿Eliminar «")
             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(oferta.nombre) }
-            append(if (esRemota) "» de las ofertas en línea?" else "» de las ofertas locales?")
+            append(" de tus ofertas?")
         },
         style = MaterialTheme.typography.bodyLarge
     )

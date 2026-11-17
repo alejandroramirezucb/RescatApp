@@ -23,15 +23,20 @@ class InicioViewModel @Inject constructor(
     repositorioPedidos: RepositorioPedidos,
     private val calcularImpacto: CalcularImpactoUseCase,
     private val seleccionarOfertas: SeleccionarOfertasInicioUseCase,
-    repositorioNotificaciones: RepositorioNotificaciones
+    repositorioNotificaciones: RepositorioNotificaciones,
+    repositorioAutenticacion: com.rescatapp.core.data.RepositorioAutenticacion? = null
 ) : ViewModel() {
     val uiState: StateFlow<InicioUiState> =
         combine(
-            repositorioOfertas.ofertas,
+            repositorioOfertas.catalogo,
             repositorioPedidos.pedidos,
             repositorioNotificaciones.contarNoLeidas(RolUsuario.CLIENTE),
-            ::crearEstado
-        ).stateIn(
+            repositorioAutenticacion?.sesionActual ?: kotlinx.coroutines.flow.flowOf(null)
+        ) { ofertas, pedidos, noLeidas, sesion ->
+            crearEstado(ofertas, pedidos, noLeidas).copy(
+                usuario = sesion?.nombre?.substringBefore(" ") ?: com.rescatapp.core.model.UsuarioDemo.NOMBRE
+            )
+        }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
             initialValue = crearEstado(

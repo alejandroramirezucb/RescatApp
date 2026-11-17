@@ -9,8 +9,11 @@ fun seleccionarPedidosPorRol(
     rol: RolUsuario,
     nombreComercio: String? = null
 ): List<Pedido> = if (rol == RolUsuario.NEGOCIO) {
-    val comercioFiltro = nombreComercio?.takeIf { it.isNotBlank() } ?: UsuarioDemo.NEGOCIO_DEMO
-    pedidos.filter { it.comercio.equals(comercioFiltro, ignoreCase = true) }
+    val comercioFiltro = nombreComercio?.takeIf { it.isNotBlank() } ?: UsuarioDemo.negocioActual
+    pedidos.filter {
+        it.codigoServidor != null ||
+            it.comercio.equals(comercioFiltro, ignoreCase = true)
+    }
 } else {
     pedidos
 }

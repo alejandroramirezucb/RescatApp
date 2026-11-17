@@ -43,6 +43,11 @@ fun RegistroUsuarioScreen(
             onSeleccion = { actualizar(datos.copy(rol = RolUsuario.entries[it])) }
         )
         MensajeErrorAuth(estado.errorGeneral)
+        if (estado.confirmacionPendiente) {
+            androidx.compose.material3.Text(
+                "Revisa tu correo y confirma tu cuenta. Despues podras iniciar sesion."
+            )
+        }
         EtiquetaSeccionAuth("Tus datos")
         CampoConError(
             etiqueta = if (estado.esNegocio) "Nombre del responsable" else "Nombre completo",

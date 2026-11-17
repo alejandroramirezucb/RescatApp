@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.DialogoConfirmacion
@@ -20,16 +22,32 @@ import com.rescatapp.core.model.Pedido
 internal fun DialogoConfirmarRetiro(
     pedido: Pedido,
     onConfirmar: () -> Unit,
-    onDescartar: () -> Unit
+    onDescartar: () -> Unit,
+    onCodigoConfirmado: ((String) -> Unit)? = null
 ) {
+    var codigo by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
     DialogoConfirmacion(
         titulo = "Confirmar retiro de pedido",
         textoConfirmar = "Confirmar entrega",
         icono = Icons.Outlined.TaskAlt,
-        onConfirmar = onConfirmar,
+        onConfirmar = {
+            if (onCodigoConfirmado !=
+                null
+            ) {
+                onCodigoConfirmado(codigo.trim())
+            } else {
+                onConfirmar()
+            }
+        },
         onDescartar = onDescartar
     ) {
-        ResumenPedidoDialogo(pedido)
+        Text(pedido.nombreOferta, style = MaterialTheme.typography.titleSmall)
+        com.rescatapp.core.designsystem.components.CampoConError(
+            etiqueta = "Codigo que muestra el cliente",
+            valor = codigo,
+            onValorCambiado = { codigo = it },
+            ejemplo = "#APV-123"
+        )
         Text(
             text = "Comprueba que el código coincida con el que te muestra el cliente.",
             style = MaterialTheme.typography.bodyMedium

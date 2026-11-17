@@ -33,18 +33,13 @@ fun PerfilScreen(
     viewModel: PerfilViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
     PerfilContenido(
         estado = estado,
         onVerNotificaciones = onVerNotificaciones,
         onIrALogin = onIrALogin,
         onIrARegistro = onIrARegistro,
         onCerrarSesion = viewModel::cerrarSesion,
-        onCambiarRol = {
-            UsuarioDemo.cambiarRol(
-                if (rol == RolUsuario.NEGOCIO) RolUsuario.CLIENTE else RolUsuario.NEGOCIO
-            )
-        }
+        onCambiarRol = onIrALogin
     )
 }
 
@@ -80,23 +75,6 @@ internal fun PerfilContenido(
             )
             PreferenciasPerfil(onVerNotificaciones = onVerNotificaciones)
             SeccionSostenibilidadODS()
-            if (!estado.estaAutenticado) {
-                TarjetaPerfil(titulo = "Explora la demo") {
-                    Text(
-                        text = "Prueba la experiencia de cliente y de negocio.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    BotonSecundario(
-                        texto = if (estado.esNegocio) {
-                            "Cambiar a perfil de cliente"
-                        } else {
-                            "Cambiar a perfil de negocio (Demo)"
-                        },
-                        onClick = onCambiarRol
-                    )
-                }
-            }
         }
     }
 }

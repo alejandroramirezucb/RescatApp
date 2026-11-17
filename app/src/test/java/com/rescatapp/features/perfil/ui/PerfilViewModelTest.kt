@@ -38,20 +38,20 @@ class PerfilViewModelTest {
         observarDuranteLaPrueba(viewModel.uiState)
 
         val impacto = viewModel.uiState.value.impacto
-        assertEquals(4, impacto.rescates)
-        assertEquals(102.0, impacto.ahorrado, 0.001)
-        assertEquals(3.6, impacto.kgAprovechados, 0.001)
+        assertEquals(2, impacto.rescates)
+        assertEquals(47.0, impacto.ahorrado, 0.001)
+        assertEquals(1.4, impacto.kgAprovechados, 0.001)
     }
 
     @Test
-    fun cancelarUnPedidoActualizaElImpactoSinRecargar() = runTest {
+    fun cancelarUnPedidoNoRecogidoNoModificaElImpacto() = runTest {
         val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
         val pedidoListo = repositorioPedidos.buscarPorId(5)!!
 
         repositorioPedidos.actualizar(pedidoListo.copy(estado = EstadoPedido.CANCELADO))
 
-        assertEquals(3, viewModel.uiState.value.impacto.rescates)
+        assertEquals(2, viewModel.uiState.value.impacto.rescates)
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.google.gson.JsonSyntaxException
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.ofertasDeEjemplo
+import com.rescatapp.core.data.supabase.ErrorSupabase
 import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.UsuarioDemo
@@ -13,14 +14,11 @@ import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import retrofit2.HttpException
-import retrofit2.Response
 
 class OfertasNegocioViewModelTest {
     @get:Rule
@@ -52,7 +50,7 @@ class OfertasNegocioViewModelTest {
     fun erroresDeRedServidorYConversionTerminanLaCargaConMensajesComprensibles() = runTest {
         val fallos = listOf(
             IOException() to "conexión",
-            HttpException(Response.error<Unit>(500, "fallo".toResponseBody())) to "servidor",
+            ErrorSupabase(500, "fallo") to "servidor",
             JsonSyntaxException("json inválido") to "interpretar",
             EOFException("respuesta incompleta") to "interpretar",
             IllegalArgumentException("categoría inválida") to "interpretar",
