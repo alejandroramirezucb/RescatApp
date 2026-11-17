@@ -1,22 +1,21 @@
 package com.rescatapp.core.designsystem.components
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.Disponibilidad
 import com.rescatapp.core.model.Oferta
 
 @Composable
@@ -37,20 +38,20 @@ fun TarjetaOferta(
     Card(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(14.dp),
+        shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 0.dp)
     ) {
         ImagenCategoria(
             categoria = oferta.categoria,
             imagenUri = oferta.imagenUri,
-            modifier = Modifier.fillMaxWidth().height(104.dp)
+            modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)
         ) {
             InsigniaDescuento(
                 porcentajeDescuento = oferta.porcentajeDescuento,
                 modifier = Modifier.align(Alignment.TopStart).padding(8.dp)
             )
-            MarcadorFavorito(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
             if (mostrarHoraLimite) {
                 EtiquetaHoraLimite(
                     horaLimite = oferta.horaRetiroHasta,
@@ -60,12 +61,18 @@ fun TarjetaOferta(
         }
         Column(
             modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            Text(
+                text = oferta.categoria.etiqueta,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
             Text(
                 text = oferta.nombre,
                 style = MaterialTheme.typography.titleSmall,
-                maxLines = 1,
+                minLines = 2,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
@@ -75,8 +82,38 @@ fun TarjetaOferta(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            PreciosOferta(oferta)
-            TextoDisponibilidad(oferta)
+            PreciosOferta(oferta, estiloPrecioRescate = MaterialTheme.typography.titleMedium)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AccessTime,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = "${oferta.horaRetiroDesde} - ${oferta.horaRetiroHasta}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            val colorDisponibilidad = when (oferta.disponibilidad) {
+                Disponibilidad.ALTA -> MaterialTheme.colorScheme.secondaryContainer
+
+                Disponibilidad.MEDIA -> MaterialTheme.colorScheme.primaryContainer
+
+                Disponibilidad.BAJA, Disponibilidad.AGOTADA ->
+                    MaterialTheme.colorScheme.errorContainer
+            }
+            Surface(color = colorDisponibilidad, shape = MaterialTheme.shapes.extraSmall) {
+                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)) {
+                    TextoDisponibilidad(oferta)
+                }
+            }
         }
     }
 }
@@ -97,14 +134,16 @@ private fun TarjetaOfertaPreview() {
         horaRetiroDesde = "18:00",
         horaRetiroHasta = "20:00"
     )
-    TarjetaOferta(
-        oferta = oferta,
-        onClick = {},
-        modifier = Modifier.width(172.dp)
-    )
+    RescatAppTheme {
+        TarjetaOferta(
+            oferta = oferta,
+            onClick = {},
+            modifier = Modifier.width(172.dp)
+        )
+    }
 }
 
-@Preview(name = "Tarjeta Oferta con Hora Límite")
+@Preview(name = "Tarjeta Oferta con Hora Límite", fontScale = 1.3f)
 @Composable
 private fun TarjetaOfertaConHoraLimitePreview() {
     val oferta = Oferta(
@@ -120,27 +159,12 @@ private fun TarjetaOfertaConHoraLimitePreview() {
         horaRetiroDesde = "20:00",
         horaRetiroHasta = "22:00"
     )
-    TarjetaOferta(
-        oferta = oferta,
-        onClick = {},
-        modifier = Modifier.width(172.dp),
-        mostrarHoraLimite = true
-    )
-}
-
-@Composable
-private fun MarcadorFavorito(modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .size(24.dp)
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), CircleShape),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.FavoriteBorder,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(16.dp)
+    RescatAppTheme {
+        TarjetaOferta(
+            oferta = oferta,
+            onClick = {},
+            modifier = Modifier.width(172.dp),
+            mostrarHoraLimite = true
         )
     }
 }

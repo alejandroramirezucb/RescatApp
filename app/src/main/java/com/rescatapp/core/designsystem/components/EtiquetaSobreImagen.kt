@@ -1,7 +1,6 @@
 package com.rescatapp.core.designsystem.components
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,12 +25,17 @@ fun EtiquetaHoraLimite(horaLimite: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun EtiquetaSobreImagen(texto: String, colorFondo: Color, modifier: Modifier) {
-    Surface(modifier = modifier, color = colorFondo, shape = RoundedCornerShape(6.dp)) {
+    Surface(
+        modifier = modifier,
+        color = colorFondo,
+        shape = MaterialTheme.shapes.small,
+        shadowElevation = 1.dp
+    ) {
         Text(
             text = texto,
             color = Color.White,
             style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
         )
     }
 }
