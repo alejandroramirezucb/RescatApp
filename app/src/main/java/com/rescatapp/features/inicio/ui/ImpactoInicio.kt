@@ -27,23 +27,18 @@ internal fun BloqueImpacto(impacto: Impacto) {
         impacto.kgAprovechados.formatearPeso() to "Aprovechado"
     )
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.primaryContainer,
         shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth().padding(rellenoLateral)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Cada rescate cuenta",
+                text = "Tu impacto con RescatApp",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Text(
-                text = "Tu resumen de rescates y ahorro.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 if (maxWidth < 280.dp || LocalDensity.current.fontScale > 1.2f) {
@@ -69,13 +64,13 @@ private fun IndicadorImpactoInicio(valor: String, etiqueta: String, modifier: Mo
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = valor,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
         Text(
             text = etiqueta,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }

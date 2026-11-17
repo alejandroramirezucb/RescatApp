@@ -19,8 +19,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun SeccionSostenibilidadODS() {
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth()
     ) {

@@ -23,15 +23,15 @@ fun PreciosOferta(
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Text(
-            text = oferta.precioRescate.formatearDinero(),
-            style = estiloPrecioRescate,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
             text = oferta.precioNormal.formatearDinero(),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textDecoration = TextDecoration.LineThrough
+        )
+        Text(
+            text = oferta.precioRescate.formatearDinero(),
+            style = estiloPrecioRescate,
+            color = MaterialTheme.colorScheme.primary
         )
     }
 }

@@ -32,7 +32,7 @@ internal fun EncabezadoInicio(
 ) {
     Column(
         modifier = Modifier.padding(horizontal = margenLateral),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -41,29 +41,24 @@ internal fun EncabezadoInicio(
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                UbicacionActual()
+                Text(text = "¡Hola, $usuario!", style = MaterialTheme.typography.titleLarge)
                 Text(
-                    text = "RESCATAPP",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(text = "¡Hola, $usuario!", style = MaterialTheme.typography.headlineSmall)
-                Text(
-                    text = "Rescata un pack. Aprovecha algo delicioso.",
+                    text = "¿Qué vamos a aprovechar hoy?",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             BotonNotificaciones(conteoNoLeidas, onVerNotificaciones)
         }
-        UbicacionActual()
         Surface(
             onClick = onBuscar,
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -96,13 +91,13 @@ private fun UbicacionActual() {
         Icon(
             imageVector = Icons.Outlined.LocationOn,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(18.dp)
         )
         Text(
             text = "Santa Cruz de la Sierra",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
     }

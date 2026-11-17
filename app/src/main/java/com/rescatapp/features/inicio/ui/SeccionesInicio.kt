@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.EncabezadoSeccion
 import com.rescatapp.core.designsystem.components.EstadoVacio
@@ -31,7 +33,8 @@ internal fun SeccionOfertas(
     onVerTodo: (() -> Unit)? = null,
     textoAccion: String = "Ver todo",
     colorFondo: Color = Color.Transparent,
-    mostrarHoraLimite: Boolean = false
+    mostrarHoraLimite: Boolean = false,
+    icono: ImageVector? = null
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().background(colorFondo).padding(vertical = 12.dp),
@@ -42,13 +45,18 @@ internal fun SeccionOfertas(
             subtitulo = subtitulo,
             modifier = Modifier.padding(rellenoLateral),
             textoAccion = onVerTodo?.let { textoAccion },
-            onAccion = { onVerTodo?.invoke() }
+            onAccion = { onVerTodo?.invoke() },
+            icono = icono
         )
         if (ofertas.isEmpty()) {
             EstadoVacio("No hay ofertas en esta sección por ahora")
         } else {
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val anchoTarjeta = (maxWidth * 0.78f).coerceIn(220.dp, 300.dp)
+                val anchoTarjeta = if (LocalDensity.current.fontScale > 1.2f) {
+                    (maxWidth * 0.75f).coerceIn(220.dp, 300.dp)
+                } else {
+                    (maxWidth * 0.46f).coerceIn(164.dp, 220.dp)
+                }
                 LazyRow(
                     contentPadding = rellenoLateral,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)

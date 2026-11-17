@@ -5,14 +5,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.LocalFireDepartment
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rescatapp.core.designsystem.theme.RescatAppTheme
+import com.rescatapp.core.domain.Impacto
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.Oferta
+import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 
 @Composable
 fun InicioScreen(
@@ -22,12 +32,22 @@ fun InicioScreen(
     viewModel: InicioViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    InicioContenido(estado, onExplorar, onVerDetalle, onVerNotificaciones)
+}
+
+@Composable
+internal fun InicioContenido(
+    estado: InicioUiState,
+    onExplorar: (Categoria?) -> Unit,
+    onVerDetalle: (Int) -> Unit,
+    onVerNotificaciones: () -> Unit
+) {
     val verTodas = { onExplorar(null) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(top = 20.dp, bottom = 48.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         item {
             EncabezadoInicio(
@@ -37,7 +57,7 @@ fun InicioScreen(
                 onVerNotificaciones = onVerNotificaciones
             )
         }
-        item { BloqueImpacto(estado.impacto) }
+        item { BannerOportunidades(onExplorar = verTodas) }
         item { CategoriasInicio(onExplorar) }
         item {
             SeccionOfertas(
@@ -45,7 +65,8 @@ fun InicioScreen(
                 subtitulo = "Lo que está disponible ahora",
                 ofertas = estado.ofertas.disponibles,
                 onVerDetalle = onVerDetalle,
-                onVerTodo = verTodas
+                onVerTodo = verTodas,
+                icono = Icons.Outlined.LocalFireDepartment
             )
         }
         item {
@@ -55,7 +76,8 @@ fun InicioScreen(
                 ofertas = estado.ofertas.porAgotarse,
                 onVerDetalle = onVerDetalle,
                 colorFondo = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                mostrarHoraLimite = true
+                mostrarHoraLimite = true,
+                icono = Icons.Outlined.AccessTime
             )
         }
         item {
@@ -64,9 +86,12 @@ fun InicioScreen(
                 ofertas = estado.ofertas.mejoresDelDia,
                 onVerDetalle = onVerDetalle,
                 onVerTodo = verTodas,
-                textoAccion = "Ver más"
+                textoAccion = "Ver más",
+                icono = Icons.Outlined.Star
             )
         }
+        item { ComerciosInicio(estado.ofertas.disponibles, verTodas) }
+        item { BloqueImpacto(estado.impacto) }
         item {
             SeccionOfertas(
                 titulo = "Puede interesarte",
@@ -74,8 +99,51 @@ fun InicioScreen(
                 ofertas = estado.ofertas.postres,
                 onVerDetalle = onVerDetalle,
                 onVerTodo = verTodas,
-                textoAccion = "Ver más"
+                textoAccion = "Ver más",
+                icono = Icons.Outlined.Visibility
             )
         }
+        item { UltimasOfertasInicio(estado.ofertas.porAgotarse, onVerDetalle) }
+    }
+}
+
+@Preview(name = "Inicio inspirado en Figma", widthDp = 390, heightDp = 1100, showBackground = true)
+@Preview(name = "Inicio Figma con texto grande", widthDp = 320, heightDp = 900, fontScale = 1.5f)
+@Composable
+private fun InicioContenidoPreview() {
+    val pack = Oferta(
+        id = 1,
+        nombre = "Pack Sorpresa",
+        comercio = "Panadería La Central",
+        categoria = Categoria.PANADERIA,
+        descripcion = "Surtido del día",
+        pesoKg = 1.0,
+        precioNormal = 45.0,
+        precioRescate = 25.0,
+        cantidadDisponible = 5,
+        horaRetiroDesde = "18:00",
+        horaRetiroHasta = "20:00"
+    )
+    val ofertas = listOf(
+        pack,
+        pack.copy(id = 2, nombre = "Pack Croissants", cantidadDisponible = 2),
+        pack.copy(
+            id = 3,
+            nombre = "Caja Cupcakes",
+            categoria = Categoria.POSTRES,
+            cantidadDisponible = 2
+        )
+    )
+    RescatAppTheme {
+        InicioContenido(
+            estado = InicioUiState(
+                usuario = "Krishna",
+                impacto = Impacto(3, 45.0, 1.8),
+                ofertas = SeleccionarOfertasInicioUseCase()(ofertas)
+            ),
+            onExplorar = {},
+            onVerDetalle = {},
+            onVerNotificaciones = {}
+        )
     }
 }

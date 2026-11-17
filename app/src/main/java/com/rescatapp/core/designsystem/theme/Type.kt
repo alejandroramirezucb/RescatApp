@@ -19,7 +19,7 @@ val TipografiaRescatApp = tipografiaBase.copy(
         letterSpacing = (-0.3).sp
     ),
     titleMedium = tipografiaBase.titleMedium.copy(
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         lineHeight = 24.sp,
         letterSpacing = 0.sp
     ),

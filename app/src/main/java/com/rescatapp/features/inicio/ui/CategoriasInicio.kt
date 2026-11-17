@@ -64,7 +64,7 @@ private fun TarjetaCategoria(
 ) {
     val esquema = MaterialTheme.colorScheme
     val colorFondo = if (seleccionada) esquema.primary else esquema.surface
-    val colorContenido = if (seleccionada) esquema.onPrimary else esquema.onSurface
+    val colorContenido = if (seleccionada) esquema.onPrimary else esquema.primary
     val colorBorde = if (seleccionada) Color.Transparent else esquema.outlineVariant
 
     Surface(
@@ -72,12 +72,12 @@ private fun TarjetaCategoria(
         color = colorFondo,
         shape = MaterialTheme.shapes.medium,
         border = BorderStroke(1.dp, colorBorde),
-        modifier = Modifier.widthIn(min = 96.dp, max = 160.dp)
+        modifier = Modifier.widthIn(min = 76.dp, max = 140.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp)
         ) {
             Icon(
                 imageVector = icono,
@@ -87,8 +87,8 @@ private fun TarjetaCategoria(
             )
             Text(
                 text = etiqueta,
-                style = MaterialTheme.typography.labelLarge,
-                color = colorContenido,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (seleccionada) esquema.onPrimary else esquema.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }

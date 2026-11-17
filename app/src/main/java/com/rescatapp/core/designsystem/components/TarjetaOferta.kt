@@ -1,7 +1,9 @@
 package com.rescatapp.core.designsystem.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -9,13 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -46,7 +48,7 @@ fun TarjetaOferta(
         ImagenCategoria(
             categoria = oferta.categoria,
             imagenUri = oferta.imagenUri,
-            modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)
+            modifier = Modifier.fillMaxWidth().aspectRatio(1.5f)
         ) {
             InsigniaDescuento(
                 porcentajeDescuento = oferta.porcentajeDescuento,
@@ -60,18 +62,13 @@ fun TarjetaOferta(
             }
         }
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                text = oferta.categoria.etiqueta,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
             Text(
                 text = oferta.nombre,
                 style = MaterialTheme.typography.titleSmall,
-                minLines = 2,
+                minLines = 1,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -102,17 +99,19 @@ fun TarjetaOferta(
                 )
             }
             val colorDisponibilidad = when (oferta.disponibilidad) {
-                Disponibilidad.ALTA -> MaterialTheme.colorScheme.secondaryContainer
+                Disponibilidad.ALTA -> MaterialTheme.colorScheme.secondary
 
-                Disponibilidad.MEDIA -> MaterialTheme.colorScheme.primaryContainer
+                Disponibilidad.MEDIA -> MaterialTheme.colorScheme.primary
 
                 Disponibilidad.BAJA, Disponibilidad.AGOTADA ->
-                    MaterialTheme.colorScheme.errorContainer
+                    MaterialTheme.colorScheme.error
             }
-            Surface(color = colorDisponibilidad, shape = MaterialTheme.shapes.extraSmall) {
-                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)) {
-                    TextoDisponibilidad(oferta)
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Box(Modifier.size(6.dp).background(colorDisponibilidad, CircleShape))
+                TextoDisponibilidad(oferta)
             }
         }
     }

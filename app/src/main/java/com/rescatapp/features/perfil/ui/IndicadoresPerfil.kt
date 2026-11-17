@@ -25,8 +25,8 @@ internal fun IndicadoresPerfil(impacto: Impacto) {
         impacto.kgAprovechados.formatearPeso() to "Aprovechado"
     )
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth()
     ) {

@@ -2,10 +2,10 @@ package com.rescatapp.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Naranja = Color(0xFFB54722)
-val NaranjaVivo = Color(0xFFF47B45)
-val NaranjaSuave = Color(0xFFFFEBDD)
-val SobreNaranjaSuave = Color(0xFF793016)
+val Naranja = Color(0xFFC24D00)
+val NaranjaVivo = Color(0xFFFF8000)
+val NaranjaSuave = Color(0xFFFFEEDC)
+val SobreNaranjaSuave = Color(0xFF7C3300)
 val Crema = Color(0xFFFFF7EF)
 
 val Verde = Color(0xFF2F684B)
@@ -16,11 +16,11 @@ val Rojo = Color(0xFFB42318)
 val RojoSuave = Color(0xFFFFEDEA)
 val SobreRojoSuave = Color(0xFF7A2018)
 
-val FondoPantalla = Color(0xFFF8F7F4)
+val FondoPantalla = Color(0xFFF5F6F8)
 val Superficie = Color.White
-val SuperficieSuave = Color(0xFFF2EFE9)
-val SuperficieElevada = Color(0xFFEEEAE3)
-val TextoPrincipal = Color(0xFF29251F)
-val TextoSecundario = Color(0xFF696158)
-val Contorno = Color(0xFF92877B)
-val Borde = Color(0xFFE3DED6)
+val SuperficieSuave = Color(0xFFF0F1F4)
+val SuperficieElevada = Color(0xFFE9EBEF)
+val TextoPrincipal = Color(0xFF28282C)
+val TextoSecundario = Color(0xFF666775)
+val Contorno = Color(0xFF858692)
+val Borde = Color(0xFFE7E8EC)
