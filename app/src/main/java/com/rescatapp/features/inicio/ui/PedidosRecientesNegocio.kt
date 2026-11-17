@@ -1,40 +1,43 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.rescatapp.core.designsystem.theme.Naranja
+import com.rescatapp.core.designsystem.components.TarjetaPedido
 import com.rescatapp.core.model.Pedido
-import com.rescatapp.core.util.formatearDinero
 
 @Composable
 internal fun PedidosRecientesNegocio(pedidos: List<Pedido>) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(text = "Pedidos recientes", style = MaterialTheme.typography.titleMedium)
         Text(
-            text = "Pedidos recientes",
-            style = MaterialTheme.typography.titleMedium
+            text = "Consulta los packs y el estado de cada pedido.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         if (pedidos.isEmpty()) {
             EstadoSinPedidos()
         } else {
-            pedidos.forEach { TarjetaPedidoRecienteNegocio(it) }
+            pedidos.forEach { pedido ->
+                TarjetaPedido(pedido) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(
+                        text = "Código de rescate: ${pedido.codigoRescate}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -43,88 +46,23 @@ internal fun PedidosRecientesNegocio(pedidos: List<Pedido>) {
 private fun EstadoSinPedidos() {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(12.dp),
-        shadowElevation = 1.dp,
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Text(
-            text = "Aún no hay pedidos registrados para este negocio.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
-
-@Composable
-private fun TarjetaPedidoRecienteNegocio(pedido: Pedido) {
-    val colorEstado = colorEstado(pedido.estado)
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(12.dp),
-        shadowElevation = 1.dp,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            DatosPedidoReciente(pedido, colorEstado)
             Text(
-                text = pedido.precioPagado.formatearDinero(),
-                style = MaterialTheme.typography.titleMedium,
-                color = Naranja
+                text = "Tu próximo rescate empieza aquí",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "Aún no hay pedidos registrados para este negocio.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-}
-
-@Composable
-private fun DatosPedidoReciente(pedido: Pedido, colorEstado: Color) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = "${pedido.codigoRescate} · ${pedido.nombreOferta}",
-            style = MaterialTheme.typography.titleSmall
-        )
-        DetallePedidoReciente(pedido.horaRetiroDesde)
-        Spacer(Modifier.size(0.dp, 4.dp))
-        EstadoPedidoReciente(pedido.estado.etiqueta, colorEstado)
-    }
-}
-
-@Composable
-private fun DetallePedidoReciente(hora: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            Icons.Default.Person,
-            null,
-            Modifier.size(12.dp),
-            MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            "Cliente",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            "·",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Icon(
-            Icons.Default.Schedule,
-            null,
-            Modifier.size(12.dp),
-            MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            hora,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
