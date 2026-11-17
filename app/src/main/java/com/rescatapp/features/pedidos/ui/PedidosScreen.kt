@@ -115,7 +115,7 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
                     }
 
                     PestanaPedidos.HISTORIAL -> items(estado.historial, key = { it.id }) {
-                        TarjetaPedido(it)
+                        TarjetaPedidoHistorial(it)
                     }
                 }
             }
