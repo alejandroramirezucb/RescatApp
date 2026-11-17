@@ -1,6 +1,9 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -8,6 +11,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.DialogoConfirmacion
@@ -67,6 +75,7 @@ internal fun OfertasNegocioContenido(
             textoConfirmar = "Eliminar",
             textoDescartar = if (esRemota) "Cancelar" else "Volver",
             colorConfirmar = MaterialTheme.colorScheme.error,
+            icono = Icons.Outlined.Delete,
             onConfirmar = {
                 if (!estado.ocupado) {
                     if (esRemota) {
@@ -80,10 +89,10 @@ internal fun OfertasNegocioContenido(
             onDescartar = { ofertaParaEliminar = null }
         ) {
             if (esRemota) {
-                Text("¿Eliminar «${oferta.nombre}» de las ofertas en línea?")
+                PreguntaEliminarOferta(oferta, esRemota = true)
             } else {
-                Column {
-                    Text("¿Eliminar «${oferta.nombre}» de las ofertas locales?")
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    PreguntaEliminarOferta(oferta, esRemota = false)
                     if (estado.eliminandoLocal) Text("Eliminando oferta local.")
                     estado.errorLocal?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
@@ -100,5 +109,17 @@ internal fun OfertasNegocioContenido(
         onEliminar = { ofertaParaEliminar = it to (estado.pestana == PestanaOfertas.EN_LINEA) },
         onReintentarOperacion = onReintentarOperacion,
         onLimpiarMensaje = onLimpiarMensaje
+    )
+}
+
+@Composable
+private fun PreguntaEliminarOferta(oferta: Oferta, esRemota: Boolean) {
+    Text(
+        text = buildAnnotatedString {
+            append("¿Eliminar «")
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(oferta.nombre) }
+            append(if (esRemota) "» de las ofertas en línea?" else "» de las ofertas locales?")
+        },
+        style = MaterialTheme.typography.bodyLarge
     )
 }

@@ -2,11 +2,14 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,7 +22,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.CampoConError
 import com.rescatapp.core.designsystem.components.DialogoConfirmacion
-import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.aDecimalOrNull
@@ -37,6 +39,8 @@ internal fun DialogoEditarOferta(
             textoDescartar = "Cancelar",
             onConfirmar = onConfirmar,
             onDescartar = onDescartar,
+            icono = Icons.Outlined.Edit,
+            contenidoDesplazable = false,
             contenido = contenido
         )
     }
@@ -82,12 +86,23 @@ internal fun EditorOferta(
     ) {
         Column(
             modifier = Modifier.verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = oferta.nombre,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
             Text(
-                text = oferta.nombre,
-                style = MaterialTheme.typography.titleMedium,
-                color = Naranja
+                text = "Disponibilidad y precio",
+                style = MaterialTheme.typography.titleSmall
             )
             CampoConError(
                 etiqueta = "Unidades disponibles",
@@ -106,16 +121,14 @@ internal fun EditorOferta(
                 destacarBordeNaranja = true,
                 onValorCambiado = { precioRescate = it }
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            Text(text = "Horario de retiro", style = MaterialTheme.typography.titleSmall)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 CampoConError(
                     etiqueta = "Hora inicio",
                     valor = horaDesde,
                     error = errores.horaRetiroDesde.takeIf { mostrarErrores },
                     ejemplo = "18:00",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     onValorCambiado = { horaDesde = it }
                 )
                 CampoConError(
@@ -123,7 +136,7 @@ internal fun EditorOferta(
                     valor = horaHasta,
                     error = errores.horaRetiroHasta.takeIf { mostrarErrores },
                     ejemplo = "20:00",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     onValorCambiado = { horaHasta = it }
                 )
             }
