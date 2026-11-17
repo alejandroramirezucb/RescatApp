@@ -9,19 +9,36 @@ private val coloresRescatApp = lightColorScheme(
     primary = Naranja,
     onPrimary = Color.White,
     primaryContainer = NaranjaSuave,
-    onPrimaryContainer = Naranja,
+    onPrimaryContainer = SobreNaranjaSuave,
     secondary = Verde,
     onSecondary = Color.White,
     secondaryContainer = VerdeSuave,
-    onSecondaryContainer = Verde,
+    onSecondaryContainer = SobreVerdeSuave,
+    tertiary = Verde,
+    onTertiary = Color.White,
+    tertiaryContainer = VerdeSuave,
+    onTertiaryContainer = SobreVerdeSuave,
     background = FondoPantalla,
     onBackground = TextoPrincipal,
     surface = Superficie,
     onSurface = TextoPrincipal,
+    surfaceVariant = SuperficieSuave,
     onSurfaceVariant = TextoSecundario,
-    outline = Borde,
+    surfaceContainerLowest = Superficie,
+    surfaceContainerLow = FondoPantalla,
+    surfaceContainer = SuperficieSuave,
+    surfaceContainerHigh = SuperficieElevada,
+    surfaceContainerHighest = Borde,
+    surfaceTint = Naranja,
+    inverseSurface = TextoPrincipal,
+    inverseOnSurface = FondoPantalla,
+    inversePrimary = NaranjaSuave,
+    outline = Contorno,
     outlineVariant = Borde,
-    error = Rojo
+    error = Rojo,
+    onError = Color.White,
+    errorContainer = RojoSuave,
+    onErrorContainer = SobreRojoSuave
 )
 
 @Composable
@@ -29,6 +46,7 @@ fun RescatAppTheme(contenido: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = coloresRescatApp,
         typography = TipografiaRescatApp,
+        shapes = FormasRescatApp,
         content = contenido
     )
 }
