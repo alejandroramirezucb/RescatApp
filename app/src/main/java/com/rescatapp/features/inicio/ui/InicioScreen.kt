@@ -1,16 +1,17 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rescatapp.core.designsystem.theme.Crema
 import com.rescatapp.core.model.Categoria
 
 @Composable
@@ -24,7 +25,7 @@ fun InicioScreen(
     val verTodas = { onExplorar(null) }
 
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(top = 20.dp, bottom = 48.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
@@ -40,7 +41,7 @@ fun InicioScreen(
         item { CategoriasInicio(onExplorar) }
         item {
             SeccionOfertas(
-                titulo = "Ofertas cerca de ti",
+                titulo = "Ofertas disponibles",
                 subtitulo = "Lo que está disponible ahora",
                 ofertas = estado.ofertas.disponibles,
                 onVerDetalle = onVerDetalle,
@@ -53,7 +54,7 @@ fun InicioScreen(
                 subtitulo = "No dejes que se acaben",
                 ofertas = estado.ofertas.porAgotarse,
                 onVerDetalle = onVerDetalle,
-                colorFondo = Crema,
+                colorFondo = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
                 mostrarHoraLimite = true
             )
         }
@@ -69,7 +70,7 @@ fun InicioScreen(
         item {
             SeccionOfertas(
                 titulo = "Puede interesarte",
-                subtitulo = "Porque te gustan los postres",
+                subtitulo = "Descubre los packs de postres disponibles",
                 ofertas = estado.ofertas.postres,
                 onVerDetalle = onVerDetalle,
                 onVerTodo = verTodas,
