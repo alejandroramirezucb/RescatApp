@@ -1,20 +1,20 @@
 package com.rescatapp.features.explorar.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.features.explorar.domain.FiltrosOfertas
 
@@ -27,44 +27,54 @@ internal fun EncabezadoExplorar(
     onOrdenSeleccionado: (OrdenOfertas) -> Unit,
     onLimpiarFiltros: () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = "Explorar", style = MaterialTheme.typography.headlineSmall)
-            Text(
-                text = "Encuentra tu próximo pack y dale una nueva oportunidad a la comida.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shape = MaterialTheme.shapes.large,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier.fillMaxWidth()
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                BusquedaExplorar(texto = filtros.texto, onTextoCambiado = onBuscar)
-                FiltrosExplorar(filtros, onCategoriaSeleccionada, onOrdenSeleccionado)
-                if (hayFiltros) {
-                    TextButton(onClick = onLimpiarFiltros) {
-                        Text("Limpiar filtros")
-                    }
-                }
+            Text(
+                text = "Explorar",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.weight(1f)
+            )
+            if (hayFiltros) {
+                TextButton(onClick = onLimpiarFiltros) { Text("Limpiar filtros") }
             }
         }
+        BusquedaExplorar(texto = filtros.texto, onTextoCambiado = onBuscar)
+        FiltrosExplorar(filtros, onCategoriaSeleccionada, onOrdenSeleccionado)
     }
 }
 
-@Preview(name = "Explorar sin resultados", showBackground = true, widthDp = 360)
-@Preview(name = "Explorar con texto grande", widthDp = 320, fontScale = 1.5f)
+@Preview(name = "Explorar en dos columnas", showBackground = true, widthDp = 390, heightDp = 1000)
+@Preview(name = "Explorar en pantalla pequeña", widthDp = 320, heightDp = 1000)
+@Preview(name = "Explorar con texto grande", widthDp = 320, heightDp = 1000, fontScale = 1.5f)
 @Composable
 private fun ExplorarContenidoPreview() {
+    val ejemplo = Oferta(
+        id = 1,
+        nombre = "Pack Sorpresa",
+        comercio = "Panadería La Central",
+        categoria = Categoria.PANADERIA,
+        descripcion = "Panes del día",
+        pesoKg = 1.0,
+        precioNormal = 45.0,
+        precioRescate = 25.0,
+        cantidadDisponible = 5,
+        horaRetiroDesde = "18:00",
+        horaRetiroHasta = "20:00"
+    )
     RescatAppTheme {
         ExplorarContenido(
-            estado = ExplorarUiState(filtros = FiltrosOfertas(texto = "Pan artesanal")),
+            estado = ExplorarUiState(
+                ofertas = listOf(
+                    ejemplo,
+                    ejemplo.copy(id = 2, nombre = "Pack Croissants", cantidadDisponible = 3),
+                    ejemplo.copy(id = 3, nombre = "Pizza Familiar", cantidadDisponible = 2),
+                    ejemplo.copy(id = 4, nombre = "2 Pizzas Medianas", cantidadDisponible = 1)
+                )
+            ),
             onBuscar = {},
             onCategoriaSeleccionada = {},
             onOrdenSeleccionado = {},

@@ -2,9 +2,9 @@ package com.rescatapp.features.explorar.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Check
@@ -21,6 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
@@ -35,76 +37,64 @@ fun FiltrosExplorar(
     onCategoriaSeleccionada: (Categoria?) -> Unit,
     onOrdenSeleccionado: (OrdenOfertas) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text = "Categoría", style = MaterialTheme.typography.labelLarge)
-        SelectorCategoria(filtros.categoria, onCategoriaSeleccionada)
-        Text(text = "Ordenar por", style = MaterialTheme.typography.labelLarge)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OrdenOfertas.entries.forEach { orden ->
-                FilterChip(
-                    label = { Text(orden.etiqueta) },
-                    selected = filtros.orden == orden,
-                    onClick = { onOrdenSeleccionado(orden) },
-                    leadingIcon = if (filtros.orden == orden) {
-                        { Icon(Icons.Outlined.Check, contentDescription = null) }
-                    } else {
-                        null
-                    },
-                    shape = MaterialTheme.shapes.small,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        MenuFiltroExplorar(
+            etiqueta = filtros.categoria?.etiqueta ?: "Categorías",
+            destacado = filtros.categoria != null,
+            icono = Icons.Outlined.Tune,
+            indiceActual = filtros.categoria?.ordinal?.plus(1) ?: 0,
+            opciones = listOf("Todas" to { onCategoriaSeleccionada(null) }) +
+                Categoria.entries.map { categoria ->
+                    categoria.etiqueta to { onCategoriaSeleccionada(categoria) }
+                }
+        )
+        MenuFiltroExplorar(
+            etiqueta = filtros.orden.etiqueta,
+            destacado = filtros.orden != OrdenOfertas.RECOMENDADAS,
+            indiceActual = filtros.orden.ordinal,
+            opciones = OrdenOfertas.entries.map { orden ->
+                orden.etiqueta to { onOrdenSeleccionado(orden) }
             }
-        }
+        )
     }
 }
 
 @Composable
-private fun SelectorCategoria(
-    categoriaActual: Categoria?,
-    onCategoriaSeleccionada: (Categoria?) -> Unit
+private fun MenuFiltroExplorar(
+    etiqueta: String,
+    destacado: Boolean,
+    indiceActual: Int,
+    opciones: List<Pair<String, () -> Unit>>,
+    icono: ImageVector? = null
 ) {
-    var menuAbierto by remember { mutableStateOf(false) }
-    val seleccionar = { categoria: Categoria? ->
-        onCategoriaSeleccionada(categoria)
-        menuAbierto = false
-    }
+    var abierto by remember { mutableStateOf(false) }
     Box {
         FilterChip(
-            label = { Text(categoriaActual?.etiqueta ?: "Todas las categorías") },
-            selected = categoriaActual != null,
-            onClick = { menuAbierto = true },
-            leadingIcon = { Icon(Icons.Outlined.Tune, contentDescription = null) },
-            trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, contentDescription = null) },
+            label = { Text(etiqueta, style = MaterialTheme.typography.labelMedium) },
+            selected = destacado,
+            onClick = { abierto = true },
+            leadingIcon = icono?.let { imagen ->
+                { Icon(imagen, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            },
+            trailingIcon = {
+                Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
+            },
             shape = MaterialTheme.shapes.small,
             colors = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
         )
-        DropdownMenu(expanded = menuAbierto, onDismissRequest = { menuAbierto = false }) {
-            DropdownMenuItem(
-                text = { Text("Todas") },
-                onClick = { seleccionar(null) },
-                trailingIcon = {
-                    if (categoriaActual ==
-                        null
-                    ) {
-                        Icon(Icons.Outlined.Check, contentDescription = null)
-                    }
-                }
-            )
-            Categoria.entries.forEach { categoria ->
+        DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
+            opciones.forEachIndexed { indice, (texto, seleccionar) ->
                 DropdownMenuItem(
-                    text = { Text(categoria.etiqueta) },
-                    onClick = { seleccionar(categoria) },
+                    text = { Text(texto) },
+                    onClick = {
+                        seleccionar()
+                        abierto = false
+                    },
                     trailingIcon = {
-                        if (categoriaActual == categoria) {
+                        if (indice == indiceActual) {
                             Icon(Icons.Outlined.Check, contentDescription = null)
                         }
                     }
@@ -114,7 +104,7 @@ private fun SelectorCategoria(
     }
 }
 
-@Preview(name = "Filtros de explorar", showBackground = true, widthDp = 360)
+@Preview(name = "Filtros compactos", showBackground = true, widthDp = 360)
 @Preview(name = "Filtros con texto grande", widthDp = 320, fontScale = 1.5f)
 @Composable
 private fun FiltrosExplorarPreview() {
