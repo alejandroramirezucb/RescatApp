@@ -11,6 +11,7 @@ import com.rescatapp.core.designsystem.components.SelectorPestanas
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.features.auth.ui.BotonEnviarAuth
 import com.rescatapp.features.auth.ui.EnlaceAuth
+import com.rescatapp.features.auth.ui.EtiquetaSeccionAuth
 import com.rescatapp.features.auth.ui.MensajeErrorAuth
 import com.rescatapp.features.auth.ui.PantallaAuth
 
@@ -30,13 +31,19 @@ fun RegistroUsuarioScreen(
         if (estado.sesionIniciada) onRegistroExitoso()
     }
 
-    PantallaAuth(titulo = "Crear cuenta", onVolver = onVolver) {
+    PantallaAuth(
+        titulo = "Crear cuenta",
+        onVolver = onVolver,
+        descripcion = "Únete como cliente o comparte las ofertas de tu negocio."
+    ) {
+        EtiquetaSeccionAuth("Elige tu perfil")
         SelectorPestanas(
             titulos = listOf("Cliente", "Negocio / Comercio"),
             indiceSeleccionado = datos.rol.ordinal,
             onSeleccion = { actualizar(datos.copy(rol = RolUsuario.entries[it])) }
         )
         MensajeErrorAuth(estado.errorGeneral)
+        EtiquetaSeccionAuth("Tus datos")
         CampoConError(
             etiqueta = if (estado.esNegocio) "Nombre del responsable" else "Nombre completo",
             valor = datos.nombre,
@@ -74,6 +81,7 @@ fun RegistroUsuarioScreen(
             onValorCambiado = { actualizar(datos.copy(direccion = it)) },
             ejemplo = "Av. Las Palmeras 123"
         )
+        EtiquetaSeccionAuth("Acceso a tu cuenta")
         CampoConError(
             etiqueta = "Contraseña",
             valor = datos.contrasena,
