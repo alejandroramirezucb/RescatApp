@@ -6,11 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
@@ -41,23 +40,32 @@ internal fun SelectorCategoriaOferta(
         Text(
             text = "Categoría",
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.SemiBold,
+            color = if (error != null) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
         )
         Spacer(Modifier.height(6.dp))
         Box {
             Surface(
                 onClick = { expandido = true },
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, colorBordeCategoria(error)),
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(seleccionada?.etiqueta ?: "Panadería")
+                    Text(
+                        text = seleccionada?.etiqueta ?: "Selecciona una categoría",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.weight(1f)
+                    )
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Desplegar categorías",
@@ -92,5 +100,5 @@ internal fun SelectorCategoriaOferta(
 private fun colorBordeCategoria(error: String?) = if (error != null) {
     MaterialTheme.colorScheme.error
 } else {
-    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+    MaterialTheme.colorScheme.outline
 }

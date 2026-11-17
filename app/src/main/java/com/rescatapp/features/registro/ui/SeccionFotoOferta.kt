@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
@@ -33,7 +33,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.rescatapp.core.designsystem.theme.Naranja
 
 @Composable
 internal fun SeccionFotoOferta(imagenUri: String?, onFotoSeleccionada: (String?) -> Unit) {
@@ -47,8 +46,8 @@ internal fun SeccionFotoOferta(imagenUri: String?, onFotoSeleccionada: (String?)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(140.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .height(180.dp)
+                .clip(MaterialTheme.shapes.medium)
         ) {
             AsyncImage(
                 model = imagenUri,
@@ -65,44 +64,44 @@ internal fun SeccionFotoOferta(imagenUri: String?, onFotoSeleccionada: (String?)
             ) {
                 IconButton(
                     onClick = { onFotoSeleccionada(null) },
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "Eliminar foto",
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
         }
     } else {
         Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.15f),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
             border = BorderStroke(
                 1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                MaterialTheme.colorScheme.outline
             ),
             onClick = {
                 photoPickerLauncher.launch(
                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                 )
             },
-            modifier = Modifier.fillMaxWidth().height(86.dp)
+            modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp)
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxWidth().padding(20.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.CameraAlt,
                     contentDescription = null,
-                    tint = Naranja,
-                    modifier = Modifier.size(24.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     text = "Tocar para agregar foto",
                     style = MaterialTheme.typography.bodySmall,

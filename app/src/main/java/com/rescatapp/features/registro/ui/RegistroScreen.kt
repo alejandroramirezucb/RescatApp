@@ -1,26 +1,17 @@
 package com.rescatapp.features.registro.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,12 +19,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rescatapp.core.designsystem.theme.Naranja
+import com.rescatapp.core.designsystem.components.BarraSuperior
+import com.rescatapp.core.designsystem.components.BotonPrincipal
 import com.rescatapp.core.model.UsuarioDemo
 
 @Composable
@@ -43,6 +34,7 @@ fun RegistroScreen(
     viewModel: RegistroViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    val gestorFoco = LocalFocusManager.current
 
     LaunchedEffect(estado.guardadoExitoso) {
         if (estado.guardadoExitoso) onPublicado()
@@ -62,88 +54,63 @@ fun RegistroScreen(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = { BarraSuperior(titulo = "Crear oferta", onVolver = onVolver) }
+    ) { espacioInterno ->
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Naranja)
-                .padding(horizontal = 20.dp, vertical = 6.dp)
+            modifier = Modifier.fillMaxSize().padding(espacioInterno).imePadding(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Text(
-                text = UsuarioDemo.NEGOCIO_DEMO,
-                style = MaterialTheme.typography.labelMedium,
-                color = Color.White
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Surface(
-                onClick = onVolver,
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
-                modifier = Modifier.size(38.dp)
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 600.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Volver",
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurface
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Comparte un nuevo pack", style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        text = estado.campos.comercio.ifBlank { UsuarioDemo.NEGOCIO_DEMO },
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Completa la información para que tus clientes conozcan la oferta.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-            Text(
-                text = "Crear oferta",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            FormularioOferta(
-                campos = estado.campos,
-                errores = estado.errores,
-                onCampoCambiado = viewModel::onCampoCambiado
-            )
-
-            Button(
-                onClick = viewModel::publicar,
-                enabled = !estado.guardando && !estado.guardadoExitoso,
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Naranja),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp)
-                    .height(52.dp)
-            ) {
-                Text(
-                    text = if (estado.guardando) "Guardando..." else "Publicar oferta",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
+                FormularioOferta(
+                    campos = estado.campos,
+                    errores = estado.errores,
+                    onCampoCambiado = viewModel::onCampoCambiado
+                )
+                estado.mensaje?.let { mensaje ->
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = mensaje,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+                BotonPrincipal(
+                    texto = if (estado.guardando) "Guardando..." else "Publicar oferta",
+                    habilitado = !estado.guardando && !estado.guardadoExitoso,
+                    onClick = {
+                        gestorFoco.clearFocus()
+                        viewModel.publicar()
+                    }
                 )
             }
-
-            estado.mensaje?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
