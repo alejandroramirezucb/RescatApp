@@ -6,23 +6,19 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearDinero
 
@@ -34,8 +30,8 @@ internal fun DatosOfertaNegocio(
     modifier: Modifier
 ) {
     Column(
-        modifier = modifier.padding(12.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         EncabezadoOferta(oferta.nombre, oferta.estaAgotada)
         Text(
@@ -49,44 +45,38 @@ internal fun DatosOfertaNegocio(
 
 @Composable
 private fun EncabezadoOferta(nombre: String, estaAgotada: Boolean) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = nombre,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f)
+            style = MaterialTheme.typography.titleMedium
         )
-        Spacer(Modifier.width(8.dp))
         ChipEstadoOferta(estaAgotada)
     }
 }
 
 @Composable
 private fun PieOferta(precio: String, onEditar: () -> Unit, habilitada: Boolean) {
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
             text = precio,
-            style = MaterialTheme.typography.titleMedium,
-            color = Naranja
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary
         )
-        Surface(
-            color = Color.Transparent,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        OutlinedButton(
+            shape = MaterialTheme.shapes.small,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             onClick = onEditar,
             enabled = habilitada
         ) {
             Text(
                 text = "Editar",
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
@@ -94,9 +84,11 @@ private fun PieOferta(precio: String, onEditar: () -> Unit, habilitada: Boolean)
 
 @Composable
 private fun ChipEstadoOferta(estaAgotada: Boolean = false) {
-    val color = if (estaAgotada) Color(0xFFE53935) else Color(0xFF4CAF50)
+    val esquema = MaterialTheme.colorScheme
+    val color = if (estaAgotada) esquema.onErrorContainer else esquema.onSecondaryContainer
+    val fondo = if (estaAgotada) esquema.errorContainer else esquema.secondaryContainer
     val texto = if (estaAgotada) "Agotada" else "Activa"
-    Surface(color = color.copy(alpha = 0.12f), shape = RoundedCornerShape(50)) {
+    Surface(color = fondo, shape = MaterialTheme.shapes.small) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,

@@ -1,5 +1,6 @@
 package com.rescatapp.features.inicio.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,9 +36,9 @@ internal fun ListaOfertasNegocio(
         PestanaOfertas.EN_LINEA -> (estado.estadoRemoto as? EstadoRemoto.Exito)?.datos.orEmpty()
     }
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item { EncabezadoOfertasNegocio() }
         item {
