@@ -7,11 +7,14 @@ proyecto es una demo académica; los pagos son simulados.
 ## Funcionalidades
 
 - Registro e inicio de sesión con Supabase Auth y perfiles de cliente o negocio.
-- Catálogo compartido con búsqueda, categorías y orden por descuento.
+- Catálogo compartido entre dispositivos: lo que publica un negocio lo reserva cualquier cliente.
+- Búsqueda, categorías y orden por descuento.
 - Creación, edición, pausa, reactivación y eliminación de ofertas propias.
 - Fotografías compartidas mediante Supabase Storage.
 - Reservas, cancelaciones, preparación y entrega mediante operaciones del servidor.
+- Pago simulado con código QR o en efectivo al retirar.
 - Confirmación de entrega con el código de rescate del cliente.
+- Notificaciones al reservar, cancelar y cambiar el estado de un pedido.
 - Historial y notificaciones privados para cada cuenta.
 - Indicadores de ahorro, rescates recogidos y alimentos aprovechados.
 - Caché local en Room y actualización automática con la app visible.

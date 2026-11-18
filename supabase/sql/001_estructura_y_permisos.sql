@@ -1,5 +1,3 @@
--- RescatApp: ejecutar UNA VEZ, en un proyecto nuevo dedicado a la app.
--- No borra ni reemplaza tablas existentes. Si algo falla, se revierte este bloque.
 begin;
 
 create table public.perfiles (
@@ -93,8 +91,6 @@ create table public.notificaciones (
 );
 create index notificaciones_usuario_idx on public.notificaciones(destinatario_id, leida, creado_at desc);
 
--- Evento publico sin datos privados: permite retirar una oferta pausada del
--- catalogo aunque RLS ya no deje al cliente ver la nueva fila de esa oferta.
 create table public.catalogo_actualizacion (
     id smallint primary key check (id = 1),
     version bigint not null default 0,
@@ -127,8 +123,6 @@ create trigger pedidos_fecha before update on public.pedidos
 for each row execute function public.rescatapp_actualizar_fecha();
 revoke all on function public.rescatapp_actualizar_fecha() from public, anon, authenticated;
 
--- Los metadatos solo pueden elegir entre los dos perfiles permitidos.
--- La propiedad del negocio siempre procede de NEW.id, nunca del cliente.
 create function public.rescatapp_al_crear_usuario()
 returns trigger language plpgsql security definer set search_path = '' as $$
 declare
@@ -168,7 +162,6 @@ grant select on public.catalogo_actualizacion to anon,authenticated;
 create policy catalogo_revision_publica on public.catalogo_actualizacion for select to anon,authenticated
 using (true);
 
--- Revocar los permisos por defecto de estas tablas; no se tocan tablas ajenas.
 revoke all on public.perfiles,public.negocios,public.ofertas,public.pedidos,public.notificaciones
 from public,anon,authenticated;
 grant select on public.perfiles to authenticated;

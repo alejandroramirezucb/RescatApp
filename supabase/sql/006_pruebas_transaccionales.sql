@@ -1,7 +1,3 @@
--- Requiere una cuenta de cliente y una de negocio con su perfil registrado.
--- Crea UNA oferta de prueba, simula roles SQL y revierte filas y existencias.
--- Las secuencias de IDs pueden conservar saltos; no afecta a los datos.
--- No prueba envio de correos, dispositivos ni la conexion de Android.
 begin;
 do $$
 declare cliente uuid; propietario uuid; negocio integer; oferta integer;
@@ -52,7 +48,6 @@ begin
     if (select cantidad_disponible from public.ofertas where id = oferta) is distinct from 1 then
         raise exception 'FALLO: cancelacion devolvio dos veces el stock';
     end if;
-    -- Un tercero no lee ni cancela el pedido.
     perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
     if exists(select 1 from public.pedidos where id = pedido.id) then
         raise exception 'FALLO: pedido visible para un tercero';

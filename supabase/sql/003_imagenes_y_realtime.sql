@@ -2,8 +2,6 @@ begin;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values ('ofertas','ofertas',true,5242880,array['image/jpeg','image/png','image/webp']);
 
--- Formato de ruta obligatorio: UUID_DEL_PROPIETARIO/nombre-unico.jpg
--- Las fotos son publicas; escribir exige sesion y ser propietario del negocio.
 create policy rescatapp_imagenes_insert on storage.objects for insert to authenticated
 with check (bucket_id = 'ofertas'
     and (storage.foldername(name))[1] = (select auth.uid()::text)
@@ -16,7 +14,6 @@ with check (bucket_id = 'ofertas' and (storage.foldername(name))[1] = (select au
 create policy rescatapp_imagenes_delete on storage.objects for delete to authenticated
 using (bucket_id = 'ofertas' and (storage.foldername(name))[1] = (select auth.uid()::text));
 
--- No reemplaza la publicacion ni las tablas que ya pudieran estar suscritas.
 do $$
 declare tabla text;
 begin

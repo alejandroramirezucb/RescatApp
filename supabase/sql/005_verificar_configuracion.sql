@@ -1,5 +1,3 @@
--- Solo consultas. El SQL Editor usa postgres y omite RLS:
--- este archivo comprueba configuracion, no sustituye las pruebas de usuario.
 select tablename,rowsecurity from pg_tables
 where schemaname = 'public' and tablename in
 ('perfiles','negocios','ofertas','pedidos','notificaciones','catalogo_actualizacion')
@@ -28,4 +26,3 @@ select
     has_table_privilege('authenticated','public.pedidos','INSERT') as cliente_puede_insertar_pedido_directo,
     has_column_privilege('authenticated','public.perfiles','rol','UPDATE') as usuario_puede_cambiar_rol,
     has_function_privilege('anon','public.reservar_oferta(integer,uuid)','EXECUTE') as anon_puede_reservar;
--- Las cuatro columnas anteriores deben ser false.

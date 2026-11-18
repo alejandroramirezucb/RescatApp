@@ -1,4 +1,3 @@
--- Ejecutar despues de 001. Todas las operaciones validan al usuario del JWT.
 begin;
 
 create function public.reservar_oferta(p_oferta_id integer,p_solicitud_id uuid)
@@ -15,7 +14,6 @@ begin
     end if;
     select nombre into nombre_cliente from public.perfiles where id = usuario and rol = 'CLIENTE';
     if not found then raise exception 'Solo un cliente puede reservar'; end if;
-    -- Serializa reintentos de una misma solicitud, incluso simultaneos.
     perform pg_catalog.pg_advisory_xact_lock(
         pg_catalog.hashtextextended(usuario::text || ':' || p_solicitud_id::text,0));
     select * into pedido from public.pedidos
@@ -102,7 +100,6 @@ begin
     if p_estado_esperado = 'LISTO' and btrim(coalesce(p_codigo_rescate,'')) <> pedido.codigo_rescate then
         raise exception 'El codigo de rescate no coincide';
     end if;
-    -- Reintentar la MISMA transicion no avanza un segundo paso.
     if pedido.estado = siguiente then return next pedido; return; end if;
     if pedido.estado <> p_estado_esperado then raise exception 'El estado del pedido cambio; actualiza la pantalla'; end if;
     update public.pedidos set estado = siguiente where id = pedido.id returning * into pedido;
@@ -146,7 +143,6 @@ begin
                   and n.propietario_id = auth.uid()) then
         raise exception 'La oferta pertenece a otro negocio';
     end if;
-    -- Borrado logico: conserva relaciones e historicos; la app la retira de las listas.
     update public.ofertas set estado = 'ELIMINADA' where id = oferta.id returning * into oferta;
     return next oferta;
 end;
