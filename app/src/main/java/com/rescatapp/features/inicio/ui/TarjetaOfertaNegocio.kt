@@ -11,17 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.ImagenCategoria
@@ -33,13 +29,10 @@ import com.rescatapp.core.model.Oferta
 @Composable
 internal fun TarjetaOfertaNegocio(
     oferta: Oferta,
-    esRemota: Boolean,
     habilitada: Boolean,
-    procesando: Boolean,
     onEditar: () -> Unit,
-    onPublicar: (() -> Unit)?,
     onEliminar: () -> Unit,
-    onCambiarEstado: (() -> Unit)? = null
+    onCambiarEstado: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -62,50 +55,18 @@ internal fun TarjetaOfertaNegocio(
                 DatosOfertaNegocio(oferta, onEditar, habilitada, Modifier.weight(1f))
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = if (esRemota) {
-                            "${oferta.estadoPublicacion} | Retiro ${oferta.fechaRetiro}"
-                        } else {
-                            "Local"
-                        },
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    if (procesando) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp).semantics {
-                                contentDescription = "Procesando oferta"
-                            },
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
+            Text(
+                text = "${oferta.estadoPublicacion} | Retiro ${oferta.fechaRetiro}",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)
+            )
             FlowRow(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                onCambiarEstado?.let {
-                    TextButton(onClick = it, enabled = habilitada) {
-                        Text(if (oferta.estadoPublicacion == "PAUSADA") "Reactivar" else "Pausar")
-                    }
-                }
-                if (!esRemota) {
-                    onPublicar?.let {
-                        TextButton(onClick = it, enabled = habilitada) {
-                            Text("Publicar en línea")
-                        }
-                    }
+                TextButton(onClick = onCambiarEstado, enabled = habilitada) {
+                    Text(if (oferta.estadoPublicacion == "PAUSADA") "Reactivar" else "Pausar")
                 }
                 TextButton(onClick = onEliminar, enabled = habilitada) {
                     Text(
@@ -141,12 +102,10 @@ private fun TarjetaOfertaNegocioPreview() {
                 horaRetiroDesde = "18:00",
                 horaRetiroHasta = "20:00"
             ),
-            esRemota = false,
             habilitada = true,
-            procesando = false,
             onEditar = {},
-            onPublicar = {},
-            onEliminar = {}
+            onEliminar = {},
+            onCambiarEstado = {}
         )
     }
 }

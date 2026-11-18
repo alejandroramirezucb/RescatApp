@@ -2,8 +2,10 @@ package com.rescatapp.core.data
 
 import com.rescatapp.core.data.local.NotificacionDao
 import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.data.remote.SupabaseApi
 import com.rescatapp.core.model.Notificacion
 import com.rescatapp.core.model.RolUsuario
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -11,61 +13,50 @@ import kotlinx.coroutines.flow.map
 
 @Singleton
 class RepositorioNotificaciones @Inject constructor(
+    private val api: SupabaseApi,
     private val notificacionDao: NotificacionDao,
-    private val supabase: com.rescatapp.core.data.supabase.SupabaseConexion? = null
+    private val autenticacion: RepositorioAutenticacion
 ) {
+    private var ultimaRevision = LocalDateTime.now()
+
     fun observarPorRol(rol: RolUsuario): Flow<List<Notificacion>> =
-        supabase?.notificaciones?.map { lista -> lista.filter { it.rolDestino == rol } }
-            ?: notificacionDao.observarPorRol(rol).map { lista ->
-                lista.map { it.toDomain() }
-            }
+        notificacionDao.observarPorRol(rol).map { lista -> lista.map { it.toDomain() } }
 
-    fun contarNoLeidas(rol: RolUsuario): Flow<Int> = if (supabase !=
-        null
-    ) {
-        observarPorRol(rol).map { lista -> lista.count { !it.leida } }
-    } else {
-        notificacionDao.contarNoLeidas(rol)
-    }
+    fun contarNoLeidas(rol: RolUsuario): Flow<Int> = notificacionDao.contarNoLeidas(rol)
 
-    suspend fun agregar(notificacion: Notificacion) {
-        if (supabase != null) return // Las notificaciones privadas las crea el servidor.
-        notificacionDao.insertar(notificacion.toEntity())
-    }
-
-    suspend fun marcarComoLeida(id: String) {
-        if (supabase !=
-            null
-        ) {
-            return supabase.modificarNotificaciones(id, todas = false, eliminar = false)
+    suspend fun sincronizar(): List<Notificacion> {
+        val token = autenticacion.token()
+        val remotas = if (token == null) {
+            emptyList()
+        } else {
+            api.obtenerNotificaciones(token).map { it.toDomain() }
         }
-        notificacionDao.marcarComoLeida(id)
+        notificacionDao.insertarTodas(remotas.map { it.toEntity() })
+        notificacionDao.eliminarExcepto(remotas.map { it.id })
+        val nuevas = remotas.filter { !it.leida && it.fechaHora.isAfter(ultimaRevision) }
+        ultimaRevision = LocalDateTime.now()
+        return nuevas
     }
 
-    suspend fun marcarTodasComoLeidas(rol: RolUsuario) {
-        if (supabase !=
-            null
-        ) {
-            return supabase.modificarNotificaciones(null, todas = true, eliminar = false)
-        }
-        notificacionDao.marcarTodasComoLeidas(rol)
+    suspend fun marcarComoLeida(id: String) = operar { token, usuarioId ->
+        api.marcarNotificacionesLeidas(token, "eq.$usuarioId", "eq.$id")
     }
 
-    suspend fun eliminar(id: String) {
-        if (supabase !=
-            null
-        ) {
-            return supabase.modificarNotificaciones(id, todas = false, eliminar = true)
-        }
-        notificacionDao.eliminarPorId(id)
+    suspend fun marcarTodasComoLeidas() = operar { token, usuarioId ->
+        api.marcarNotificacionesLeidas(token, "eq.$usuarioId", null)
     }
 
-    suspend fun eliminarTodas(rol: RolUsuario) {
-        if (supabase !=
-            null
-        ) {
-            return supabase.modificarNotificaciones(null, todas = true, eliminar = true)
-        }
-        notificacionDao.eliminarTodasPorRol(rol)
+    suspend fun eliminar(id: String) = operar { token, usuarioId ->
+        api.eliminarNotificaciones(token, "eq.$usuarioId", "eq.$id")
+    }
+
+    suspend fun eliminarTodas() = operar { token, usuarioId ->
+        api.eliminarNotificaciones(token, "eq.$usuarioId", null)
+    }
+
+    private suspend fun operar(accion: suspend (token: String, usuarioId: String) -> Unit) {
+        val token = autenticacion.tokenObligatorio()
+        accion(token, checkNotNull(autenticacion.sesion()).usuarioId)
+        runCatching { sincronizar() }
     }
 }

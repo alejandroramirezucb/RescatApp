@@ -2,16 +2,14 @@ package com.rescatapp.features.perfil.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioAutenticacion
-import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.data.local.FakePedidoDao
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearRepositorioPedidos
 import com.rescatapp.core.data.local.FakeSesionDao
-import com.rescatapp.core.data.local.FakeUsuarioDao
-import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.data.pedidosDeEjemplo
+import com.rescatapp.core.data.sesionDePrueba
 import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.features.auth.data.UsuariosDeEjemplo
-import com.rescatapp.features.auth.domain.model.SesionUsuario
 import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -25,12 +23,11 @@ class PerfilViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val fakePedidoDao = FakePedidoDao()
-    private val repositorioPedidos = RepositorioPedidos(fakePedidoDao)
+    private val api = SupabaseApiFalsa(pedidos = pedidosDeEjemplo)
+    private val repositorioPedidos = crearRepositorioPedidos(api = api)
 
-    private val fakeUsuarioDao = FakeUsuarioDao(UsuariosDeEjemplo.todos.map { it.toEntity() })
     private val fakeSesionDao = FakeSesionDao()
-    private val repositorioAutenticacion = RepositorioAutenticacion(fakeUsuarioDao, fakeSesionDao)
+    private val repositorioAutenticacion = RepositorioAutenticacion(api, fakeSesionDao)
 
     @Test
     fun muestraElImpactoDeLosPedidosDeEjemplo() = runTest {
@@ -47,9 +44,8 @@ class PerfilViewModelTest {
     fun cancelarUnPedidoNoRecogidoNoModificaElImpacto() = runTest {
         val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
-        val pedidoListo = repositorioPedidos.buscarPorId(5)!!
-
-        repositorioPedidos.actualizar(pedidoListo.copy(estado = EstadoPedido.CANCELADO))
+        api.pedidos.replaceAll { if (it.id == 5) it.copy(estado = EstadoPedido.CANCELADO) else it }
+        repositorioPedidos.sincronizar()
 
         assertEquals(2, viewModel.uiState.value.impacto.rescates)
     }
@@ -62,12 +58,12 @@ class PerfilViewModelTest {
         assertFalse(viewModel.uiState.value.estaAutenticado)
 
         fakeSesionDao.guardarSesion(
-            SesionUsuario(
+            sesionDePrueba().copy(
                 usuarioId = "usr-1",
                 nombre = "Daniela Rojas",
                 correo = "daniela@example.com",
                 rol = RolUsuario.CLIENTE
-            ).toEntity()
+            )
         )
 
         assertTrue(viewModel.uiState.value.estaAutenticado)
@@ -82,13 +78,13 @@ class PerfilViewModelTest {
         observarDuranteLaPrueba(viewModel.uiState)
 
         fakeSesionDao.guardarSesion(
-            SesionUsuario(
+            sesionDePrueba().copy(
                 usuarioId = "usr-neg",
                 nombre = "Carlos Dueño",
                 correo = "negocio@comercio.com",
                 rol = RolUsuario.NEGOCIO,
                 nombreNegocio = "Café del Parque"
-            ).toEntity()
+            )
         )
 
         assertTrue(viewModel.uiState.value.estaAutenticado)
@@ -102,12 +98,12 @@ class PerfilViewModelTest {
         observarDuranteLaPrueba(viewModel.uiState)
 
         fakeSesionDao.guardarSesion(
-            SesionUsuario(
+            sesionDePrueba().copy(
                 usuarioId = "usr-1",
                 nombre = "Daniela Rojas",
                 correo = "daniela@example.com",
                 rol = RolUsuario.CLIENTE
-            ).toEntity()
+            )
         )
         assertTrue(viewModel.uiState.value.estaAutenticado)
 

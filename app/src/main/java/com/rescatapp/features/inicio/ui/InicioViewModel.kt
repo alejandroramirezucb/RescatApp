@@ -2,6 +2,7 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.RepositorioNotificaciones
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
@@ -9,6 +10,7 @@ import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.RolUsuario
+import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,17 +26,19 @@ class InicioViewModel @Inject constructor(
     private val calcularImpacto: CalcularImpactoUseCase,
     private val seleccionarOfertas: SeleccionarOfertasInicioUseCase,
     repositorioNotificaciones: RepositorioNotificaciones,
-    repositorioAutenticacion: com.rescatapp.core.data.RepositorioAutenticacion? = null
+    repositorioAutenticacion: RepositorioAutenticacion
 ) : ViewModel() {
     val uiState: StateFlow<InicioUiState> =
         combine(
             repositorioOfertas.catalogo,
             repositorioPedidos.pedidos,
             repositorioNotificaciones.contarNoLeidas(RolUsuario.CLIENTE),
-            repositorioAutenticacion?.sesionActual ?: kotlinx.coroutines.flow.flowOf(null)
+            repositorioAutenticacion.sesionActual
         ) { ofertas, pedidos, noLeidas, sesion ->
             crearEstado(ofertas, pedidos, noLeidas).copy(
-                usuario = sesion?.nombre?.substringBefore(" ") ?: com.rescatapp.core.model.UsuarioDemo.NOMBRE
+                usuario =
+                    sesion?.nombre?.substringBefore(" ")
+                        ?: UsuarioDemo.NOMBRE
             )
         }.stateIn(
             scope = viewModelScope,

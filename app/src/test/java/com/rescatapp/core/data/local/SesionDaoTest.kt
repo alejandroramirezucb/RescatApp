@@ -49,7 +49,10 @@ class SesionDaoTest {
             usuarioId = "usr-42",
             correo = "test@rescatapp.com",
             nombre = "Tester",
-            rol = RolUsuario.CLIENTE
+            rol = RolUsuario.CLIENTE,
+            token = "token",
+            refreshToken = "renovacion",
+            expira = 0
         )
 
         sesionDao.guardarSesion(sesion)
@@ -70,7 +73,10 @@ class SesionDaoTest {
                 usuarioId = "usr-1",
                 correo = "usr1@test.com",
                 nombre = "Usuario Uno",
-                rol = RolUsuario.CLIENTE
+                rol = RolUsuario.CLIENTE,
+                token = "token",
+                refreshToken = "renovacion",
+                expira = 0
             )
         )
 
@@ -80,7 +86,10 @@ class SesionDaoTest {
                 correo = "usr2@test.com",
                 nombre = "Usuario Dos",
                 rol = RolUsuario.NEGOCIO,
-                nombreNegocio = "Comercio Dos"
+                nombreNegocio = "Comercio Dos",
+                token = "token",
+                refreshToken = "renovacion",
+                expira = 0
             )
         )
 
@@ -98,7 +107,10 @@ class SesionDaoTest {
                 usuarioId = "usr-1",
                 correo = "usr1@test.com",
                 nombre = "Usuario Uno",
-                rol = RolUsuario.CLIENTE
+                rol = RolUsuario.CLIENTE,
+                token = "token",
+                refreshToken = "renovacion",
+                expira = 0
             )
         )
 

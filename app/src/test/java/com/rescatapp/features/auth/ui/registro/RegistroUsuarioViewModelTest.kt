@@ -1,12 +1,10 @@
 package com.rescatapp.features.auth.ui.registro
 
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioAutenticacion
-import com.rescatapp.core.data.local.FakeSesionDao
-import com.rescatapp.core.data.local.FakeUsuarioDao
-import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearAutenticacion
+import com.rescatapp.core.data.errorServidor
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.features.auth.data.UsuariosDeEjemplo
 import com.rescatapp.features.auth.domain.RegistrarUsuarioUseCase
 import com.rescatapp.features.auth.domain.ValidarRegistroUsuarioUseCase
 import com.rescatapp.features.auth.domain.model.DatosRegistro
@@ -23,10 +21,8 @@ class RegistroUsuarioViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorio = RepositorioAutenticacion(
-        FakeUsuarioDao(UsuariosDeEjemplo.todos.map { it.toEntity() }),
-        FakeSesionDao()
-    )
+    private val api = SupabaseApiFalsa()
+    private val repositorio = crearAutenticacion(api, sesion = null)
     private val validarRegistro = ValidarRegistroUsuarioUseCase()
     private val viewModel = RegistroUsuarioViewModel(
         RegistrarUsuarioUseCase(repositorio, validarRegistro),
@@ -85,6 +81,7 @@ class RegistroUsuarioViewModelTest {
 
     @Test
     fun registroConCorreoExistenteMuestraErrorGeneral() {
+        api.fallo = errorServidor("User already registered")
         viewModel.actualizarDatos(datosValidos.copy(correo = "invitado@example.com"))
 
         viewModel.registrarUsuario()

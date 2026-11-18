@@ -51,7 +51,7 @@ class NotificacionesViewModel @Inject constructor(
 
     fun marcarTodasComoLeidas() {
         operar {
-            repositorioNotificaciones.marcarTodasComoLeidas(UsuarioDemo.rol.value)
+            repositorioNotificaciones.marcarTodasComoLeidas()
         }
     }
 
@@ -63,7 +63,7 @@ class NotificacionesViewModel @Inject constructor(
 
     fun limpiarTodas() {
         operar {
-            repositorioNotificaciones.eliminarTodas(UsuarioDemo.rol.value)
+            repositorioNotificaciones.eliminarTodas()
         }
     }
     fun limpiarError() {

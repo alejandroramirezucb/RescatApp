@@ -37,18 +37,10 @@ class LoginViewModel @Inject constructor(
             _uiState.update { it.copy(errores = errores) }
             return
         }
-        ejecutar { iniciarSesionUseCase(credenciales) }
-    }
-
-    fun iniciarSesionDemo(esNegocio: Boolean) {
-        ejecutar { iniciarSesionUseCase.demo(esNegocio) }
-    }
-
-    private fun ejecutar(accion: suspend () -> ResultadoOperacion) {
         if (_uiState.value.cargando || _uiState.value.sesionIniciada) return
         _uiState.update { it.copy(cargando = true, errorGeneral = null) }
         viewModelScope.launch {
-            val resultado = accion()
+            val resultado = iniciarSesionUseCase(credenciales)
             _uiState.update {
                 it.copy(
                     cargando = false,

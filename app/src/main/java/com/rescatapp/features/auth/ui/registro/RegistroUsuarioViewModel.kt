@@ -7,6 +7,7 @@ import com.rescatapp.features.auth.domain.RegistrarUsuarioUseCase
 import com.rescatapp.features.auth.domain.ValidarRegistroUsuarioUseCase
 import com.rescatapp.features.auth.domain.model.DatosRegistro
 import com.rescatapp.features.auth.domain.model.ErroresRegistro
+import com.rescatapp.features.auth.domain.model.SesionUsuario
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,15 +40,12 @@ class RegistroUsuarioViewModel @Inject constructor(
         _uiState.update { it.copy(cargando = true, errorGeneral = null) }
         viewModelScope.launch {
             val resultado = registrarUsuarioUseCase(estado.datos)
+            val valor = (resultado as? ResultadoOperacion.Exito)?.valor
             _uiState.update {
                 it.copy(
                     cargando = false,
-                    sesionIniciada =
-                        resultado is ResultadoOperacion.Exito &&
-                            resultado.valor !is com.rescatapp.core.data.supabase.RegistroPendiente,
-                    confirmacionPendiente =
-                        resultado is ResultadoOperacion.Exito &&
-                            resultado.valor is com.rescatapp.core.data.supabase.RegistroPendiente,
+                    sesionIniciada = valor is SesionUsuario,
+                    confirmacionPendiente = valor is String,
                     errorGeneral = (resultado as? ResultadoOperacion.Error)?.mensaje
                 )
             }

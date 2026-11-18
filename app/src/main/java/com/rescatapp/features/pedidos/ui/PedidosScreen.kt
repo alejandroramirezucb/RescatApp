@@ -10,10 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,18 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.rescatapp.core.designsystem.components.BarraProgresoPedido
-import com.rescatapp.core.designsystem.components.EfectoMensajeTemporal
+import com.rescatapp.core.designsystem.components.AvisoTemporal
 import com.rescatapp.core.designsystem.components.EstadoVacio
-import com.rescatapp.core.designsystem.components.TarjetaPedido
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
 
 @Composable
 fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    val estadoSnackbar = remember { SnackbarHostState() }
-    EfectoMensajeTemporal(estado.mensaje, estadoSnackbar, viewModel::limpiarMensaje)
 
     var pedidoParaConfirmarRetiro by remember { mutableStateOf<Pedido?>(null) }
     var pedidoParaCancelar by remember { mutableStateOf<Pedido?>(null) }
@@ -124,30 +117,10 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
                 }
             }
         }
-        SnackbarHost(estadoSnackbar, modifier = Modifier.align(Alignment.BottomCenter))
-    }
-}
-
-@Composable
-private fun TarjetaPedidoActivo(
-    activo: PedidoConProgreso,
-    esNegocio: Boolean,
-    onAvanzar: (Pedido) -> Unit,
-    onCancelar: (Pedido) -> Unit
-) {
-    val pedido = activo.pedido
-    TarjetaPedido(pedido) {
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        FilaCodigoRetiro(pedido)
-        BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
-        if (esNegocio) {
-            AccionesPedidoNegocio(
-                pedido = pedido,
-                onAvanzar = { onAvanzar(pedido) },
-                onCancelar = { onCancelar(pedido) }
-            )
-        } else if (pedido.estado == EstadoPedido.RESERVADO) {
-            AccionCancelarReserva(onCancelar = { onCancelar(pedido) })
-        }
+        AvisoTemporal(
+            estado.mensaje,
+            viewModel::limpiarMensaje,
+            Modifier.align(Alignment.BottomCenter)
+        )
     }
 }

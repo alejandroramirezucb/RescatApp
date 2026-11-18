@@ -9,10 +9,9 @@ import androidx.room.TypeConverters
         PedidoEntity::class,
         OfertaEntity::class,
         NotificacionEntity::class,
-        UsuarioEntity::class,
         SesionEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(RescatAppTypeConverters::class)
@@ -23,8 +22,6 @@ abstract class RescatAppDatabase : RoomDatabase() {
     abstract fun ofertaDao(): OfertaDao
 
     abstract fun notificacionDao(): NotificacionDao
-
-    abstract fun usuarioDao(): UsuarioDao
 
     abstract fun sesionDao(): SesionDao
 

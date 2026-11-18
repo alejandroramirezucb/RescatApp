@@ -15,95 +15,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.rescatapp.core.model.EstadoRemoto
 import com.rescatapp.core.model.Oferta
 
 @Composable
 internal fun ListaOfertasNegocio(
     estado: OfertasNegocioUiState,
     onSeleccion: (PestanaOfertas) -> Unit,
-    onReintentar: () -> Unit,
-    onPublicar: (Oferta) -> Unit,
     onEditar: (Oferta) -> Unit,
     onEliminar: (Oferta) -> Unit,
-    onReintentarOperacion: () -> Unit,
-    onLimpiarMensaje: () -> Unit,
-    onCambiarEstado: ((Oferta) -> Unit)? = null
+    onCambiarEstado: (Oferta) -> Unit
 ) {
-    val esRemota = estado.pestana == PestanaOfertas.EN_LINEA
-    val ofertas = when (estado.pestana) {
-        PestanaOfertas.ACTIVAS -> estado.activas
-        PestanaOfertas.FINALIZADAS -> estado.finalizadas
-        PestanaOfertas.EN_LINEA -> (estado.estadoRemoto as? EstadoRemoto.Exito)?.datos.orEmpty()
-    }
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item { EncabezadoOfertasNegocio() }
-        item {
-            SelectorOfertasNegocio(pestana = estado.pestana, onSeleccion = onSeleccion)
+        item { SelectorOfertasNegocio(pestana = estado.pestana, onSeleccion = onSeleccion) }
+        if (estado.ocupado) {
+            item { ProgresoOfertas("Guardando cambios…") }
         }
-        item {
-            Text(
-                text = if (estado.sincronizadas) {
-                    "Ofertas de tu cuenta"
-                } else if (esRemota) {
-                    "Ofertas publicadas en linea"
-                } else {
-                    "Ofertas locales"
-                },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
-        }
-        estado.mensaje?.let { mensaje ->
-            item { MensajeOfertas(mensaje, "Entendido", onLimpiarMensaje) }
-        }
-        estado.errorLocal?.let { mensaje ->
-            item { MensajeOfertas(mensaje, "Entendido", onLimpiarMensaje, error = true) }
-        }
-        if (estado.guardandoLocal) {
-            item { ProgresoOfertas("Guardando cambios locales…") }
-        }
-        if (estado.eliminandoLocal) {
-            item { ProgresoOfertas("Eliminando oferta.") }
-        }
-        estado.errorOperacion?.let { mensaje ->
-            item {
-                MensajeOfertas(
-                    mensaje,
-                    "Reintentar operación",
-                    onReintentarOperacion,
-                    error = true,
-                    habilitado = !estado.ocupado
-                )
-            }
-        }
-        estado.operacionEnCurso?.let { operacion ->
-            item {
-                val accion = when (operacion.tipo) {
-                    TipoOperacionOferta.PUBLICAR -> "Publicando"
-                    TipoOperacionOferta.EDITAR -> "Guardando cambios de"
-                    TipoOperacionOferta.ELIMINAR -> "Eliminando"
-                }
-                ProgresoOfertas("$accion «${operacion.oferta.nombre}»…")
-            }
-        }
-        if (esRemota && estado.estadoRemoto is EstadoRemoto.Cargando) {
-            item { ProgresoOfertas("Cargando ofertas en línea…") }
-        } else if (esRemota && estado.estadoRemoto is EstadoRemoto.Error) {
-            item {
-                MensajeOfertas(
-                    estado.estadoRemoto.mensaje,
-                    "Reintentar",
-                    onReintentar,
-                    error = true
-                )
-            }
-        } else if (ofertas.isEmpty()) {
+        if (estado.ofertasVisibles.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -118,27 +50,16 @@ internal fun ListaOfertasNegocio(
                     )
                 }
             }
-        } else {
-            items(ofertas, key = { it.id }) { oferta ->
-                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    TarjetaOfertaNegocio(
-                        oferta = oferta,
-                        esRemota = esRemota || estado.sincronizadas,
-                        habilitada = !estado.ocupado,
-                        procesando = estado.operacionEnCurso?.let {
-                            it.oferta.id == oferta.id &&
-                                esRemota == (it.tipo != TipoOperacionOferta.PUBLICAR)
-                        } == true,
-                        onEditar = { onEditar(oferta) },
-                        onPublicar = if (estado.pestana == PestanaOfertas.ACTIVAS) {
-                            { onPublicar(oferta) }
-                        } else {
-                            null
-                        },
-                        onEliminar = { onEliminar(oferta) },
-                        onCambiarEstado = onCambiarEstado?.let { accion -> { accion(oferta) } }
-                    )
-                }
+        }
+        items(estado.ofertasVisibles, key = { it.id }) { oferta ->
+            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                TarjetaOfertaNegocio(
+                    oferta = oferta,
+                    habilitada = !estado.ocupado,
+                    onEditar = { onEditar(oferta) },
+                    onEliminar = { onEliminar(oferta) },
+                    onCambiarEstado = { onCambiarEstado(oferta) }
+                )
             }
         }
     }

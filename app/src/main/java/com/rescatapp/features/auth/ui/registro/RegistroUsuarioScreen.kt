@@ -1,5 +1,6 @@
 package com.rescatapp.features.auth.ui.registro
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +45,7 @@ fun RegistroUsuarioScreen(
         )
         MensajeErrorAuth(estado.errorGeneral)
         if (estado.confirmacionPendiente) {
-            androidx.compose.material3.Text(
+            Text(
                 "Revisa tu correo y confirma tu cuenta. Despues podras iniciar sesion."
             )
         }

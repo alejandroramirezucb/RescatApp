@@ -1,11 +1,8 @@
 package com.rescatapp.features.registro.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.OfertaDaoFalso
-import com.rescatapp.core.data.RepositorioOfertas
+import com.rescatapp.core.data.SupabaseApiFalsa
 import com.rescatapp.core.data.crearRepositorioOfertas
-import com.rescatapp.core.data.local.OfertaDao
-import com.rescatapp.core.data.local.OfertaEntity
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.MensajesValidacion
 import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
@@ -64,15 +61,10 @@ class RegistroViewModelTest {
 
     @Test
     fun esperaLaEscrituraYEvitaPublicarDosVecesMientrasGuarda() = runTest {
-        val dao = OfertaDaoFalso()
+        val api = SupabaseApiFalsa()
         val permitirEscritura = CompletableDeferred<Unit>()
-        val daoLento = object : OfertaDao by dao {
-            override suspend fun insertar(oferta: OfertaEntity): Long {
-                permitirEscritura.await()
-                return dao.insertar(oferta)
-            }
-        }
-        val repo = RepositorioOfertas(daoLento)
+        api.esperaCreacion = permitirEscritura
+        val repo = crearRepositorioOfertas(api = api)
         val registro = RegistroViewModel(ValidarOfertaUseCase(), RegistrarOfertaUseCase(repo))
         registro.onCampoCambiado(camposValidos)
 
@@ -92,15 +84,9 @@ class RegistroViewModelTest {
 
     @Test
     fun unErrorDeRoomPermiteReintentarSinInformarUnGuardadoExitoso() = runTest {
-        val dao = OfertaDaoFalso()
-        var falla = true
-        val daoConError = object : OfertaDao by dao {
-            override suspend fun insertar(oferta: OfertaEntity): Long {
-                if (falla) error("Error de escritura")
-                return dao.insertar(oferta)
-            }
-        }
-        val repo = RepositorioOfertas(daoConError)
+        val api = SupabaseApiFalsa()
+        api.fallo = IllegalStateException("Error de escritura")
+        val repo = crearRepositorioOfertas(api = api)
         val registro = RegistroViewModel(ValidarOfertaUseCase(), RegistrarOfertaUseCase(repo))
         registro.onCampoCambiado(camposValidos)
 
@@ -114,7 +100,7 @@ class RegistroViewModelTest {
         )
         assertEquals(14, repo.ofertas.first().size)
 
-        falla = false
+        api.fallo = null
         registro.publicar()
 
         assertTrue(registro.uiState.value.guardadoExitoso)

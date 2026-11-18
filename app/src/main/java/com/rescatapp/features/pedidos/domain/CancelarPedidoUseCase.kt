@@ -2,30 +2,16 @@ package com.rescatapp.features.pedidos.domain
 
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.ResultadoOperacion
-import com.rescatapp.core.notification.GestorNotificaciones
 import javax.inject.Inject
 
 class CancelarPedidoUseCase @Inject constructor(
     private val repositorioPedidos: RepositorioPedidos,
-    private val repositorioOfertas: RepositorioOfertas,
-    private val gestorNotificaciones: GestorNotificaciones? = null
+    private val repositorioOfertas: RepositorioOfertas
 ) {
     suspend operator fun invoke(pedidoId: Int): ResultadoOperacion {
-        if (repositorioPedidos.conectado) return repositorioPedidos.cancelar(pedidoId)
-        val pedido = repositorioPedidos.buscarPorId(pedidoId)
-            ?: return ResultadoOperacion.Error(MensajesPedidos.PEDIDO_NO_ENCONTRADO)
-        if (pedido.estado != EstadoPedido.RESERVADO) {
-            return ResultadoOperacion.Error(MensajesPedidos.SOLO_SE_CANCELA_RESERVADO)
-        }
-
-        val pedidoCancelado = pedido.copy(estado = EstadoPedido.CANCELADO)
-        repositorioOfertas.cambiarUnidadesDisponibles(pedido.ofertaId, diferencia = 1)
-        repositorioPedidos.actualizar(pedidoCancelado)
-
-        gestorNotificaciones?.notificarPedidoCanceladoCliente(pedidoCancelado)
-        gestorNotificaciones?.notificarPedidoCanceladoVendedor(pedidoCancelado)
-        return ResultadoOperacion.Exito(pedidoCancelado)
+        val resultado = repositorioPedidos.cancelar(pedidoId)
+        runCatching { repositorioOfertas.sincronizar() }
+        return resultado
     }
 }

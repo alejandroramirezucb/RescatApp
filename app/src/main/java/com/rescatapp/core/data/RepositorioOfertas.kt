@@ -1,83 +1,84 @@
 package com.rescatapp.core.data
 
 import com.rescatapp.core.data.local.OfertaDao
-import com.rescatapp.core.data.local.filtrar
 import com.rescatapp.core.data.local.toEntity
-import com.rescatapp.core.data.supabase.SupabaseConexion
-import com.rescatapp.core.model.UsuarioDemo
+import com.rescatapp.core.data.remote.ImagenesOfertas
+import com.rescatapp.core.data.remote.SupabaseApi
+import com.rescatapp.core.data.remote.toCampos
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Oferta
+import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 @Singleton
 class RepositorioOfertas @Inject constructor(
+    private val api: SupabaseApi,
     private val ofertaDao: OfertaDao,
-    private val supabase: SupabaseConexion? = null
+    private val autenticacion: RepositorioAutenticacion,
+    private val imagenes: ImagenesOfertas
 ) {
-    val conectado: Boolean get() = supabase != null
-    val ofertas: Flow<List<Oferta>> = supabase?.ofertas ?: ofertaDao.observarTodas().map { entidades ->
+    val ofertas: Flow<List<Oferta>> = ofertaDao.observarTodas().map { entidades ->
         entidades.map { it.toDomain() }
     }
-    val propias: Flow<List<Oferta>> = ofertas.map { lista ->
-        if (supabase != null) lista.filter { it.propietarioId == supabase.sesion.value?.usuarioId }
-        else lista.filter { it.comercio == UsuarioDemo.NEGOCIO_DEMO }
-    }
-    val catalogo: Flow<List<Oferta>> = if (supabase != null) ofertas.map { lista ->
-        lista.filter(SupabaseConexion::visibleEnCatalogo)
-    } else ofertas
 
-    fun obtenerPorId(id: Int): Flow<Oferta?> = if (supabase != null) ofertas.map { lista -> lista.find { it.id == id } } else ofertaDao.observarPorId(id).map { it?.toDomain() }
-
-    suspend fun buscarPorId(id: Int): Oferta? = if (supabase != null) ofertas.first().find { it.id == id } else ofertaDao.buscarPorId(id)?.toDomain()
-
-    suspend fun agregar(oferta: Oferta): Oferta {
-        if (supabase != null) return supabase.guardarOferta(oferta, nueva = true)
-        val id = ofertaDao.insertar(oferta.copy(id = 0).toEntity())
-        return oferta.copy(id = id.toInt())
-    }
-
-    suspend fun actualizar(oferta: Oferta) {
-        if (supabase != null) {
-            supabase.guardarOferta(oferta, nueva = false)
-            return
+    val propias: Flow<List<Oferta>> =
+        combine(ofertas, autenticacion.sesionActual) { lista, sesion ->
+            lista.filter { it.propietarioId == sesion?.usuarioId }
         }
-        ofertaDao.actualizar(oferta.toEntity())
-    }
 
-    suspend fun eliminar(oferta: Oferta) {
-        if (supabase != null) {
-            supabase.eliminarOferta(oferta.id)
-            return
-        }
-        ofertaDao.eliminar(oferta.toEntity())
-    }
+    val catalogo: Flow<List<Oferta>> = filtrar(categoria = null, texto = "")
 
-    suspend fun cambiarUnidadesDisponibles(ofertaId: Int, diferencia: Int): Boolean {
-        check(supabase == null) { "El servidor administra el stock de las reservas." }
-        return ofertaDao.cambiarUnidadesDisponibles(ofertaId, diferencia) > 0
-    }
+    fun obtenerPorId(id: Int): Flow<Oferta?> = ofertas.map { lista -> lista.find { it.id == id } }
 
     fun filtrar(categoria: Categoria?, texto: String): Flow<List<Oferta>> =
-        if (supabase != null) {
-            catalogo.map { lista ->
-                lista.filter {
-                    (categoria == null || it.categoria == categoria) &&
-                        (it.nombre.contains(texto.trim(), true) ||
-                            it.comercio.contains(texto.trim(), true))
-                }
-            }
-        } else {
-            ofertaDao.filtrar(categoria, texto.trim()).map { entidades ->
-                entidades.map { it.toDomain() }
-            }
+        ofertaDao.filtrar(categoria?.name, texto.trim()).map { entidades ->
+            entidades.map { it.toDomain() }.filter { it.sigueVigente() }
         }
 
-    suspend fun cambiarEstado(oferta: Oferta) {
-        val nuevoEstado = if (oferta.estadoPublicacion == "PAUSADA") "ACTIVA" else "PAUSADA"
-        checkNotNull(supabase).cambiarEstadoOferta(oferta.id, nuevoEstado)
+    suspend fun sincronizar() {
+        val remotas = api.obtenerOfertas(autenticacion.token()).map { it.toDomain() }
+        ofertaDao.insertarTodas(remotas.map { it.toEntity() })
+        ofertaDao.eliminarExcepto(remotas.map { it.id })
     }
+
+    suspend fun agregar(oferta: Oferta) = operar { token, usuarioId ->
+        val negocio = api.obtenerNegocio(token, "eq.$usuarioId").first()
+        val imagen = imagenes.subir(oferta.imagenUri, usuarioId, token)
+        api.crearOferta(
+            token,
+            oferta.copy(imagenUri = imagen).toCampos() + ("negocio_id" to negocio.id)
+        )
+    }
+
+    suspend fun actualizar(oferta: Oferta) = operar { token, usuarioId ->
+        val imagen = imagenes.subir(oferta.imagenUri, usuarioId, token)
+        api.editarOferta(token, "eq.${oferta.id}", oferta.copy(imagenUri = imagen).toCampos())
+    }
+
+    suspend fun eliminar(oferta: Oferta) = operar { token, _ ->
+        api.eliminarOferta(token, mapOf("p_oferta_id" to oferta.id))
+    }
+
+    suspend fun cambiarEstado(oferta: Oferta) = operar { token, _ ->
+        val nuevoEstado = if (oferta.estadoPublicacion == "PAUSADA") "ACTIVA" else "PAUSADA"
+        api.cambiarEstadoOferta(token, mapOf("p_oferta_id" to oferta.id, "p_estado" to nuevoEstado))
+    }
+
+    private suspend fun operar(accion: suspend (token: String, usuarioId: String) -> Unit) {
+        val token = autenticacion.tokenObligatorio()
+        accion(token, checkNotNull(autenticacion.sesion()).usuarioId)
+        runCatching { sincronizar() }
+    }
+
+    private fun Oferta.sigueVigente(): Boolean =
+        fechaRetiro.atTime(LocalTime.parse(horaRetiroHasta))
+            .atZone(ZoneId.of("America/La_Paz"))
+            .toInstant()
+            .isAfter(Instant.now())
 }

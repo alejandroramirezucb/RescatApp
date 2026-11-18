@@ -1,109 +1,124 @@
 package com.rescatapp.core.data
 
 import com.rescatapp.core.data.local.SesionDao
-import com.rescatapp.core.data.local.UsuarioDao
-import com.rescatapp.core.data.local.toDomain
-import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.data.local.SesionEntity
+import com.rescatapp.core.data.remote.SupabaseApi
+import com.rescatapp.core.data.remote.TokenDto
+import com.rescatapp.core.data.remote.mensajeDeError
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.UsuarioDemo
-import com.rescatapp.features.auth.data.SeguridadAuth
 import com.rescatapp.features.auth.domain.model.DatosRegistro
 import com.rescatapp.features.auth.domain.model.SesionUsuario
-import com.rescatapp.features.auth.domain.model.Usuario
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import retrofit2.HttpException
 
 @Singleton
 class RepositorioAutenticacion @Inject constructor(
-    private val usuarioDao: UsuarioDao,
-    private val sesionDao: SesionDao,
-    private val supabase: com.rescatapp.core.data.supabase.SupabaseConexion? = null
+    private val api: SupabaseApi,
+    private val sesionDao: SesionDao
 ) {
-    val sesionActual: Flow<SesionUsuario?> =
-        supabase?.sesion ?: sesionDao.observarSesion().map { it?.toDomain() }
+    val sesionActual: Flow<SesionUsuario?> = sesionDao.observarSesion().map { it?.toDomain() }
 
     suspend fun sincronizarSesion() {
-        if (supabase != null) {
-            supabase.inicializar()
-            return
-        }
-        sesionDao.obtenerSesion()?.let { UsuarioDemo.cambiarRol(it.rol) }
+        val sesion = sesionDao.obtenerSesion()
+        UsuarioDemo.actualizarNegocio(sesion?.nombreNegocio)
+        UsuarioDemo.cambiarRol(sesion?.rol ?: RolUsuario.CLIENTE)
     }
 
-    suspend fun iniciarSesion(correo: String, contrasena: String): ResultadoOperacion {
-        if (supabase != null) return supabase.login(correo, contrasena)
-        val usuario = buscarUsuario(correo)
-            ?: return ResultadoOperacion.Error(
-                "No existe una cuenta registrada con este correo electrónico."
-            )
-        if (!SeguridadAuth.verificarContrasena(contrasena, usuario.contrasenaHash)) {
-            return ResultadoOperacion.Error("La contraseña ingresada es incorrecta.")
-        }
-        return ResultadoOperacion.Exito(abrirSesion(usuario))
-    }
+    suspend fun sesion(): SesionUsuario? = sesionDao.obtenerSesion()?.toDomain()
 
-    suspend fun iniciarSesionDemo(esNegocio: Boolean): ResultadoOperacion {
-        if (supabase !=
-            null
-        ) {
-            return ResultadoOperacion.Error(
-                "Ingresa con el correo y la contrasena de tu cuenta real."
-            )
-        }
-        val correo = if (esNegocio) UsuarioDemo.CORREO_NEGOCIO else UsuarioDemo.CORREO
-        val usuario = buscarUsuario(correo)
-            ?: return ResultadoOperacion.Error("No se encontró la cuenta de demostración.")
-        return ResultadoOperacion.Exito(abrirSesion(usuario))
-    }
-
-    suspend fun registrarUsuario(datos: DatosRegistro): ResultadoOperacion {
-        if (supabase != null) return supabase.registrar(datos)
-        if (buscarUsuario(datos.correo) != null) {
-            return ResultadoOperacion.Error(
-                "Ya existe una cuenta registrada con este correo electrónico."
-            )
-        }
-        val usuario = Usuario(
-            id = UUID.randomUUID().toString(),
-            nombre = datos.nombre.trim(),
-            correo = datos.correo.trim().lowercase(),
-            contrasenaHash = SeguridadAuth.hashearContrasena(datos.contrasena),
-            rol = datos.rol,
-            telefono = datos.telefono.trim(),
-            direccion = datos.direccion.trim(),
-            nombreNegocio = datos.nombreNegocio.trim().takeIf { datos.rol == RolUsuario.NEGOCIO }
+    suspend fun iniciarSesion(correo: String, contrasena: String): ResultadoOperacion = try {
+        val token = api.iniciarSesion(
+            mapOf("email" to correo.trim().lowercase(), "password" to contrasena)
         )
-        usuarioDao.insertar(usuario.toEntity())
-        return ResultadoOperacion.Exito(abrirSesion(usuario))
+        ResultadoOperacion.Exito(abrirSesion(token))
+    } catch (error: Exception) {
+        ResultadoOperacion.Error(mensajeDeError(error))
+    }
+
+    suspend fun registrarUsuario(datos: DatosRegistro): ResultadoOperacion = try {
+        val token = api.registrarUsuario(
+            mapOf(
+                "email" to datos.correo.trim().lowercase(),
+                "password" to datos.contrasena,
+                "data" to mapOf(
+                    "nombre" to datos.nombre.trim(),
+                    "rol" to datos.rol.name,
+                    "nombreNegocio" to datos.nombreNegocio.trim(),
+                    "telefono" to datos.telefono.trim(),
+                    "direccion" to datos.direccion.trim()
+                )
+            )
+        )
+        if (token.accessToken == null) {
+            ResultadoOperacion.Exito(CONFIRMAR_CORREO)
+        } else {
+            ResultadoOperacion.Exito(abrirSesion(token))
+        }
+    } catch (error: Exception) {
+        ResultadoOperacion.Error(mensajeDeError(error))
     }
 
     suspend fun cerrarSesion() {
-        if (supabase != null) {
-            supabase.logout()
-            return
-        }
         sesionDao.limpiarSesion()
-        UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
+        sincronizarSesion()
     }
 
-    private suspend fun buscarUsuario(correo: String): Usuario? =
-        usuarioDao.buscarPorCorreo(correo.trim().lowercase())?.toDomain()
+    suspend fun token(): String? {
+        val sesion = sesionDao.obtenerSesion() ?: return null
+        if (sesion.expira > ahora() + MARGEN_SEGUNDOS) return "Bearer ${sesion.token}"
+        return try {
+            val nuevo = api.renovarToken(mapOf("refresh_token" to sesion.refreshToken))
+            sesionDao.guardarSesion(
+                sesion.copy(
+                    token = nuevo.accessToken.orEmpty(),
+                    refreshToken = nuevo.refreshToken.orEmpty(),
+                    expira = ahora() + (nuevo.expiraEn ?: 0)
+                )
+            )
+            "Bearer ${nuevo.accessToken}"
+        } catch (_: HttpException) {
+            cerrarSesion()
+            null
+        }
+    }
 
-    private suspend fun abrirSesion(usuario: Usuario): SesionUsuario {
-        val sesion = SesionUsuario(
+    suspend fun tokenObligatorio(): String = token() ?: error("Inicia sesión para continuar.")
+
+    private suspend fun abrirSesion(token: TokenDto): SesionUsuario {
+        val acceso = "Bearer ${token.accessToken}"
+        val usuario = checkNotNull(token.user)
+        val perfil = api.obtenerPerfil(acceso, "eq.${usuario.id}").first()
+        val rol = RolUsuario.valueOf(perfil.rol)
+        val negocio = if (rol == RolUsuario.NEGOCIO) {
+            api.obtenerNegocio(acceso, "eq.${usuario.id}").firstOrNull()?.nombre
+        } else {
+            null
+        }
+        val sesion = SesionEntity(
             usuarioId = usuario.id,
-            nombre = usuario.nombre,
-            correo = usuario.correo,
-            rol = usuario.rol,
-            nombreNegocio = usuario.nombreNegocio,
-            token = "token-${usuario.id}-${System.currentTimeMillis()}"
+            correo = usuario.email,
+            nombre = perfil.nombre,
+            rol = rol,
+            nombreNegocio = negocio,
+            token = token.accessToken.orEmpty(),
+            refreshToken = token.refreshToken.orEmpty(),
+            expira = ahora() + (token.expiraEn ?: 0)
         )
-        sesionDao.guardarSesion(sesion.toEntity())
-        UsuarioDemo.cambiarRol(usuario.rol)
-        return sesion
+        sesionDao.guardarSesion(sesion)
+        sincronizarSesion()
+        return sesion.toDomain()
+    }
+
+    private fun ahora(): Long = System.currentTimeMillis() / 1000
+
+    companion object {
+        const val CONFIRMAR_CORREO =
+            "Te enviamos un correo. Confirma tu cuenta y luego inicia sesión."
+        private const val MARGEN_SEGUNDOS = 60
     }
 }

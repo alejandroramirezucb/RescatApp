@@ -3,33 +3,15 @@ package com.rescatapp.features.detalle.domain
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.model.ResultadoOperacion
-import com.rescatapp.core.notification.GestorNotificaciones
 import javax.inject.Inject
 
 class ReservarOfertaUseCase @Inject constructor(
     private val repositorioOfertas: RepositorioOfertas,
-    private val repositorioPedidos: RepositorioPedidos,
-    private val gestorNotificaciones: GestorNotificaciones? = null
+    private val repositorioPedidos: RepositorioPedidos
 ) {
     suspend operator fun invoke(ofertaId: Int): ResultadoOperacion {
-        if (repositorioPedidos.conectado) return repositorioPedidos.reservar(ofertaId)
-        val oferta = repositorioOfertas.buscarPorId(ofertaId)
-            ?: return ResultadoOperacion.Error("Oferta no encontrada")
-        if (oferta.estaAgotada) return ResultadoOperacion.Error("Esta oferta está agotada")
-
-        if (!repositorioOfertas.cambiarUnidadesDisponibles(oferta.id, diferencia = -1)) {
-            return ResultadoOperacion.Error("Esta oferta está agotada o ya no está disponible")
-        }
-        val pedido = repositorioPedidos.agregar(oferta.crearPedido(idPedido = 0))
-
-        gestorNotificaciones?.notificarReservaConfirmadaCliente(pedido)
-        gestorNotificaciones?.notificarNuevoPedidoVendedor(pedido)
-
-        val ofertaActualizada = repositorioOfertas.buscarPorId(ofertaId)
-        if (ofertaActualizada?.estaAgotada == true) {
-            gestorNotificaciones?.notificarOfertaAgotada(ofertaActualizada)
-        }
-
-        return ResultadoOperacion.Exito(pedido)
+        val resultado = repositorioPedidos.reservar(ofertaId)
+        runCatching { repositorioOfertas.sincronizar() }
+        return resultado
     }
 }

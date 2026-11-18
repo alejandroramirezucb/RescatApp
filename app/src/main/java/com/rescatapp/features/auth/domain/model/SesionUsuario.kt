@@ -7,7 +7,5 @@ data class SesionUsuario(
     val nombre: String,
     val correo: String,
     val rol: RolUsuario,
-    val nombreNegocio: String? = null,
-    val token: String = "",
-    val fechaInicio: Long = System.currentTimeMillis()
+    val nombreNegocio: String? = null
 )

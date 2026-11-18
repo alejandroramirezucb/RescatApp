@@ -25,6 +25,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.BarraSuperior
 import com.rescatapp.core.designsystem.components.BotonPrincipal
+import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.UsuarioDemo
 
 @Composable
@@ -45,7 +46,7 @@ fun RegistroScreen(
             viewModel.onCampoCambiado(
                 estado.campos.copy(
                     comercio = UsuarioDemo.negocioActual,
-                    categoria = com.rescatapp.core.model.Categoria.PANADERIA,
+                    categoria = Categoria.PANADERIA,
                     pesoKg = "1,0",
                     horaRetiroDesde = "18:00",
                     horaRetiroHasta = "20:00"

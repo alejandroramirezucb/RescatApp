@@ -1,12 +1,14 @@
 package com.rescatapp.features.inicio.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioNotificaciones
-import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearAutenticacion
+import com.rescatapp.core.data.crearRepositorioNotificaciones
 import com.rescatapp.core.data.crearRepositorioOfertas
-import com.rescatapp.core.data.local.FakeNotificacionDao
-import com.rescatapp.core.data.local.FakePedidoDao
+import com.rescatapp.core.data.crearRepositorioPedidos
+import com.rescatapp.core.data.pedidosDeEjemplo
 import com.rescatapp.core.domain.CalcularImpactoUseCase
+import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
@@ -18,8 +20,9 @@ class InicioViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorioOfertas = crearRepositorioOfertas()
-    private val repositorioPedidos = RepositorioPedidos(FakePedidoDao())
+    private val api = SupabaseApiFalsa(pedidos = pedidosDeEjemplo)
+    private val repositorioOfertas = crearRepositorioOfertas(api = api)
+    private val repositorioPedidos = crearRepositorioPedidos(api = api)
 
     @Test
     fun estadoInicialTieneUsuarioInvitado() = runTest {
@@ -41,10 +44,8 @@ class InicioViewModelTest {
     fun unaReservaActualizaSeccionesPeroNoGeneraImpactoHastaRecogerse() = runTest {
         val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
-        val packCroissants = repositorioOfertas.buscarPorId(13)!!
 
-        repositorioOfertas.cambiarUnidadesDisponibles(packCroissants.id, diferencia = -1)
-        repositorioPedidos.agregar(packCroissants.crearPedido(idPedido = 0))
+        ReservarOfertaUseCase(repositorioOfertas, repositorioPedidos)(13)
 
         val estado = viewModel.uiState.value
         assertEquals(2, estado.impacto.rescates)
@@ -58,6 +59,7 @@ class InicioViewModelTest {
         repositorioPedidos = repositorioPedidos,
         calcularImpacto = CalcularImpactoUseCase(),
         seleccionarOfertas = SeleccionarOfertasInicioUseCase(),
-        repositorioNotificaciones = RepositorioNotificaciones(FakeNotificacionDao())
+        repositorioNotificaciones = crearRepositorioNotificaciones(api = api),
+        repositorioAutenticacion = crearAutenticacion(api, sesion = null)
     )
 }

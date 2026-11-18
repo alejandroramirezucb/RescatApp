@@ -12,9 +12,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.components.CampoConError
 import com.rescatapp.core.designsystem.components.DialogoConfirmacion
 import com.rescatapp.core.model.Pedido
 
@@ -25,7 +28,7 @@ internal fun DialogoConfirmarRetiro(
     onDescartar: () -> Unit,
     onCodigoConfirmado: ((String) -> Unit)? = null
 ) {
-    var codigo by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
+    var codigo by remember { mutableStateOf("") }
     DialogoConfirmacion(
         titulo = "Confirmar retiro de pedido",
         textoConfirmar = "Confirmar entrega",
@@ -42,7 +45,7 @@ internal fun DialogoConfirmarRetiro(
         onDescartar = onDescartar
     ) {
         Text(pedido.nombreOferta, style = MaterialTheme.typography.titleSmall)
-        com.rescatapp.core.designsystem.components.CampoConError(
+        CampoConError(
             etiqueta = "Codigo que muestra el cliente",
             valor = codigo,
             onValorCambiado = { codigo = it },

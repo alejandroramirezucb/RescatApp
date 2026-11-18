@@ -14,31 +14,19 @@ data class SesionEntity(
     val nombre: String,
     val rol: RolUsuario,
     val nombreNegocio: String? = null,
-    val fechaInicio: Long = System.currentTimeMillis(),
-    val token: String = ""
+    val token: String,
+    val refreshToken: String,
+    val expira: Long
 ) {
+    fun toDomain(): SesionUsuario = SesionUsuario(
+        usuarioId = usuarioId,
+        nombre = nombre,
+        correo = correo,
+        rol = rol,
+        nombreNegocio = nombreNegocio
+    )
+
     companion object {
         const val ID_SESION_UNICA = 1
     }
 }
-
-fun SesionEntity.toDomain(): SesionUsuario = SesionUsuario(
-    usuarioId = usuarioId,
-    nombre = nombre,
-    correo = correo,
-    rol = rol,
-    nombreNegocio = nombreNegocio,
-    token = token,
-    fechaInicio = fechaInicio
-)
-
-fun SesionUsuario.toEntity(): SesionEntity = SesionEntity(
-    id = SesionEntity.ID_SESION_UNICA,
-    usuarioId = usuarioId,
-    correo = correo,
-    nombre = nombre,
-    rol = rol,
-    nombreNegocio = nombreNegocio,
-    token = token,
-    fechaInicio = fechaInicio
-)

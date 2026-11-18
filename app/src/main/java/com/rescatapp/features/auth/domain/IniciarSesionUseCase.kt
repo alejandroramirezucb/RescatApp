@@ -21,7 +21,4 @@ class IniciarSesionUseCase @Inject constructor(
             contrasena = credenciales.contrasena
         )
     }
-
-    suspend fun demo(esNegocio: Boolean): ResultadoOperacion =
-        repositorioAutenticacion.iniciarSesionDemo(esNegocio)
 }

@@ -1,12 +1,10 @@
 package com.rescatapp.features.auth.domain
 
 import com.rescatapp.core.data.RepositorioAutenticacion
-import com.rescatapp.core.data.local.FakeSesionDao
-import com.rescatapp.core.data.local.FakeUsuarioDao
-import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearAutenticacion
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.features.auth.data.UsuariosDeEjemplo
 import com.rescatapp.features.auth.domain.model.CredencialesLogin
 import com.rescatapp.features.auth.domain.model.DatosRegistro
 import com.rescatapp.features.auth.domain.model.SesionUsuario
@@ -20,8 +18,6 @@ import org.junit.Test
 
 class CasosUsoAuthTest {
 
-    private lateinit var usuarioDao: FakeUsuarioDao
-    private lateinit var sesionDao: FakeSesionDao
     private lateinit var repositorio: RepositorioAutenticacion
 
     private lateinit var validarLogin: ValidarLoginUseCase
@@ -31,9 +27,7 @@ class CasosUsoAuthTest {
 
     @Before
     fun preparar() {
-        usuarioDao = FakeUsuarioDao(UsuariosDeEjemplo.todos.map { it.toEntity() })
-        sesionDao = FakeSesionDao()
-        repositorio = RepositorioAutenticacion(usuarioDao, sesionDao)
+        repositorio = crearAutenticacion(SupabaseApiFalsa(), sesion = null)
 
         validarLogin = ValidarLoginUseCase()
         validarRegistro = ValidarRegistroUsuarioUseCase()
@@ -59,7 +53,7 @@ class CasosUsoAuthTest {
         assertTrue(resultado is ResultadoOperacion.Exito)
 
         val sesion = repositorio.sesionActual.first()
-        assertEquals("invitado@example.com", sesion?.correo)
+        assertEquals("ana@correo.com", sesion?.correo)
     }
 
     @Test
@@ -89,14 +83,14 @@ class CasosUsoAuthTest {
         )
         assertTrue(resultado is ResultadoOperacion.Exito)
         val sesion = (resultado as ResultadoOperacion.Exito).valor as SesionUsuario
-        assertEquals("Pedro Pascal", sesion.nombre)
+        assertEquals("Ana Pérez", sesion.nombre)
         assertEquals(RolUsuario.CLIENTE, sesion.rol)
     }
 
     @Test
     fun cerrarSesionLimpiaLaSesionObservada() = runTest {
         iniciarSesion(CredencialesLogin(correo = "invitado@example.com", contrasena = "cliente123"))
-        assertEquals("invitado@example.com", repositorio.sesionActual.first()?.correo)
+        assertEquals("ana@correo.com", repositorio.sesionActual.first()?.correo)
 
         repositorio.cerrarSesion()
         assertNull(repositorio.sesionActual.first())

@@ -2,7 +2,8 @@ package com.rescatapp.features.notificaciones.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioNotificaciones
-import com.rescatapp.core.data.local.FakeNotificacionDao
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearRepositorioNotificaciones
 import com.rescatapp.core.model.Notificacion
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.TipoNotificacion
@@ -20,14 +21,14 @@ class NotificacionesViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private lateinit var fakeDao: FakeNotificacionDao
+    private lateinit var api: SupabaseApiFalsa
     private lateinit var repositorio: RepositorioNotificaciones
 
     @Before
     fun preparar() {
         UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
-        fakeDao = FakeNotificacionDao()
-        repositorio = RepositorioNotificaciones(fakeDao)
+        api = SupabaseApiFalsa()
+        repositorio = crearRepositorioNotificaciones(api = api)
     }
 
     @Test
@@ -50,7 +51,8 @@ class NotificacionesViewModelTest {
             rolDestino = RolUsuario.CLIENTE,
             leida = false
         )
-        repositorio.agregar(notif)
+        api.notificaciones.add(notif)
+        repositorio.sincronizar()
 
         val viewModel = NotificacionesViewModel(repositorio)
         observarDuranteLaPrueba(viewModel.uiState)
@@ -65,7 +67,7 @@ class NotificacionesViewModelTest {
 
     @Test
     fun limpiarTodasVaciaLaLista() = runTest {
-        repositorio.agregar(
+        api.notificaciones.add(
             Notificacion(
                 id = "notif-2",
                 titulo = "Listo",
@@ -74,6 +76,7 @@ class NotificacionesViewModelTest {
                 rolDestino = RolUsuario.CLIENTE
             )
         )
+        repositorio.sincronizar()
 
         val viewModel = NotificacionesViewModel(repositorio)
         observarDuranteLaPrueba(viewModel.uiState)

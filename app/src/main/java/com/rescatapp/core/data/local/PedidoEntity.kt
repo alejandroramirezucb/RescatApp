@@ -22,7 +22,9 @@ data class PedidoEntity(
     val horaRetiroHasta: String,
     val estado: EstadoPedido,
     val imagenUri: String? = null,
-    val fecha: LocalDate = LocalDate.now()
+    val fecha: LocalDate = LocalDate.now(),
+    val codigoServidor: String? = null,
+    val fechaRetiro: LocalDate = fecha
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,
@@ -37,7 +39,9 @@ data class PedidoEntity(
         horaRetiroHasta = horaRetiroHasta,
         estado = estado,
         imagenUri = imagenUri,
-        fecha = fecha
+        fecha = fecha,
+        codigoServidor = codigoServidor,
+        fechaRetiro = fechaRetiro
     )
 }
 
@@ -54,5 +58,7 @@ fun Pedido.toEntity(): PedidoEntity = PedidoEntity(
     horaRetiroHasta = horaRetiroHasta,
     estado = estado,
     imagenUri = imagenUri,
-    fecha = fecha
+    fecha = fecha,
+    codigoServidor = codigoServidor,
+    fechaRetiro = fechaRetiro
 )

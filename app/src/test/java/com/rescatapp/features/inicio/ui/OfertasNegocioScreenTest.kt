@@ -1,24 +1,17 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
-import com.rescatapp.core.model.EstadoRemoto
-import java.io.File
+import com.rescatapp.core.model.Oferta
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -37,68 +30,20 @@ class OfertasNegocioScreenTest {
     private val oferta = ofertasDeEjemplo.first().copy(id = 101, nombre = "Pack de prueba")
 
     @Test
-    fun cargaErrorYReintentoSePresentanSinMostrarUnaListaVaciaEnganosa() {
-        var reintentos = 0
-        val estado = mutableStateOf(
-            OfertasNegocioUiState(
-                pestana = PestanaOfertas.EN_LINEA,
-                estadoRemoto = EstadoRemoto.Cargando
-            )
-        )
-        compose.setContent {
-            RescatAppTheme {
-                ContenidoPrueba(estado.value, onReintentar = { reintentos++ })
-            }
-        }
-        compose.onNodeWithText("Cargando ofertas en línea…").assertIsDisplayed()
-        compose.onNodeWithText("No hay ofertas en línea").assertDoesNotExist()
+    fun mientrasGuardaMuestraElProgresoYDeshabilitaLasAcciones() {
+        mostrar(OfertasNegocioUiState(activas = listOf(oferta), ocupado = true))
 
-        compose.runOnIdle {
-            estado.value = estado.value.copy(estadoRemoto = EstadoRemoto.Error("Sin conexión"))
-        }
-        compose.onNodeWithText("Sin conexión").assertIsDisplayed()
-        guardarCaptura("ofertas-error")
-        compose.onNodeWithText("Reintentar").performClick()
-        assertEquals(1, reintentos)
-        compose.onNodeWithText("Cargando ofertas en línea…").assertDoesNotExist()
-    }
-
-    @Test
-    fun publicarUnaOfertaLocalEmiteElEventoYDuranteLaOperacionSeDeshabilita() {
-        var publicaciones = 0
-        val estado = mutableStateOf(OfertasNegocioUiState(activas = listOf(oferta)))
-        compose.setContent {
-            RescatAppTheme {
-                ContenidoPrueba(estado.value, onPublicar = { publicaciones++ })
-            }
-        }
-        compose.onNodeWithText("Local").assertIsDisplayed()
-        guardarCaptura("ofertas-locales")
-        compose.onNodeWithText("Publicar en línea").performClick()
-        assertEquals(1, publicaciones)
-
-        compose.runOnIdle {
-            estado.value = estado.value.copy(
-                operacionEnCurso = OperacionOferta(TipoOperacionOferta.PUBLICAR, oferta)
-            )
-        }
-        compose.onNodeWithText("Publicar en línea").performScrollTo().assertIsNotEnabled()
-        compose.onNodeWithContentDescription("Procesando oferta").assertIsDisplayed()
+        compose.onNodeWithText("Guardando cambios…").assertIsDisplayed()
+        compose.onNodeWithText("Pausar").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText("Editar").assertIsNotEnabled()
     }
 
     @Test
     fun eliminarSoloEmiteElEventoDespuesDeConfirmar() {
         var eliminaciones = 0
-        compose.setContent {
-            RescatAppTheme {
-                ContenidoPrueba(estadoEnLinea(), onEliminar = { eliminaciones++ })
-            }
-        }
-        assertEquals(2, compose.onAllNodesWithText("En línea").fetchSemanticsNodes().size)
-        guardarCaptura("ofertas-en-linea")
+        mostrar(OfertasNegocioUiState(activas = listOf(oferta))) { _, _ -> eliminaciones++ }
+
         compose.onNodeWithText("Eliminar").performClick()
-        assertEquals(0, eliminaciones)
         compose.onNodeWithText("Cancelar").performClick()
         assertEquals(0, eliminaciones)
 
@@ -107,17 +52,39 @@ class OfertasNegocioScreenTest {
         assertEquals(1, eliminaciones)
     }
 
-    private fun estadoEnLinea() = OfertasNegocioUiState(
-        pestana = PestanaOfertas.EN_LINEA,
-        estadoRemoto = EstadoRemoto.Exito(listOf(oferta))
-    )
+    @Test
+    fun unErrorSeMuestraComoAvisoTemporal() {
+        compose.setContent {
+            RescatAppTheme {
+                OfertasNegocioContenido(
+                    estado = OfertasNegocioUiState(error = "Sin conexión"),
+                    onSeleccion = {},
+                    onEditar = { _, _ -> },
+                    onEliminar = { _, _ -> },
+                    onCambiarEstado = {},
+                    onLimpiarError = {}
+                )
+            }
+        }
 
-    private fun guardarCaptura(nombre: String) {
-        val archivo = File("build/reports/issue71/$nombre.png")
-        archivo.parentFile?.mkdirs()
-        archivo.outputStream().use {
-            compose.onRoot().captureToImage().asAndroidBitmap()
-                .compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        compose.onNodeWithText("Sin conexión").assertIsDisplayed()
+    }
+
+    private fun mostrar(
+        estado: OfertasNegocioUiState,
+        onEliminar: (Oferta, () -> Unit) -> Unit = { _, _ -> }
+    ) {
+        compose.setContent {
+            RescatAppTheme {
+                OfertasNegocioContenido(
+                    estado = estado,
+                    onSeleccion = {},
+                    onEditar = { _, _ -> },
+                    onEliminar = onEliminar,
+                    onCambiarEstado = {},
+                    onLimpiarError = {}
+                )
+            }
         }
     }
 }

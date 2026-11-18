@@ -6,7 +6,6 @@ val Naranja = Color(0xFFC24D00)
 val NaranjaVivo = Color(0xFFFF8000)
 val NaranjaSuave = Color(0xFFFFEEDC)
 val SobreNaranjaSuave = Color(0xFF7C3300)
-val Crema = Color(0xFFFFF7EF)
 
 val Verde = Color(0xFF2F684B)
 val VerdeSuave = Color(0xFFE8F3EB)

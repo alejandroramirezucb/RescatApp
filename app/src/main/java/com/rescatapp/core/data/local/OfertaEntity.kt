@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Oferta
+import java.time.LocalDate
 
 @Entity(tableName = "ofertas")
 data class OfertaEntity(
@@ -19,7 +20,10 @@ data class OfertaEntity(
     val cantidadDisponible: Int,
     val horaRetiroDesde: String,
     val horaRetiroHasta: String,
-    val imagenUri: String? = null
+    val imagenUri: String? = null,
+    val propietarioId: String? = null,
+    val estadoPublicacion: String = "ACTIVA",
+    val fechaRetiro: LocalDate = LocalDate.now()
 ) {
     fun toDomain(): Oferta = Oferta(
         id = id,
@@ -33,7 +37,10 @@ data class OfertaEntity(
         cantidadDisponible = cantidadDisponible,
         horaRetiroDesde = horaRetiroDesde,
         horaRetiroHasta = horaRetiroHasta,
-        imagenUri = imagenUri
+        imagenUri = imagenUri,
+        propietarioId = propietarioId,
+        estadoPublicacion = estadoPublicacion,
+        fechaRetiro = fechaRetiro
     )
 }
 
@@ -49,5 +56,8 @@ fun Oferta.toEntity(): OfertaEntity = OfertaEntity(
     cantidadDisponible = cantidadDisponible,
     horaRetiroDesde = horaRetiroDesde,
     horaRetiroHasta = horaRetiroHasta,
-    imagenUri = imagenUri
+    imagenUri = imagenUri,
+    propietarioId = propietarioId,
+    estadoPublicacion = estadoPublicacion,
+    fechaRetiro = fechaRetiro
 )

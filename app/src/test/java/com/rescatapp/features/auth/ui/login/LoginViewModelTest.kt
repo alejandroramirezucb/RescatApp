@@ -1,11 +1,9 @@
 package com.rescatapp.features.auth.ui.login
 
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioAutenticacion
-import com.rescatapp.core.data.local.FakeSesionDao
-import com.rescatapp.core.data.local.FakeUsuarioDao
-import com.rescatapp.core.data.local.toEntity
-import com.rescatapp.features.auth.data.UsuariosDeEjemplo
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearAutenticacion
+import com.rescatapp.core.data.errorServidor
 import com.rescatapp.features.auth.domain.IniciarSesionUseCase
 import com.rescatapp.features.auth.domain.ValidarLoginUseCase
 import com.rescatapp.features.auth.domain.model.CredencialesLogin
@@ -22,10 +20,8 @@ class LoginViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorio = RepositorioAutenticacion(
-        FakeUsuarioDao(UsuariosDeEjemplo.todos.map { it.toEntity() }),
-        FakeSesionDao()
-    )
+    private val api = SupabaseApiFalsa()
+    private val repositorio = crearAutenticacion(api, sesion = null)
     private val validarLogin = ValidarLoginUseCase()
     private val viewModel =
         LoginViewModel(IniciarSesionUseCase(repositorio, validarLogin), validarLogin)
@@ -81,19 +77,13 @@ class LoginViewModelTest {
 
     @Test
     fun contrasenaIncorrectaMuestraErrorGeneral() {
+        api.fallo = errorServidor("Invalid login credentials")
         viewModel.actualizarCredenciales(CredencialesLogin("invitado@example.com", "otraClave"))
 
         viewModel.iniciarSesion()
 
         val estado = viewModel.uiState.value
         assertFalse(estado.sesionIniciada)
-        assertEquals("La contraseña ingresada es incorrecta.", estado.errorGeneral)
-    }
-
-    @Test
-    fun accesoDemoNegocioIniciaSesion() {
-        viewModel.iniciarSesionDemo(esNegocio = true)
-
-        assertTrue(viewModel.uiState.value.sesionIniciada)
+        assertEquals("Correo o contraseña incorrectos.", estado.errorGeneral)
     }
 }

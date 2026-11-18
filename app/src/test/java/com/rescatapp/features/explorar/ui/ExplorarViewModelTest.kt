@@ -82,7 +82,7 @@ class ExplorarViewModelTest {
         viewModel.seleccionarOrden(OrdenOfertas.MAYOR_DESCUENTO)
         viewModel.seleccionarCategoria(Categoria.POSTRES)
 
-        val nueva = repositorioOfertas.agregar(
+        repositorioOfertas.agregar(
             ofertasDeEjemplo.first().copy(
                 nombre = "Postre nuevo",
                 categoria = Categoria.POSTRES,
@@ -92,7 +92,7 @@ class ExplorarViewModelTest {
         )
 
         assertEquals(OrdenOfertas.MAYOR_DESCUENTO, viewModel.uiState.value.filtros.orden)
-        assertEquals(nueva.id, viewModel.uiState.value.ofertas.first().id)
+        assertEquals("Postre nuevo", viewModel.uiState.value.ofertas.first().nombre)
         assertEquals(3, viewModel.uiState.value.cantidad)
     }
 

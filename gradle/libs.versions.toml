@@ -13,8 +13,7 @@ spotless = "8.10.3"
 ktlint = "1.8.0"
 coroutinesTest = "1.10.2"
 coil = "2.7.0"
-gson = "2.13.1"
-okhttp = "4.12.0"
+retrofit = "3.0.0"
 room = "2.8.5"
 robolectric = "4.17"
 androidxTestCore = "1.6.1"
@@ -36,13 +35,11 @@ hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", ve
 junit = { module = "junit:junit", version.ref = "junit" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
-gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
-okhttp-mockwebserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
 

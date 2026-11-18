@@ -2,9 +2,9 @@ package com.rescatapp.features.detalle.ui
 
 import androidx.lifecycle.SavedStateHandle
 import com.rescatapp.ReglaDispatcherPrincipal
-import com.rescatapp.core.data.RepositorioPedidos
+import com.rescatapp.core.data.SupabaseApiFalsa
 import com.rescatapp.core.data.crearRepositorioOfertas
-import com.rescatapp.core.data.local.FakePedidoDao
+import com.rescatapp.core.data.crearRepositorioPedidos
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import com.rescatapp.features.pago.domain.PasarelaPagoSimulada
@@ -24,7 +24,8 @@ class DetalleViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorioOfertas = crearRepositorioOfertas()
+    private val api = SupabaseApiFalsa()
+    private val repositorioOfertas = crearRepositorioOfertas(api = api)
 
     @Test
     fun muestraLaOfertaRecibidaEnLaRuta() = runTest {
@@ -39,7 +40,7 @@ class DetalleViewModelTest {
         val viewModel = crearViewModel(ofertaId = 99)
         observarDuranteLaPrueba(viewModel.uiState)
 
-        assertTrue(viewModel.uiState.value.noEncontrada)
+        assertNull(viewModel.uiState.value.oferta)
     }
 
     @Test
@@ -136,7 +137,7 @@ class DetalleViewModelTest {
         repositorioOfertas = repositorioOfertas,
         reservarOferta = ReservarOfertaUseCase(
             repositorioOfertas,
-            RepositorioPedidos(FakePedidoDao())
+            crearRepositorioPedidos(api = api)
         ),
         pasarelaPago = PasarelaPagoSimulada(esperaMs = 0L)
     )

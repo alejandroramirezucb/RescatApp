@@ -11,23 +11,14 @@ import kotlinx.coroutines.flow.Flow
 interface NotificacionDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertar(notificacion: NotificacionEntity)
+    suspend fun insertarTodas(notificaciones: List<NotificacionEntity>)
+
+    @Query("DELETE FROM notificaciones WHERE id NOT IN (:ids)")
+    suspend fun eliminarExcepto(ids: List<String>)
 
     @Query("SELECT * FROM notificaciones WHERE rolDestino = :rol ORDER BY fechaHora DESC")
     fun observarPorRol(rol: RolUsuario): Flow<List<NotificacionEntity>>
 
     @Query("SELECT COUNT(*) FROM notificaciones WHERE rolDestino = :rol AND leida = 0")
     fun contarNoLeidas(rol: RolUsuario): Flow<Int>
-
-    @Query("UPDATE notificaciones SET leida = 1 WHERE id = :id")
-    suspend fun marcarComoLeida(id: String)
-
-    @Query("UPDATE notificaciones SET leida = 1 WHERE rolDestino = :rol")
-    suspend fun marcarTodasComoLeidas(rol: RolUsuario)
-
-    @Query("DELETE FROM notificaciones WHERE id = :id")
-    suspend fun eliminarPorId(id: String): Int
-
-    @Query("DELETE FROM notificaciones WHERE rolDestino = :rol")
-    suspend fun eliminarTodasPorRol(rol: RolUsuario): Int
 }

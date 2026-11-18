@@ -2,53 +2,64 @@ package com.rescatapp.core.data
 
 import com.rescatapp.core.data.local.PedidoDao
 import com.rescatapp.core.data.local.toEntity
+import com.rescatapp.core.data.remote.PedidoDto
+import com.rescatapp.core.data.remote.SupabaseApi
+import com.rescatapp.core.data.remote.mensajeDeError
 import com.rescatapp.core.model.Pedido
+import com.rescatapp.core.model.ResultadoOperacion
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 @Singleton
 class RepositorioPedidos @Inject constructor(
+    private val api: SupabaseApi,
     private val pedidoDao: PedidoDao,
-    private val supabase: com.rescatapp.core.data.supabase.SupabaseConexion? = null
+    private val autenticacion: RepositorioAutenticacion
 ) {
-    val conectado: Boolean get() = supabase != null
-    val pedidos: Flow<List<Pedido>> = supabase?.pedidos ?: pedidoDao.observarTodos().map { lista ->
+    val pedidos: Flow<List<Pedido>> = pedidoDao.observarTodos().map { lista ->
         lista.map { it.toDomain() }
     }
 
-    suspend fun buscarPorId(id: Int): Pedido? = if (supabase !=
-        null
-    ) {
-        pedidos.first().find { it.id == id }
-    } else {
-        pedidoDao.buscarPorId(id)?.toDomain()
+    suspend fun buscarPorId(id: Int): Pedido? = pedidoDao.buscarPorId(id)?.toDomain()
+
+    suspend fun sincronizar() {
+        val token = autenticacion.token()
+        val remotos = if (token == null) emptyList() else api.obtenerPedidos(token)
+        pedidoDao.insertarTodos(remotos.map { it.toDomain().toEntity() })
+        pedidoDao.eliminarExcepto(remotos.map { it.id })
     }
 
-    suspend fun reservar(ofertaId: Int) = checkNotNull(supabase).reservar(ofertaId)
-    suspend fun cancelar(id: Int) = checkNotNull(supabase).cancelar(id)
-    suspend fun avanzar(pedido: Pedido, codigo: String?) =
-        checkNotNull(supabase).avanzar(pedido.id, pedido.estado.name, codigo)
+    suspend fun reservar(ofertaId: Int) = operar { token ->
+        api.reservarOferta(
+            token,
+            mapOf("p_oferta_id" to ofertaId, "p_solicitud_id" to UUID.randomUUID().toString())
+        )
+    }
 
-    suspend fun agregar(pedido: Pedido): Pedido {
-        check(supabase == null) { "Los pedidos se crean mediante reservar_oferta." }
-        val idGenerado = pedidoDao.insertar(pedido.toEntity())
-        return if (pedido.id == 0) {
-            pedido.copy(id = idGenerado.toInt())
-        } else {
-            pedido
+    suspend fun cancelar(id: Int) = operar { token ->
+        api.cancelarPedido(token, mapOf("p_pedido_id" to id))
+    }
+
+    suspend fun avanzar(pedido: Pedido, codigo: String?) = operar { token ->
+        api.avanzarPedido(
+            token,
+            mapOf(
+                "p_pedido_id" to pedido.id,
+                "p_estado_esperado" to pedido.estado.name,
+                "p_codigo_rescate" to codigo
+            )
+        )
+    }
+
+    private suspend fun operar(accion: suspend (String) -> List<PedidoDto>): ResultadoOperacion =
+        try {
+            val pedido = accion(autenticacion.tokenObligatorio()).first().toDomain()
+            runCatching { sincronizar() }
+            ResultadoOperacion.Exito(pedido)
+        } catch (error: Exception) {
+            ResultadoOperacion.Error(mensajeDeError(error))
         }
-    }
-
-    suspend fun actualizar(pedido: Pedido) {
-        check(supabase == null) { "Usa las operaciones seguras del servidor." }
-        pedidoDao.actualizar(pedido.toEntity())
-    }
-
-    suspend fun eliminar(id: Int): Boolean {
-        check(supabase == null) { "El historial de pedidos se conserva en el servidor." }
-        return pedidoDao.eliminarPorId(id) > 0
-    }
 }

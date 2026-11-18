@@ -30,12 +30,8 @@ val supabase = Properties().apply {
     val archivo = rootProject.file("supabase.local.properties")
     if (archivo.exists()) archivo.inputStream().use { load(it) }
 }
-fun configuracionSupabase(nombre: String): String {
-    val valor = System.getenv(nombre) ?: supabase.getProperty(nombre).orEmpty()
-    require(valor.isNotBlank()) { "Configura $nombre en supabase.local.properties o en el entorno" }
-    require(!valor.contains('"') && !valor.contains('\\') && !valor.contains('\n'))
-    return "\"$valor\""
-}
+fun configuracionSupabase(nombre: String, porDefecto: String): String =
+    "\"${System.getenv(nombre) ?: supabase.getProperty(nombre) ?: porDefecto}\""
 
 android {
     namespace = "com.rescatapp"
@@ -47,8 +43,16 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-        buildConfigField("String", "SUPABASE_URL", configuracionSupabase("SUPABASE_URL"))
-        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", configuracionSupabase("SUPABASE_PUBLISHABLE_KEY"))
+        buildConfigField(
+            "String",
+            "SUPABASE_URL",
+            configuracionSupabase("SUPABASE_URL", "https://sin-configurar.invalid")
+        )
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            configuracionSupabase("SUPABASE_PUBLISHABLE_KEY", "")
+        )
     }
 
     buildFeatures {
@@ -78,8 +82,8 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.coil.compose)
-    implementation(libs.okhttp)
-    implementation(libs.gson)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.hilt.compiler)
@@ -87,10 +91,8 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
-    testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
-    testImplementation(libs.room.testing)
     testImplementation(libs.compose.ui.test.junit4)
     debugImplementation(libs.compose.ui.test.manifest)
 }

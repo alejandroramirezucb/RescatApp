@@ -1,25 +1,23 @@
 package com.rescatapp.features.pedidos.domain
 
-import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.data.local.FakePedidoDao
-import com.rescatapp.core.data.ofertasDeEjemplo
+import com.rescatapp.core.data.crearRepositorioPedidos
+import com.rescatapp.core.data.pedidosDeEjemplo
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.ResultadoOperacion
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AvanzarPedidoUseCaseTest {
-    private val fakePedidoDao = FakePedidoDao()
-    private val repositorioPedidos = RepositorioPedidos(fakePedidoDao)
+    private val repositorioPedidos = crearRepositorioPedidos(pedidosDeEjemplo)
     private val avanzarPedido = AvanzarPedidoUseCase(repositorioPedidos)
 
     @Test
     fun avanzaUnPedidoReservadoAPreparando() = runTest {
-        val pedido = repositorioPedidos.agregar(
-            ofertasDeEjemplo.first().crearPedido(idPedido = 0, estado = EstadoPedido.RESERVADO)
-        )
+        repositorioPedidos.reservar(14)
+        val pedido = repositorioPedidos.pedidos.first().first()
 
         val resultado = avanzarPedido(pedido.id)
 

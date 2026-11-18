@@ -4,7 +4,7 @@
 
 Este paquete prepara el backend en un PROYECTO NUEVO dedicado a RescatApp.
 No ejecutar sobre la tienda u otro proyecto existente.
-No contiene contraseñas ni claves. No cambió la conexión Android.
+No contiene contraseñas ni claves.
 Los SQL fueron revisados con un analizador PostgreSQL y PL/pgSQL.
 Todavía no se ejecutaron en un servidor PostgreSQL/Supabase: los pasos 005 y 006
 son parte obligatoria de la comprobación en tu proyecto.
@@ -69,12 +69,9 @@ En Authentication > Sign In / Providers, o la sección equivalente del panel:
 2. Para el funcionamiento final, mantén activada la confirmación de correo.
 3. Configura un SMTP propio si registrarán personas que no son miembros
    del equipo de Supabase. El servicio de correo de prueba tiene restricciones.
-4. En Authentication > URL Configuration añade este Redirect URL exacto:
+4. La app no usa enlaces de retorno: el usuario confirma su correo desde el
+   navegador y luego inicia sesión en la app.
 
-       rescatapp://auth/callback
-
-El callback necesita su implementación Android; se añadirá al conectar Auth.
-No indica que el enlace ya funcione en la versión actual de la app.
 El Site URL es la página de respaldo de los correos: usa una página HTTPS
 del proyecto si tienen una. No uses la URL de la base como una página web ficticia.
 
@@ -289,14 +286,13 @@ El estado implementado y sus limites estan en [conexion-android.md](conexion-and
 La siguiente lista conserva el alcance definido al preparar la migracion:
 
 1. Leer la configuración local en Gradle sin publicar credenciales administrativas.
-2. Reemplazar registro/login local por Auth, gestionar confirmación, recuperación,
-   renovación de sesión, cierre de sesión y callback Android.
+2. Reemplazar registro/login local por Auth, gestionar confirmación,
+   renovación de sesión y cierre de sesión.
 3. Usar perfiles/negocios reales y quitar la propiedad basada en nombres de UsuarioDemo.
 4. Unificar el catálogo: retirar MockAPI como fuente activa y desactivar los seeds
    que vuelven a llenar Room con ejemplos antiguos.
-5. Migrar la caché Room sin mezclar IDs anteriores con los IDs del servidor.
-   Las copias locales por usuario se separan y se limpian al cerrar/cambiar cuenta.
-6. Usar OkHttp y Gson para REST/RPC y Room/Flow para cache/UI.
+5. Usar Room como caché con los IDs del servidor y limpiarla al cerrar sesión.
+6. Usar Retrofit y Gson para REST/RPC y Room/Flow para cache/UI.
 7. Guardar solo campos modificados al editar, evitando sobrescribir el stock
    con una copia antigua cuando se cambia el precio.
 8. Usar las funciones RPC de reservas, cancelación y estados; no duplicar estas

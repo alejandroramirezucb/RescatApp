@@ -5,9 +5,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasAnyAncestor
-import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -68,39 +65,5 @@ class OfertasNegocioEdicionScreenTest {
         assertEquals(1, ediciones)
         assertEquals(1.0, ofertaActualizada.value!!.precioRescate, 0.001)
         compose.onNodeWithText("Oferta actualizada").assertIsDisplayed()
-    }
-
-    @Test
-    fun eliminarLocalMuestraElNombreYVolverNoEliminaLaOferta() {
-        var eliminacionesLocales = 0
-        var eliminacionesRemotas = 0
-        val estado = mutableStateOf(OfertasNegocioUiState(activas = listOf(oferta)))
-        compose.setContent {
-            RescatAppTheme {
-                ContenidoPrueba(
-                    estado.value,
-                    onEliminar = { eliminacionesRemotas++ },
-                    onEliminarLocal = { _, onEliminada ->
-                        eliminacionesLocales++
-                        estado.value = estado.value.copy(activas = emptyList())
-                        onEliminada()
-                    }
-                )
-            }
-        }
-        compose.onNodeWithText("Eliminar").performClick()
-        compose.onNodeWithText("¿Eliminar «${oferta.nombre}» de las ofertas locales?")
-            .assertIsDisplayed()
-        compose.onNodeWithText("Volver").performClick()
-        assertEquals(0, eliminacionesLocales)
-        compose.onNodeWithText(oferta.nombre).assertIsDisplayed()
-
-        compose.onNodeWithText("Eliminar").performClick()
-        compose.onNode(hasText("Eliminar") and hasAnyAncestor(isDialog())).performClick()
-
-        assertEquals(1, eliminacionesLocales)
-        assertEquals(0, eliminacionesRemotas)
-        compose.onNodeWithText(oferta.nombre).assertDoesNotExist()
-        compose.onNodeWithText("No hay ofertas activas").assertIsDisplayed()
     }
 }

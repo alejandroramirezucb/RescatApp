@@ -1,18 +1,12 @@
 package com.rescatapp.features.inicio.ui
 
-import com.google.gson.JsonSyntaxException
 import com.rescatapp.ReglaDispatcherPrincipal
+import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.USUARIO_PRUEBA
 import com.rescatapp.core.data.crearRepositorioOfertas
+import com.rescatapp.core.data.errorServidor
 import com.rescatapp.core.data.ofertasDeEjemplo
-import com.rescatapp.core.data.supabase.ErrorSupabase
-import com.rescatapp.core.model.EstadoRemoto
-import com.rescatapp.core.model.Oferta
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.features.inicio.domain.EditarOfertaUseCase
-import java.io.EOFException
-import java.io.IOException
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -24,93 +18,48 @@ class OfertasNegocioViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val oferta = ofertasDeEjemplo.first().copy(comercio = UsuarioDemo.NEGOCIO_DEMO)
-    private val local = crearRepositorioOfertas(listOf(oferta))
-    private val remoto = FuenteRemotaFalsa(mutableListOf(oferta.copy(id = 101)))
-
-    @Test
-    fun entrarEnLineaEmiteCargandoYDespuesExitoSinRepetirLaSolicitud() = runTest {
-        val respuesta = CompletableDeferred<List<Oferta>>()
-        remoto.consultar = { respuesta.await() }
-        val vm = crearViewModel()
-        assertEquals(0, remoto.consultas)
-
-        vm.seleccionarPestana(PestanaOfertas.EN_LINEA)
-        assertEquals(EstadoRemoto.Cargando, vm.uiState.value.estadoRemoto)
-        vm.seleccionarPestana(PestanaOfertas.EN_LINEA)
-        vm.cargarOfertasRemotas()
-        assertEquals(1, remoto.consultas)
-
-        respuesta.complete(remoto.ofertas.toList())
-        assertEquals(EstadoRemoto.Exito(remoto.ofertas.toList()), vm.uiState.value.estadoRemoto)
-        assertFalse(vm.uiState.value.ocupado)
+    private val propias = ofertasDeEjemplo.take(3).map { it.copy(propietarioId = USUARIO_PRUEBA) }
+    private val api = SupabaseApiFalsa(propias + ofertasDeEjemplo.drop(3))
+    private val repositorio = crearRepositorioOfertas(api = api)
+    private val viewModel by lazy {
+        OfertasNegocioViewModel(repositorio, EditarOfertaUseCase(repositorio))
     }
 
     @Test
-    fun erroresDeRedServidorYConversionTerminanLaCargaConMensajesComprensibles() = runTest {
-        val fallos = listOf(
-            IOException() to "conexión",
-            ErrorSupabase(500, "fallo") to "servidor",
-            JsonSyntaxException("json inválido") to "interpretar",
-            EOFException("respuesta incompleta") to "interpretar",
-            IllegalArgumentException("categoría inválida") to "interpretar",
-            IllegalStateException("fallo inesperado") to "completar"
-        )
-        for ((fallo, mensaje) in fallos) {
-            val respuesta = CompletableDeferred<List<Oferta>>()
-            remoto.consultar = { respuesta.await() }
-            val vm = crearViewModel()
-            vm.cargarOfertasRemotas()
-            assertEquals(EstadoRemoto.Cargando, vm.uiState.value.estadoRemoto)
+    fun separaLasOfertasPropiasActivasDeLasFinalizadas() = runTest {
+        api.ofertas.replaceAll { if (it.id == 14) it.copy(estadoPublicacion = "PAUSADA") else it }
+        repositorio.sincronizar()
 
-            respuesta.completeExceptionally(fallo)
-
-            val error = vm.uiState.value.estadoRemoto as EstadoRemoto.Error
-            assertTrue(error.mensaje.contains(mensaje))
-            assertFalse(vm.uiState.value.ocupado)
-        }
+        assertEquals(listOf(13, 12), viewModel.uiState.value.activas.map { it.id })
+        assertEquals(listOf(14), viewModel.uiState.value.finalizadas.map { it.id })
     }
 
     @Test
-    fun reintentarConsultaRecuperaElListadoYUnaRespuestaVaciaEsExito() = runTest {
-        remoto.consultar = { throw IOException() }
-        val vm = crearViewModel()
-        vm.cargarOfertasRemotas()
-        assertTrue(vm.uiState.value.estadoRemoto is EstadoRemoto.Error)
+    fun cambiarEstadoPausaLaOfertaYLaPasaAFinalizadas() = runTest {
+        viewModel.cambiarEstado(propias.first())
 
-        remoto.consultar = { emptyList() }
-        vm.cargarOfertasRemotas()
-
-        assertEquals(EstadoRemoto.Exito(emptyList<Oferta>()), vm.uiState.value.estadoRemoto)
-        assertEquals(2, remoto.consultas)
+        assertEquals(listOf(14), viewModel.uiState.value.finalizadas.map { it.id })
+        assertFalse(viewModel.uiState.value.ocupado)
     }
 
     @Test
-    fun volverAEntrarConsultaDeNuevoYFiltraElNegocioSinAlterarLosLocales() = runTest {
-        remoto.ofertas.add(oferta.copy(id = 102, comercio = "Otro negocio"))
-        val vm = crearViewModel()
-        vm.seleccionarPestana(PestanaOfertas.EN_LINEA)
-        assertEquals(listOf(remoto.ofertas.first()), ofertasEnLinea(vm))
-        vm.seleccionarPestana(PestanaOfertas.ACTIVAS)
-        vm.seleccionarPestana(PestanaOfertas.EN_LINEA)
+    fun eliminarQuitaLaOfertaYAvisaAlTerminar() = runTest {
+        var eliminada = false
 
-        assertEquals(2, remoto.consultas)
-        assertEquals(listOf(oferta), local.ofertas.first())
-        assertEquals(listOf(oferta), vm.uiState.value.activas)
+        viewModel.eliminarOferta(propias.first()) { eliminada = true }
+
+        assertTrue(eliminada)
+        assertTrue(viewModel.uiState.value.activas.none { it.id == 14 })
     }
 
-    private fun crearViewModel() =
-        OfertasNegocioViewModel(local, remoto, EditarOfertaUseCase(local))
-
     @Test
-    fun eliminaTambienLasOfertasFinalizadas() = runTest {
-        local.actualizar(oferta.copy(cantidadDisponible = 0))
-        val vm = crearViewModel()
-        assertEquals(1, vm.uiState.value.finalizadas.size)
+    fun unErrorDelServidorSeMuestraYSePuedeLimpiar() = runTest {
+        api.fallo = errorServidor("La oferta ya no existe o no te pertenece.")
 
-        vm.eliminarOfertaLocal(vm.uiState.value.finalizadas.single())
+        viewModel.actualizarOferta(propias.first())
 
-        assertTrue(vm.uiState.value.finalizadas.isEmpty())
-        assertTrue(local.ofertas.first().isEmpty())
+        assertEquals("La oferta ya no existe o no te pertenece.", viewModel.uiState.value.error)
+        viewModel.limpiarError()
+        assertEquals(null, viewModel.uiState.value.error)
     }
 }

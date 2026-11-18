@@ -1,21 +1,9 @@
 package com.rescatapp.features.auth.ui.login
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.CampoConError
@@ -29,8 +17,7 @@ fun LoginScreen(
     onLoginExitoso: () -> Unit,
     onIrARegistro: () -> Unit,
     onVolver: () -> Unit,
-    viewModel: LoginViewModel = hiltViewModel(),
-    onRecuperar: () -> Unit = {}
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     val credenciales = estado.credenciales
@@ -70,8 +57,5 @@ fun LoginScreen(
             onClick = viewModel::iniciarSesion
         )
         EnlaceAuth("¿No tienes una cuenta?", "Regístrate aquí", onIrARegistro)
-        TextButton(onClick = onRecuperar, enabled = !estado.cargando) {
-            Text("Olvide mi contrasena")
-        }
     }
 }
