@@ -25,12 +25,13 @@ class ExplorarViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     repositorioOfertas: RepositorioOfertas
 ) : ViewModel() {
-    private val filtros = MutableStateFlow(
+    private val _filtros = MutableStateFlow(
         FiltrosOfertas(categoria = savedStateHandle.categoriaSolicitada())
     )
+    val filtros: StateFlow<FiltrosOfertas> = _filtros
 
     val uiState: StateFlow<ExplorarUiState> =
-        filtros.flatMapLatest { filtrosActuales ->
+        _filtros.flatMapLatest { filtrosActuales ->
             repositorioOfertas.filtrar(filtrosActuales.categoria, filtrosActuales.texto)
                 .map { ofertasFiltradas ->
                     val ofertasOrdenadas = when (filtrosActuales.orden) {
@@ -47,15 +48,15 @@ class ExplorarViewModel @Inject constructor(
         }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
-            initialValue = ExplorarUiState(filtros = filtros.value)
+            initialValue = ExplorarUiState(filtros = _filtros.value)
         )
 
-    fun buscar(texto: String) = filtros.update { it.copy(texto = texto) }
+    fun buscar(texto: String) = _filtros.update { it.copy(texto = texto) }
 
     fun seleccionarCategoria(categoria: Categoria?) =
-        filtros.update { it.copy(categoria = categoria) }
+        _filtros.update { it.copy(categoria = categoria) }
 
-    fun seleccionarOrden(orden: OrdenOfertas) = filtros.update { it.copy(orden = orden) }
+    fun seleccionarOrden(orden: OrdenOfertas) = _filtros.update { it.copy(orden = orden) }
 
     private fun SavedStateHandle.categoriaSolicitada(): Categoria? {
         val nombreCategoria: String? = get(ArgumentosRuta.CATEGORIA)

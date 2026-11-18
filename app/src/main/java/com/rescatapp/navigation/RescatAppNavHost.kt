@@ -79,7 +79,7 @@ fun RescatAppNavHost(viewModel: PrincipalViewModel = hiltViewModel()) {
             startDestination = Rutas.INICIO,
             modifier = Modifier.padding(espacioInterno).consumeWindowInsets(espacioInterno)
         ) {
-            grafoRescatApp(navController, sesion, rol)
+            grafoRescatApp(navController) { sesion }
         }
     }
 }

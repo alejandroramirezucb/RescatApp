@@ -21,11 +21,7 @@ import com.rescatapp.features.pedidos.ui.PedidosScreen
 import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
-fun NavGraphBuilder.grafoRescatApp(
-    navController: NavHostController,
-    sesion: SesionUsuario?,
-    rol: RolUsuario
-) {
+fun NavGraphBuilder.grafoRescatApp(navController: NavHostController, sesion: () -> SesionUsuario?) {
     val verDetalle = { ofertaId: Int -> navController.navigate(Rutas.detalle(ofertaId)) }
     val verNotificaciones = { navController.navigate(Rutas.NOTIFICACIONES) }
     val volver: () -> Unit = { navController.popBackStack() }
@@ -38,7 +34,7 @@ fun NavGraphBuilder.grafoRescatApp(
     }
 
     composable(Rutas.INICIO) {
-        if (rol == RolUsuario.NEGOCIO) {
+        if (sesion()?.rol == RolUsuario.NEGOCIO) {
             InicioNegocioScreen(onVerNotificaciones = verNotificaciones)
         } else {
             InicioScreen(
@@ -66,14 +62,14 @@ fun NavGraphBuilder.grafoRescatApp(
         DetalleScreen(onVolver = volver)
     }
     composable(Rutas.REGISTRO) {
-        if (sesion?.rol == RolUsuario.NEGOCIO) {
+        if (sesion()?.rol == RolUsuario.NEGOCIO) {
             RegistroScreen(onVolver = volver, onPublicado = volver)
         } else {
             pedirLogin()
         }
     }
     composable(Rutas.PEDIDOS) {
-        if (sesion != null) PedidosScreen() else pedirLogin()
+        if (sesion() != null) PedidosScreen() else pedirLogin()
     }
     composable(Rutas.PERFIL) {
         PerfilScreen(
@@ -83,7 +79,7 @@ fun NavGraphBuilder.grafoRescatApp(
         )
     }
     composable(Rutas.OFERTAS_NEGOCIO) {
-        if (sesion?.rol == RolUsuario.NEGOCIO) OfertasNegocioScreen() else pedirLogin()
+        if (sesion()?.rol == RolUsuario.NEGOCIO) OfertasNegocioScreen() else pedirLogin()
     }
     composable(Rutas.NOTIFICACIONES) {
         NotificacionesScreen(

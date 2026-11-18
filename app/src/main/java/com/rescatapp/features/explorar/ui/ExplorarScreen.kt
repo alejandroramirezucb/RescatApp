@@ -30,9 +30,10 @@ import com.rescatapp.core.model.OrdenOfertas
 @Composable
 fun ExplorarScreen(onVerDetalle: (Int) -> Unit, viewModel: ExplorarViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+    val filtros by viewModel.filtros.collectAsStateWithLifecycle()
     val foco = LocalFocusManager.current
     ExplorarContenido(
-        estado = estado,
+        estado = estado.copy(filtros = filtros),
         onBuscar = viewModel::buscar,
         onCategoriaSeleccionada = viewModel::seleccionarCategoria,
         onOrdenSeleccionado = viewModel::seleccionarOrden,
