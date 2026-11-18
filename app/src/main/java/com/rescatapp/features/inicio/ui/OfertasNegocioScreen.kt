@@ -94,7 +94,7 @@ private fun PreguntaEliminarOferta(oferta: Oferta) {
         text = buildAnnotatedString {
             append("¿Eliminar «")
             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(oferta.nombre) }
-            append(" de tus ofertas?")
+            append("» de tus ofertas?")
         },
         style = MaterialTheme.typography.bodyLarge
     )

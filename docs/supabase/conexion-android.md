@@ -1,76 +1,103 @@
-# Conexion de Android con Supabase
+# Arquitectura de la conexión con Supabase
 
-La aplicacion usa Supabase Auth, PostgreSQL por REST con RLS y Storage mediante
-Retrofit y Gson ([SupabaseApi.kt](../../app/src/main/java/com/rescatapp/core/data/remote/SupabaseApi.kt)).
-La clave publishable se envia como `apikey`; las operaciones privadas incluyen
-el JWT del usuario. Android no incluye claves secretas ni `service_role`.
+## Servicios y configuración
 
-## Configuracion de cada integrante
+La aplicación utiliza Supabase Auth, PostgreSQL mediante REST y Supabase Storage.
+Las rutas se declaran con Retrofit en `SupabaseApi` y Gson convierte las respuestas
+en DTOs. `ModuloRed` envía la clave pública en `apikey` y los repositorios envían el
+JWT del usuario en `Authorization: Bearer`. Los permisos se validan en el servidor con RLS.
 
-En la raiz, copiar `supabase.local.properties.example` a
-`supabase.local.properties` y completar la URL del proyecto y su publishable key.
-El archivo local esta excluido de Git. Gradle tambien acepta las variables de
-entorno `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`.
-En GitHub Actions, configurar ambas como variables del repositorio en
-Settings > Secrets and variables > Actions > Variables.
+La URL base y la clave pública proceden de `supabase.local.properties` o de las
+variables de entorno `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`. Gradle genera los
+campos correspondientes de `BuildConfig`; sin configuración el proyecto compila y la
+app muestra el aviso de sin conexión. No se incluyen credenciales administrativas.
 
-Se requieren los SQL 001 a 003 y las cuentas con sus perfiles. Los SQL 004 y 007
-cargan las ofertas de ejemplo y enlazan sus fotos. No repetir los scripts de
-estructura en un proyecto donde ya se ejecutaron.
+| Función | Ruta relativa a la URL del proyecto |
+| --- | --- |
+| Registro | `/auth/v1/signup` |
+| Inicio y renovación de sesión | `/auth/v1/token` |
+| Ofertas | `/rest/v1/ofertas` |
+| Perfiles y negocios | `/rest/v1/perfiles`, `/rest/v1/negocios` |
+| Pedidos y notificaciones | `/rest/v1/pedidos`, `/rest/v1/notificaciones` |
+| Operaciones transaccionales | `/rest/v1/rpc/...` |
+| Fotografías | `/storage/v1/object/ofertas/...` |
 
-## Sesion
+## Identidad y sesiones
 
-- El login consulta Supabase Auth; el rol procede de `public.perfiles` y el
-  nombre del negocio de `public.negocios`.
-- El registro envia los metadatos al trigger que crea perfil y negocio.
-- Con confirmacion de correo activa, registrarse muestra un aviso y no inicia
-  sesion. El usuario confirma desde el correo y luego inicia sesion en la app.
-- El access token, el refresh token y su vencimiento se guardan en la tabla
-  `sesion_activa` de Room. Antes de cada solicitud se renueva el token si vence
-  en menos de un minuto; si la renovacion es rechazada se cierra la sesion.
-- Cerrar sesion borra `sesion_activa`; la siguiente sincronizacion deja vacios
-  los pedidos y notificaciones de la cuenta anterior.
+El UUID autenticado identifica al perfil. El rol se obtiene de `public.perfiles`,
+y cada negocio se vincula con su propietario mediante `propietario_id`.
+El trigger de registro crea el perfil y, cuando corresponde, el negocio.
 
-## Datos y sincronizacion
+El access token, el refresh token y su vencimiento se guardan en la tabla
+`sesion_activa` de Room. `RepositorioAutenticacion` renueva el token cuando vence en
+menos de un minuto; una renovación rechazada elimina la sesión local. Cerrar sesión
+borra la sesión y la siguiente sincronización vacía pedidos y notificaciones.
 
-- Cada repositorio pide sus datos a Supabase, los guarda en Room y las pantallas
-  observan Room con `Flow`. Si no hay red se muestran los ultimos datos guardados
-  y un aviso con "Reintentar". No se simulan escrituras sin conexion.
-- La app sincroniza al iniciar sesion, despues de cada operacion y cada 10
-  segundos mientras esta visible. Es sondeo REST, no Realtime.
-- Las ofertas se crean directamente en Supabase con el negocio del usuario.
-  Pausar, reactivar y eliminar llaman a sus RPC. Eliminar conserva los pedidos.
-- Las reservas usan `reservar_oferta`; el stock solo cambia en el servidor
-  durante reservas y cancelaciones.
-- La preparacion y entrega usan `avanzar_pedido`; la entrega requiere el codigo
-  que muestra el cliente.
-- Las notificaciones las crea el servidor. Al sincronizar, las nuevas sin leer
-  se muestran como notificacion del sistema. No hay notificaciones push con la
-  app cerrada.
-- Las fotos de hasta 5 MB se suben a
-  `ofertas/<uuid-propietario>/<uuid-archivo>.<extension>`.
+El registro admite la configuración de Supabase con o sin confirmación de correo.
+Cuando el servidor devuelve una sesión, la aplicación inicia sesión directamente.
+Si exige confirmación, muestra el aviso correspondiente; el usuario confirma desde
+el correo y luego inicia sesión en la app. No hay recuperación de contraseña desde
+la app.
 
-## Prueba manual con dos dispositivos o sesiones
+## Datos y caché
 
-1. Iniciar como cliente y comprobar que aparecen las ofertas del servidor.
-2. Reservar un pack. Revisar que aparezca el pedido y se reduzca el stock en
-   Table Editor. Reabrir la app y verificar que la sesion sigue iniciada.
-3. Iniciar con otro cliente. No debe ver pedidos ni notificaciones del primero.
-4. Iniciar como propietario del negocio. Debe ver sus ofertas y sus pedidos.
-5. Pausar una oferta con stock. En el cliente debe desaparecer; reactivarla
-   debe devolverla al catalogo sin modificar su stock.
-6. Cambiar un pedido de reservado a preparando y despues a listo. Introducir
-   primero un codigo incorrecto y despues el codigo mostrado por el cliente.
-7. Cancelar otro pedido reservado y verificar que el stock se devuelve una vez.
-8. Eliminar una oferta y comprobar que sus pedidos permanezcan en el historial.
-9. Publicar una oferta con foto y verificarla desde el otro dispositivo.
-10. Probar sin red: lectura desde Room y error visible al intentar escribir.
+El servidor conserva ofertas, pedidos y notificaciones. Cada repositorio los pide
+con Retrofit, los guarda en Room (`rescatapp.db`) y las pantallas observan Room con
+`Flow`. Al sincronizar se reemplazan los registros y se borran los que ya no existen
+en el servidor.
 
-Comprobaciones locales:
+El catálogo público y las ofertas del propietario se presentan como listas
+separadas. La consulta normal excluye ofertas eliminadas. Los clientes ven las
+ofertas disponibles según las políticas del servidor.
 
-```powershell
-.\gradlew.bat spotlessCheck :app:testDebugUnitTest :app:assembleDebug --no-daemon
-```
+Las listas se actualizan al iniciar sesión, después de cada escritura y cada 10
+segundos mientras la app está visible (`SincronizarDatosUseCase`). Se utiliza sondeo
+REST, no una suscripción WebSocket de Realtime.
 
-Las pruebas unitarias usan un `SupabaseApi` falso en memoria; no modifican el
-Supabase del equipo ni necesitan contrasenas reales.
+Sin conexión se conserva la última lectura disponible y se informa del error.
+Las escrituras requieren respuesta del servidor; no existe una cola de operaciones
+pendientes para trabajar sin conexión.
+
+## Operaciones del servidor
+
+| RPC | Comportamiento |
+| --- | --- |
+| `reservar_oferta` | Verifica disponibilidad, descuenta stock y crea el pedido y sus avisos en una transacción |
+| `cancelar_pedido` | Cancela un pedido reservado y devuelve el stock una sola vez |
+| `avanzar_pedido` | Valida el estado esperado y exige el código de rescate para confirmar la entrega |
+| `cambiar_estado_oferta` | Pausa o reactiva una oferta del propietario |
+| `eliminar_oferta` | Oculta la oferta y conserva sus pedidos anteriores |
+
+Cada reserva envía un UUID de solicitud nuevo. El servidor calcula los precios y snapshots del
+pedido. Android no modifica directamente el stock durante reservas y cancelaciones.
+
+Los pedidos conservan la fecha de retiro, horario, imagen, precio y código del
+servidor. Las notificaciones pertenecen a un destinatario concreto; leerlas o
+eliminarlas se persiste en Supabase. Al sincronizar, las nuevas sin leer se muestran
+como notificación del sistema.
+
+Las imágenes JPG, PNG o WebP de hasta 5 MB se almacenan en el bucket `ofertas`,
+bajo `<uuid-propietario>/<uuid-archivo>.<extension>`. El catálogo utiliza sus URLs
+públicas y las políticas restringen las escrituras al propietario.
+
+## Definición del servidor
+
+| Archivo | Contenido |
+| --- | --- |
+| `001_estructura_y_permisos.sql` | Tablas, índices, triggers, permisos y políticas RLS |
+| `002_operaciones_seguras.sql` | RPC de ofertas y pedidos |
+| `003_imagenes_y_realtime.sql` | Bucket, políticas de Storage y publicación de Realtime |
+| `005_verificar_configuracion.sql` | Consultas de configuración y permisos |
+| `006_pruebas_transaccionales.sql` | Comprobaciones de reglas del servidor con reversión de las filas de prueba |
+
+Los números conservan la identificación de los scripts existentes. Los campos
+opcionales `origen` y `legacy_id` son metadatos históricos de los registros y no
+representan otra conexión activa.
+
+## Límites funcionales
+
+- Los pagos están simulados y no producen cobros reales.
+- Las notificaciones dentro de la app no incluyen entrega push con la app cerrada.
+- El impacto considera pedidos recogidos; los reservados no cuentan como rescates completados.
+- `rescatapp.db` es solo una caché; un cambio de versión la recrea.
+- Las pruebas unitarias usan un `SupabaseApi` falso en memoria, sin credenciales reales.
