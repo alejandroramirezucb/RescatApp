@@ -2,7 +2,6 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -24,6 +22,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.util.formatearDinero
 
@@ -64,8 +63,8 @@ internal fun VentasSemanaNegocio(ventasSemana: List<Double>, indiceDiaActual: In
                 )
             }
             Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 diasSemanaVentas.forEachIndexed { indice, (abreviatura, nombre) ->
                     BarraDiaVenta(
@@ -73,7 +72,8 @@ internal fun VentasSemanaNegocio(ventasSemana: List<Double>, indiceDiaActual: In
                         nombre = nombre,
                         venta = ventasSemana.getOrElse(indice) { 0.0 },
                         ventaMaxima = ventaMaxima,
-                        esHoy = indice == indiceDiaActual
+                        esHoy = indice == indiceDiaActual,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -96,12 +96,13 @@ private fun BarraDiaVenta(
     nombre: String,
     venta: Double,
     ventaMaxima: Double,
-    esHoy: Boolean
+    esHoy: Boolean,
+    modifier: Modifier = Modifier
 ) {
     val esquema = MaterialTheme.colorScheme
     val proporcion = (venta / ventaMaxima).toFloat().coerceIn(0f, 1f)
     Column(
-        modifier = Modifier.width(36.dp).clearAndSetSemantics {
+        modifier = modifier.clearAndSetSemantics {
             contentDescription = "$nombre: ${venta.formatearDinero()}${if (esHoy) ", hoy" else ""}"
         },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -129,7 +130,8 @@ private fun BarraDiaVenta(
             Text(
                 text = dia,
                 modifier = Modifier.padding(horizontal = 2.dp, vertical = 4.dp),
-                style = MaterialTheme.typography.labelSmall,
+                softWrap = false,
+                style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 0.sp),
                 color = if (esHoy) esquema.onPrimaryContainer else esquema.onSurfaceVariant,
                 fontWeight = if (esHoy) FontWeight.Bold else FontWeight.Normal
             )

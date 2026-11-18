@@ -60,6 +60,20 @@ lo último que devolvió el servidor y la sesión activa; las pantallas leen Roo
 La conexión y los contratos del servidor se describen en
 [Documentación de Supabase](docs/supabase/conexion-android.md).
 
+## Requisitos técnicos
+
+| Requisito | Implementación |
+| --- | --- |
+| Room | `OfertaEntity`, `PedidoEntity`, `NotificacionEntity` y `SesionEntity`; sus DAO y `RescatAppDatabase` |
+| CRUD de ofertas | Crear en `RegistroScreen`, leer en Explorar, editar, pausar y eliminar en Mis ofertas |
+| Flow y StateFlow | Los DAO devuelven `Flow`; los ViewModels exponen `StateFlow` y Compose usa `collectAsStateWithLifecycle()` |
+| Filtro dinámico | `OfertaDao.filtrar(categoria, texto)` con parámetros SQL; el orden se elige en Explorar |
+| Retrofit | `SupabaseApi` con GET, POST, PATCH y DELETE; Gson convierte los DTO de `core/data/remote` |
+| Carga y errores | Indicadores de progreso, `try/catch/finally` en los ViewModels, avisos temporales y aviso sin conexión |
+| Navegación | `NavHost` en `GrafoNavegacion`; rutas en `Rutas` y uso de `navigate()` y `popBackStack()` |
+| Validaciones | Campos obligatorios, números, horas `HH:mm`, precio de rescate menor y correo y contraseña |
+| Diseño adaptable | Columnas según el ancho y el tamaño de texto; contenido centrado hasta 600 dp en tablets |
+
 ## Configuración y ejecución
 
 Requisitos: Android Studio, JDK 17 o compatible con Gradle y un dispositivo Android

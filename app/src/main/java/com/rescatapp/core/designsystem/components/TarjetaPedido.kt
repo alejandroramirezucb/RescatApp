@@ -75,7 +75,11 @@ fun TarjetaPedido(
                 ChipEstado(pedido.estado)
                 if (pedido.estaActivo) {
                     Text(
-                        text = formatearHorario(pedido.horaRetiroDesde, pedido.horaRetiroHasta),
+                        text = formatearHorario(
+                            pedido.fechaRetiro,
+                            pedido.horaRetiroDesde,
+                            pedido.horaRetiroHasta
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
