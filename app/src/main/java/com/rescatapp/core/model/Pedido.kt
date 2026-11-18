@@ -1,5 +1,6 @@
 package com.rescatapp.core.model
 
+import com.google.gson.annotations.SerializedName
 import java.time.LocalDate
 
 data class Pedido(
@@ -17,8 +18,12 @@ data class Pedido(
     val imagenUri: String? = null,
     val fecha: LocalDate = LocalDate.now(),
     val codigoServidor: String? = null,
-    val fechaRetiro: LocalDate = fecha
+    @SerializedName("fechaRetiro")
+    val fechaRetiroServidor: LocalDate? = null
 ) {
+    val fechaRetiro: LocalDate
+        get() = fechaRetiroServidor ?: fecha
+
     val estaActivo: Boolean
         get() = !estado.esFinal
 

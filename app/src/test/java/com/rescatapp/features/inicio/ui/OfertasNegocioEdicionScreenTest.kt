@@ -89,7 +89,7 @@ class OfertasNegocioEdicionScreenTest {
             }
         }
         compose.onNodeWithText("Eliminar").performClick()
-        compose.onNodeWithText("¿Eliminar «${oferta.nombre}» de las ofertas locales?")
+        compose.onNodeWithText("¿Eliminar «${oferta.nombre}» de tus ofertas?")
             .assertIsDisplayed()
         compose.onNodeWithText("Volver").performClick()
         assertEquals(0, eliminacionesLocales)

@@ -91,10 +91,10 @@ internal fun OfertasNegocioContenido(
             onDescartar = { ofertaParaEliminar = null }
         ) {
             if (esRemota) {
-                PreguntaEliminarOferta(oferta, esRemota = true)
+                PreguntaEliminarOferta(oferta)
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    PreguntaEliminarOferta(oferta, esRemota = false)
+                    PreguntaEliminarOferta(oferta)
                     if (estado.eliminandoLocal) Text("Eliminando oferta.")
                     estado.errorLocal?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
@@ -116,12 +116,12 @@ internal fun OfertasNegocioContenido(
 }
 
 @Composable
-private fun PreguntaEliminarOferta(oferta: Oferta, esRemota: Boolean) {
+private fun PreguntaEliminarOferta(oferta: Oferta) {
     Text(
         text = buildAnnotatedString {
             append("¿Eliminar «")
             withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(oferta.nombre) }
-            append(" de tus ofertas?")
+            append("» de tus ofertas?")
         },
         style = MaterialTheme.typography.bodyLarge
     )

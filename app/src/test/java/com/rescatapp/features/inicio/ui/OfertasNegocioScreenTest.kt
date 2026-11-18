@@ -9,7 +9,6 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.v2.createComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -95,7 +94,9 @@ class OfertasNegocioScreenTest {
                 ContenidoPrueba(estadoEnLinea(), onEliminar = { eliminaciones++ })
             }
         }
-        assertEquals(2, compose.onAllNodesWithText("En línea").fetchSemanticsNodes().size)
+        compose.onNodeWithText(PestanaOfertas.EN_LINEA.titulo).assertIsDisplayed()
+        compose.onNodeWithText("${oferta.estadoPublicacion} | Retiro ${oferta.fechaRetiro}")
+            .assertIsDisplayed()
         guardarCaptura("ofertas-en-linea")
         compose.onNodeWithText("Eliminar").performClick()
         assertEquals(0, eliminaciones)

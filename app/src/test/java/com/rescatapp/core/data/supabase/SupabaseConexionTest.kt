@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import com.google.gson.JsonParser
 import com.rescatapp.core.model.ResultadoOperacion
+import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -80,6 +81,8 @@ class SupabaseConexionTest {
         assertEquals("sb_publishable_prueba", intento.getHeader("apikey"))
         assertEquals("Bearer jwt-cliente-a", intento.getHeader("Authorization"))
         assertEquals("#APV-14", conexion.pedidos.first().single().codigoRescate)
+        assertEquals(LocalDate.of(2027, 1, 1), conexion.pedidos.first().single().fecha)
+        assertEquals(LocalDate.of(2027, 1, 2), conexion.pedidos.first().single().fechaRetiro)
     }
 
     @Test fun eliminarOfertaRetiraElCatalogoYConservaElPedido() = runTest {

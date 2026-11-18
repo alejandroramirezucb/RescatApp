@@ -33,6 +33,7 @@ class PedidoEntityTest {
 
         val reconstruido = entidad.toDomain()
         assertEquals(original, reconstruido)
+        assertEquals(original.fechaRetiro, reconstruido.fechaRetiro)
         assertEquals(LocalDate.of(2026, 11, 5), reconstruido.fecha)
     }
 

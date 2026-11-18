@@ -51,7 +51,7 @@ internal fun JsonObject.aPedido(): Pedido = Pedido(
     imagenUri = texto("imagen_url").ifBlank { null },
     fecha = OffsetDateTime.parse(texto("creado_at")).atZoneSameInstant(zonaBolivia).toLocalDate(),
     codigoServidor = texto("codigo_rescate"),
-    fechaRetiro = LocalDate.parse(texto("fecha_retiro"))
+    fechaRetiroServidor = LocalDate.parse(texto("fecha_retiro"))
 )
 
 internal fun JsonObject.aNotificacion(): Notificacion = Notificacion(
