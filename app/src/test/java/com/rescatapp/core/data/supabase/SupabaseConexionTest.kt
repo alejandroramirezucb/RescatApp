@@ -30,12 +30,16 @@ class SupabaseConexionTest {
     @Before fun preparar() {
         servidor.start()
         conexion = SupabaseConexion(
-            ApplicationProvider.getApplicationContext<Context>(), almacen, cache,
+            ApplicationProvider.getApplicationContext<Context>(),
+            almacen,
+            cache,
             SupabaseHttp(servidor.url("/").toString(), "sb_publishable_prueba")
         )
     }
 
-    @After fun terminar() { servidor.shutdown() }
+    @After fun terminar() {
+        servidor.shutdown()
+    }
 
     @Test fun cambiarCuentaYLuegoSalirNoExponePedidosAnteriores() = runTest {
         conexion.inicializar()
@@ -62,12 +66,17 @@ class SupabaseConexionTest {
         assertTrue(conexion.reservar(5) is ResultadoOperacion.Error)
         val intento = servidor.takeRequest(1, TimeUnit.SECONDS)!!
         encolar("[$PEDIDO]")
-        encolar("[]"); encolar("[$PEDIDO]"); encolar("[]")
+        encolar("[]")
+        encolar("[$PEDIDO]")
+        encolar("[]")
         assertTrue(conexion.reservar(5) is ResultadoOperacion.Exito)
         val reintento = servidor.takeRequest(1, TimeUnit.SECONDS)!!
         assertEquals("/rest/v1/rpc/reservar_oferta", intento.path)
         assertEquals("POST", intento.method)
-        assertEquals(JsonParser.parseString(intento.body.readUtf8()), JsonParser.parseString(reintento.body.readUtf8()))
+        assertEquals(
+            JsonParser.parseString(intento.body.readUtf8()),
+            JsonParser.parseString(reintento.body.readUtf8())
+        )
         assertEquals("sb_publishable_prueba", intento.getHeader("apikey"))
         assertEquals("Bearer jwt-cliente-a", intento.getHeader("Authorization"))
         assertEquals("#APV-14", conexion.pedidos.first().single().codigoRescate)
@@ -79,16 +88,24 @@ class SupabaseConexionTest {
         conexion.login("a@example.com", "contrasena")
         assertEquals(1, conexion.ofertas.first().size)
         repeat(6) { servidor.takeRequest(1, TimeUnit.SECONDS) }
-        encolar("[]"); encolar("[]"); encolar("[$PEDIDO]"); encolar("[]")
+        encolar("[]")
+        encolar("[]")
+        encolar("[$PEDIDO]")
+        encolar("[]")
         conexion.eliminarOferta(5)
-        assertEquals("/rest/v1/rpc/eliminar_oferta", servidor.takeRequest(1, TimeUnit.SECONDS)!!.path)
+        assertEquals(
+            "/rest/v1/rpc/eliminar_oferta",
+            servidor.takeRequest(1, TimeUnit.SECONDS)!!.path
+        )
         assertTrue(conexion.ofertas.first().isEmpty())
         assertEquals(14, conexion.pedidos.first().single().id)
     }
 
     @Test fun credencialesInvalidasNoAbrenSesion() = runTest {
         conexion.inicializar()
-        servidor.enqueue(MockResponse().setResponseCode(400).setBody("{\"msg\":\"Invalid login credentials\"}"))
+        servidor.enqueue(
+            MockResponse().setResponseCode(400).setBody("{\"msg\":\"Invalid login credentials\"}")
+        )
         assertTrue(conexion.login("a@example.com", "incorrecta") is ResultadoOperacion.Error)
         assertNull(conexion.sesion.value)
     }
@@ -99,8 +116,12 @@ class SupabaseConexionTest {
         conexion.login("a@example.com", "contrasena")
         repeat(6) { servidor.takeRequest(1, TimeUnit.SECONDS) }
         servidor.enqueue(MockResponse().setResponseCode(401).setBody("{}"))
-        encolar("""{"access_token":"jwt-nuevo","refresh_token":"refresh-nuevo","expires_in":3600}""")
-        encolar("[]"); encolar("[]"); encolar("[]")
+        encolar(
+            """{"access_token":"jwt-nuevo","refresh_token":"refresh-nuevo","expires_in":3600}"""
+        )
+        encolar("[]")
+        encolar("[]")
+        encolar("[]")
         conexion.sincronizar()
         servidor.takeRequest(1, TimeUnit.SECONDS)
         val renovacion = servidor.takeRequest(1, TimeUnit.SECONDS)!!
@@ -128,13 +149,18 @@ class SupabaseConexionTest {
         encolar("""{"id":"nuevo","email":"nuevo@example.com"}""")
         val resultado = conexion.registrar(
             com.rescatapp.features.auth.domain.model.DatosRegistro(
-                nombre = "Responsable", correo = "nuevo@example.com", contrasena = "Contrasena123!",
-                rol = com.rescatapp.core.model.RolUsuario.NEGOCIO, nombreNegocio = "Mi negocio"
+                nombre = "Responsable",
+                correo = "nuevo@example.com",
+                contrasena = "Contrasena123!",
+                rol = com.rescatapp.core.model.RolUsuario.NEGOCIO,
+                nombreNegocio = "Mi negocio"
             )
         )
         assertTrue(resultado is ResultadoOperacion.Exito && resultado.valor is RegistroPendiente)
         assertNull(conexion.sesion.value)
-        val registro = JsonParser.parseString(servidor.takeRequest(1, TimeUnit.SECONDS)!!.body.readUtf8()).asJsonObject
+        val registro = JsonParser.parseString(
+            servidor.takeRequest(1, TimeUnit.SECONDS)!!.body.readUtf8()
+        ).asJsonObject
         assertEquals("NEGOCIO", registro.getAsJsonObject("data").get("rol").asString)
         assertEquals("Mi negocio", registro.getAsJsonObject("data").get("nombreNegocio").asString)
         assertTrue(registro.get("code_challenge").asString.isNotBlank())
@@ -144,10 +170,14 @@ class SupabaseConexionTest {
         encolar("""{"access_token":"jwt-$id","refresh_token":"refresh-$id","expires_in":3600}""")
         encolar("""{"id":"$id","email":"$id@example.com"}""")
         encolar("""[{"id":"$id","nombre":"Cliente","rol":"CLIENTE"}]""")
-        encolar(ofertas); encolar(pedidos); encolar("[]")
+        encolar(ofertas)
+        encolar(pedidos)
+        encolar("[]")
     }
 
-    private fun encolar(json: String) { servidor.enqueue(MockResponse().setHeader("Content-Type", "application/json").setBody(json)) }
+    private fun encolar(json: String) {
+        servidor.enqueue(MockResponse().setHeader("Content-Type", "application/json").setBody(json))
+    }
 
     private companion object {
         const val PEDIDO = """
@@ -194,12 +224,28 @@ class SupabaseConexionTest {
 private class MemoriaCredenciales : AlmacenCredenciales {
     private val valores = mutableMapOf<String, String>()
     override fun leer(nombre: String): String? = valores[nombre]
-    override fun guardar(nombre: String, valor: String?) { if (valor == null) valores.remove(nombre) else valores[nombre] = valor }
+    override fun guardar(nombre: String, valor: String?) {
+        if (valor ==
+            null
+        ) {
+            valores.remove(nombre)
+        } else {
+            valores[nombre] = valor
+        }
+    }
 }
 
 private class MemoriaCache : CacheDeCuenta {
     private val valores = mutableMapOf<Pair<String, String>, String>()
     override suspend fun leer(cuenta: String, recurso: String): String? = valores[cuenta to recurso]
-    override suspend fun guardar(cuenta: String, recurso: String, json: String) { valores[cuenta to recurso] = json }
-    override suspend fun borrar(cuenta: String) { valores.keys.removeAll { it.first == cuenta } }
+    override suspend fun guardar(cuenta: String, recurso: String, json: String) {
+        valores[
+            cuenta to
+                recurso
+        ] =
+            json
+    }
+    override suspend fun borrar(cuenta: String) {
+        valores.keys.removeAll { it.first == cuenta }
+    }
 }

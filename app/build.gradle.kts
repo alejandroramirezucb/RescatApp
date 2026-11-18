@@ -48,7 +48,11 @@ android {
         versionCode = 1
         versionName = "1.0"
         buildConfigField("String", "SUPABASE_URL", configuracionSupabase("SUPABASE_URL"))
-        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", configuracionSupabase("SUPABASE_PUBLISHABLE_KEY"))
+        buildConfigField(
+            "String",
+            "SUPABASE_PUBLISHABLE_KEY",
+            configuracionSupabase("SUPABASE_PUBLISHABLE_KEY")
+        )
     }
 
     buildFeatures {

@@ -34,7 +34,9 @@ class InicioViewModel @Inject constructor(
             repositorioAutenticacion?.sesionActual ?: kotlinx.coroutines.flow.flowOf(null)
         ) { ofertas, pedidos, noLeidas, sesion ->
             crearEstado(ofertas, pedidos, noLeidas).copy(
-                usuario = sesion?.nombre?.substringBefore(" ") ?: com.rescatapp.core.model.UsuarioDemo.NOMBRE
+                usuario =
+                    sesion?.nombre?.substringBefore(" ")
+                        ?: com.rescatapp.core.model.UsuarioDemo.NOMBRE
             )
         }.stateIn(
             scope = viewModelScope,
