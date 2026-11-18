@@ -27,35 +27,28 @@ class PerfilViewModel @Inject constructor(
 
     val uiState: StateFlow<PerfilUiState> = combine(
         repositorioPedidos.pedidos,
-        UsuarioDemo.rol,
         repositorioAutenticacion.sesionActual
-    ) { pedidos, rol, sesion ->
-        crearEstado(pedidos, sesion?.rol ?: rol, sesion)
+    ) { pedidos, sesion ->
+        crearEstado(pedidos, sesion)
     }.stateIn(
         scope = viewModelScope,
         started = suscripcionPantalla,
-        initialValue = crearEstado(emptyList(), UsuarioDemo.rol.value, null)
+        initialValue = crearEstado(emptyList(), null)
     )
 
     fun cerrarSesion() {
         viewModelScope.launch { repositorioAutenticacion.cerrarSesion() }
     }
 
-    private fun crearEstado(
-        pedidos: List<Pedido>,
-        rol: RolUsuario,
-        sesion: SesionUsuario?
-    ): PerfilUiState {
-        val esNegocio = rol == RolUsuario.NEGOCIO
+    private fun crearEstado(pedidos: List<Pedido>, sesion: SesionUsuario?): PerfilUiState {
+        val rol = sesion?.rol ?: RolUsuario.CLIENTE
         return PerfilUiState(
             impacto = calcularImpacto(
                 seleccionarPedidosPorRol(pedidos, rol, sesion?.nombreNegocio)
             ),
-            nombre = sesion?.let { it.nombreNegocio ?: it.nombre }
-                ?: if (esNegocio) UsuarioDemo.NEGOCIO_DEMO else UsuarioDemo.NOMBRE,
-            correo = sesion?.correo
-                ?: if (esNegocio) UsuarioDemo.CORREO_NEGOCIO else UsuarioDemo.CORREO,
-            esNegocio = esNegocio,
+            nombre = sesion?.let { it.nombreNegocio ?: it.nombre } ?: UsuarioDemo.NOMBRE,
+            correo = sesion?.correo ?: UsuarioDemo.CORREO,
+            esNegocio = rol == RolUsuario.NEGOCIO,
             sesion = sesion
         )
     }

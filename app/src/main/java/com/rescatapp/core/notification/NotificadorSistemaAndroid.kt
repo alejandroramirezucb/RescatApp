@@ -18,10 +18,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-open class NotificadorSistemaAndroid @Inject constructor(
+class NotificadorSistemaAndroid @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
-    open fun crearCanal() {
+    fun crearCanal() {
         val canal = NotificationChannel(
             CANAL_RESCATAPP,
             "Pedidos y ofertas",
@@ -30,7 +30,7 @@ open class NotificadorSistemaAndroid @Inject constructor(
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(canal)
     }
 
-    open fun mostrarNotificacion(id: Int, titulo: String, mensaje: String) {
+    fun mostrarNotificacion(id: Int, titulo: String, mensaje: String) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
             PackageManager.PERMISSION_GRANTED

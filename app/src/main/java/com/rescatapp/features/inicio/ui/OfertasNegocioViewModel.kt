@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.remote.mensajeDeError
 import com.rescatapp.core.model.Oferta
-import com.rescatapp.features.inicio.domain.EditarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,8 +14,7 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class OfertasNegocioViewModel @Inject constructor(
-    private val repositorioOfertas: RepositorioOfertas,
-    private val editarOferta: EditarOfertaUseCase
+    private val repositorioOfertas: RepositorioOfertas
 ) : ViewModel() {
     private val estado = MutableStateFlow(OfertasNegocioUiState())
     val uiState = estado.asStateFlow()
@@ -35,7 +33,7 @@ class OfertasNegocioViewModel @Inject constructor(
     fun seleccionarPestana(pestana: PestanaOfertas) = estado.update { it.copy(pestana = pestana) }
 
     fun actualizarOferta(oferta: Oferta, onGuardada: () -> Unit = {}) = operar {
-        editarOferta(oferta)
+        repositorioOfertas.actualizar(oferta)
         onGuardada()
     }
 

@@ -22,6 +22,7 @@ import com.rescatapp.core.designsystem.components.CampoConError
 import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.aDecimalOrNull
+import java.time.LocalDate
 
 @Composable
 internal fun EditorOferta(
@@ -35,7 +36,7 @@ internal fun EditorOferta(
     var horaDesde by remember { mutableStateOf(oferta.horaRetiroDesde) }
     var horaHasta by remember { mutableStateOf(oferta.horaRetiroHasta) }
     var fecha by remember { mutableStateOf(oferta.fechaRetiro.toString()) }
-    val fechaValida = runCatching { java.time.LocalDate.parse(fecha) }.getOrNull()
+    val fechaValida = runCatching { LocalDate.parse(fecha) }.getOrNull()
     var mostrarErrores by remember { mutableStateOf(false) }
     val validarCampos = remember { ValidadorCamposOferta() }
     val errores = validarCampos(

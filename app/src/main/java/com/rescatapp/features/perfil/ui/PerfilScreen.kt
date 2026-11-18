@@ -34,8 +34,7 @@ fun PerfilScreen(
         onVerNotificaciones = onVerNotificaciones,
         onIrALogin = onIrALogin,
         onIrARegistro = onIrARegistro,
-        onCerrarSesion = viewModel::cerrarSesion,
-        onCambiarRol = onIrALogin
+        onCerrarSesion = viewModel::cerrarSesion
     )
 }
 
@@ -45,8 +44,7 @@ internal fun PerfilContenido(
     onVerNotificaciones: () -> Unit,
     onIrALogin: () -> Unit,
     onIrARegistro: () -> Unit,
-    onCerrarSesion: () -> Unit,
-    onCambiarRol: () -> Unit
+    onCerrarSesion: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
@@ -88,8 +86,7 @@ private fun PerfilContenidoPreview() {
             onVerNotificaciones = {},
             onIrALogin = {},
             onIrARegistro = {},
-            onCerrarSesion = {},
-            onCambiarRol = {}
+            onCerrarSesion = {}
         )
     }
 }

@@ -9,7 +9,6 @@ object UsuarioDemo {
     const val CORREO = "invitado@example.com"
 
     const val NEGOCIO_DEMO = "Panadería La Central"
-    const val CORREO_NEGOCIO = "contacto@lacentral.com"
 
     var negocioActual: String = NEGOCIO_DEMO
         private set
