@@ -8,6 +8,7 @@ enum class PestanaOfertas(val titulo: String) {
 }
 
 data class OfertasNegocioUiState(
+    val nombreNegocio: String = "",
     val pestana: PestanaOfertas = PestanaOfertas.ACTIVAS,
     val activas: List<Oferta> = emptyList(),
     val finalizadas: List<Oferta> = emptyList(),

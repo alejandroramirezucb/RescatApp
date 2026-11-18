@@ -3,12 +3,10 @@ package com.rescatapp.core.data
 import com.rescatapp.core.data.remote.PerfilDto
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.features.auth.domain.model.DatosRegistro
 import com.rescatapp.features.auth.domain.model.SesionUsuario
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -16,9 +14,6 @@ import org.junit.Test
 class RepositorioAutenticacionTest {
     private val api = SupabaseApiFalsa()
     private val repositorio = crearAutenticacion(api, sesion = null)
-
-    @After
-    fun restaurarRol() = UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
 
     @Test
     fun iniciarSesionGuardaLaSesionYElRolDelPerfil() = runTest {
@@ -30,7 +25,7 @@ class RepositorioAutenticacionTest {
         assertEquals(RolUsuario.NEGOCIO, sesion.rol)
         assertEquals("Panadería La Central", sesion.nombreNegocio)
         assertEquals(sesion, repositorio.sesionActual.first())
-        assertEquals(RolUsuario.NEGOCIO, UsuarioDemo.rol.value)
+        assertEquals(RolUsuario.NEGOCIO, repositorio.rol.first())
     }
 
     @Test
@@ -66,7 +61,7 @@ class RepositorioAutenticacionTest {
         repositorio.cerrarSesion()
 
         assertNull(repositorio.sesionActual.first())
-        assertEquals(RolUsuario.CLIENTE, UsuarioDemo.rol.value)
+        assertEquals(RolUsuario.CLIENTE, repositorio.rol.first())
     }
 
     @Test

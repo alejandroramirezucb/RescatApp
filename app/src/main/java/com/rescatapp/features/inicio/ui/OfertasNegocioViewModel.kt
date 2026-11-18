@@ -2,6 +2,7 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.remote.mensajeDeError
 import com.rescatapp.core.model.Oferta
@@ -14,12 +15,18 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class OfertasNegocioViewModel @Inject constructor(
-    private val repositorioOfertas: RepositorioOfertas
+    private val repositorioOfertas: RepositorioOfertas,
+    repositorioAutenticacion: RepositorioAutenticacion
 ) : ViewModel() {
     private val estado = MutableStateFlow(OfertasNegocioUiState())
     val uiState = estado.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            repositorioAutenticacion.sesionActual.collect { sesion ->
+                estado.update { it.copy(nombreNegocio = sesion?.nombreNegocio.orEmpty()) }
+            }
+        }
         viewModelScope.launch {
             repositorioOfertas.propias.collect { propias ->
                 val (finalizadas, activas) = propias.partition {

@@ -5,10 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.domain.CalcularImpactoUseCase
-import com.rescatapp.core.domain.seleccionarPedidosPorRol
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.auth.domain.model.SesionUsuario
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,11 +41,9 @@ class PerfilViewModel @Inject constructor(
     private fun crearEstado(pedidos: List<Pedido>, sesion: SesionUsuario?): PerfilUiState {
         val rol = sesion?.rol ?: RolUsuario.CLIENTE
         return PerfilUiState(
-            impacto = calcularImpacto(
-                seleccionarPedidosPorRol(pedidos, rol, sesion?.nombreNegocio)
-            ),
-            nombre = sesion?.let { it.nombreNegocio ?: it.nombre } ?: UsuarioDemo.NOMBRE,
-            correo = sesion?.correo ?: UsuarioDemo.CORREO,
+            impacto = calcularImpacto(pedidos),
+            nombre = sesion?.let { it.nombreNegocio ?: it.nombre } ?: "Invitado",
+            correo = sesion?.correo.orEmpty(),
             esNegocio = rol == RolUsuario.NEGOCIO,
             sesion = sesion
         )

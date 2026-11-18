@@ -23,5 +23,5 @@ data class Pedido(
         get() = !estado.esFinal
 
     val codigoRescate: String
-        get() = codigoServidor ?: "#APV-100$id"
+        get() = codigoServidor.orEmpty()
 }

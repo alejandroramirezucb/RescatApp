@@ -7,5 +7,6 @@ data class SesionUsuario(
     val nombre: String,
     val correo: String,
     val rol: RolUsuario,
-    val nombreNegocio: String? = null
+    val nombreNegocio: String? = null,
+    val direccion: String = ""
 )

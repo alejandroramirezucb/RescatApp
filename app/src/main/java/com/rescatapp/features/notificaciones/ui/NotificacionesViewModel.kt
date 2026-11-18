@@ -2,8 +2,8 @@ package com.rescatapp.features.notificaciones.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.RepositorioNotificaciones
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,13 +19,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class NotificacionesViewModel @Inject constructor(
-    private val repositorioNotificaciones: RepositorioNotificaciones
+    private val repositorioNotificaciones: RepositorioNotificaciones,
+    repositorioAutenticacion: RepositorioAutenticacion
 ) : ViewModel() {
 
     private val mensaje = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<NotificacionesUiState> =
-        UsuarioDemo.rol.flatMapLatest { rol ->
+        repositorioAutenticacion.rol.flatMapLatest { rol ->
             combine(
                 repositorioNotificaciones.observarPorRol(rol),
                 repositorioNotificaciones.contarNoLeidas(rol),

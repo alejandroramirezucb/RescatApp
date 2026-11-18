@@ -10,7 +10,6 @@ import com.rescatapp.core.domain.CalcularImpactoUseCase
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,9 +35,8 @@ class InicioViewModel @Inject constructor(
             repositorioAutenticacion.sesionActual
         ) { ofertas, pedidos, noLeidas, sesion ->
             crearEstado(ofertas, pedidos, noLeidas).copy(
-                usuario =
-                    sesion?.nombre?.substringBefore(" ")
-                        ?: UsuarioDemo.NOMBRE
+                usuario = sesion?.nombre?.substringBefore(" ") ?: "Invitado",
+                direccion = sesion?.direccion.orEmpty()
             )
         }.stateIn(
             scope = viewModelScope,

@@ -2,6 +2,7 @@ package com.rescatapp.features.registro.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
@@ -18,10 +19,20 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class RegistroViewModel @Inject constructor(
     private val validarOferta: ValidarOfertaUseCase,
-    private val registrarOferta: RegistrarOfertaUseCase
+    private val registrarOferta: RegistrarOfertaUseCase,
+    private val repositorioAutenticacion: RepositorioAutenticacion
 ) : ViewModel() {
     private val estado = MutableStateFlow(RegistroUiState())
     val uiState: StateFlow<RegistroUiState> = estado.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            val negocio = repositorioAutenticacion.sesion()?.nombreNegocio.orEmpty()
+            estado.update {
+                it.copy(campos = it.campos.copy(comercio = it.campos.comercio.ifBlank { negocio }))
+            }
+        }
+    }
 
     fun onCampoCambiado(campos: CamposRegistro) {
         estado.update { actual ->

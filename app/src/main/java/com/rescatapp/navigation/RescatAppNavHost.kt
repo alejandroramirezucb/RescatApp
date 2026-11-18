@@ -30,7 +30,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.rescatapp.core.model.UsuarioDemo
+import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.notification.SolicitudPermisoNotificaciones
 import kotlinx.coroutines.delay
 
@@ -39,7 +39,7 @@ fun RescatAppNavHost(viewModel: PrincipalViewModel = hiltViewModel()) {
     SolicitudPermisoNotificaciones()
     val sesion by viewModel.sesion.collectAsStateWithLifecycle()
     val errorConexion by viewModel.errorConexion.collectAsStateWithLifecycle()
-    val rol by UsuarioDemo.rol.collectAsStateWithLifecycle()
+    val rol = sesion?.rol ?: RolUsuario.CLIENTE
     val navController = rememberNavController()
     val cicloDeVida = LocalLifecycleOwner.current
 

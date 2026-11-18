@@ -22,7 +22,7 @@ interface SupabaseApi {
     @POST("auth/v1/signup")
     suspend fun registrarUsuario(@Body datos: Map<String, Any>): TokenDto
 
-    @GET("rest/v1/perfiles?select=nombre,rol")
+    @GET("rest/v1/perfiles?select=nombre,rol,direccion")
     suspend fun obtenerPerfil(
         @Header("Authorization") token: String,
         @Query("id") id: String

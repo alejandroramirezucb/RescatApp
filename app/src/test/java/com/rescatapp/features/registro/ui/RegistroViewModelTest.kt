@@ -2,6 +2,7 @@ package com.rescatapp.features.registro.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearAutenticacion
 import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.MensajesValidacion
@@ -23,10 +24,13 @@ class RegistroViewModelTest {
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
     private val repositorioOfertas = crearRepositorioOfertas()
-    private val viewModel = RegistroViewModel(
-        validarOferta = ValidarOfertaUseCase(),
-        registrarOferta = RegistrarOfertaUseCase(repositorioOfertas)
-    )
+    private val viewModel by lazy {
+        RegistroViewModel(
+            validarOferta = ValidarOfertaUseCase(),
+            registrarOferta = RegistrarOfertaUseCase(repositorioOfertas),
+            repositorioAutenticacion = crearAutenticacion()
+        )
+    }
 
     @Test
     fun publicarDatosValidosGuardaLaOferta() = runTest {
@@ -65,7 +69,12 @@ class RegistroViewModelTest {
         val permitirEscritura = CompletableDeferred<Unit>()
         api.esperaCreacion = permitirEscritura
         val repo = crearRepositorioOfertas(api = api)
-        val registro = RegistroViewModel(ValidarOfertaUseCase(), RegistrarOfertaUseCase(repo))
+        val registro =
+            RegistroViewModel(
+                ValidarOfertaUseCase(),
+                RegistrarOfertaUseCase(repo),
+                crearAutenticacion(api)
+            )
         registro.onCampoCambiado(camposValidos)
 
         registro.publicar()
@@ -87,7 +96,12 @@ class RegistroViewModelTest {
         val api = SupabaseApiFalsa()
         api.fallo = IllegalStateException("Error de escritura")
         val repo = crearRepositorioOfertas(api = api)
-        val registro = RegistroViewModel(ValidarOfertaUseCase(), RegistrarOfertaUseCase(repo))
+        val registro =
+            RegistroViewModel(
+                ValidarOfertaUseCase(),
+                RegistrarOfertaUseCase(repo),
+                crearAutenticacion(api)
+            )
         registro.onCampoCambiado(camposValidos)
 
         registro.publicar()

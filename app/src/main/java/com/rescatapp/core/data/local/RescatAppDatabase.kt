@@ -11,7 +11,7 @@ import androidx.room.TypeConverters
         NotificacionEntity::class,
         SesionEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(RescatAppTypeConverters::class)

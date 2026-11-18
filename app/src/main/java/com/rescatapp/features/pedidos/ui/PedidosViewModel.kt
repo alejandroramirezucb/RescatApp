@@ -2,12 +2,11 @@ package com.rescatapp.features.pedidos.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.seleccionarPedidosPorRol
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
 import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
@@ -24,6 +23,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class PedidosViewModel @Inject constructor(
     repositorioPedidos: RepositorioPedidos,
+    repositorioAutenticacion: RepositorioAutenticacion,
     private val avanzarPedido: AvanzarPedidoUseCase,
     private val cancelarPedido: CancelarPedidoUseCase,
     private val construirProgreso: ConstruirProgresoPedidoUseCase
@@ -38,14 +38,9 @@ class PedidosViewModel @Inject constructor(
             repositorioPedidos.pedidos,
             pestana,
             mensaje,
-            UsuarioDemo.rol
+            repositorioAutenticacion.rol
         ) { pedidos, pestanaActual, mensajeActual, rol ->
-            crearEstado(
-                seleccionarPedidosPorRol(pedidos, rol),
-                pestanaActual,
-                mensajeActual,
-                rol
-            )
+            crearEstado(pedidos, pestanaActual, mensajeActual, rol)
         }.stateIn(
             scope = viewModelScope,
             started = suscripcionPantalla,
@@ -53,7 +48,7 @@ class PedidosViewModel @Inject constructor(
                 emptyList(),
                 pestana.value,
                 null,
-                UsuarioDemo.rol.value
+                RolUsuario.CLIENTE
             )
         )
 

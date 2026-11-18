@@ -2,13 +2,12 @@ package com.rescatapp.features.inicio.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.RepositorioNotificaciones
 import com.rescatapp.core.data.RepositorioOfertas
 import com.rescatapp.core.data.RepositorioPedidos
-import com.rescatapp.core.domain.seleccionarPedidosPorRol
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.inicio.domain.CalcularVentasSemanaUseCase
@@ -23,18 +22,17 @@ class InicioNegocioViewModel @Inject constructor(
     repositorioOfertas: RepositorioOfertas,
     repositorioPedidos: RepositorioPedidos,
     calcularVentasSemana: CalcularVentasSemanaUseCase,
-    repositorioNotificaciones: RepositorioNotificaciones
+    repositorioNotificaciones: RepositorioNotificaciones,
+    repositorioAutenticacion: RepositorioAutenticacion
 ) : ViewModel() {
 
     val uiState: StateFlow<InicioNegocioUiState> =
         combine(
             repositorioOfertas.propias,
             repositorioPedidos.pedidos,
-            repositorioNotificaciones.contarNoLeidas(RolUsuario.NEGOCIO)
-        ) { ofertas, pedidos, noLeidas ->
-            val negocio = UsuarioDemo.negocioActual
-            val ofertasNegocio = ofertas
-            val pedidosNegocio = seleccionarPedidosPorRol(pedidos, RolUsuario.NEGOCIO)
+            repositorioNotificaciones.contarNoLeidas(RolUsuario.NEGOCIO),
+            repositorioAutenticacion.sesionActual
+        ) { ofertas, pedidosNegocio, noLeidas, sesion ->
             val pedidosVigentes = pedidosNegocio.filter {
                 it.estado == EstadoPedido.RECOGIDO &&
                     it.fecha == java.time.LocalDate.now(java.time.ZoneId.of("America/La_Paz"))
@@ -45,10 +43,10 @@ class InicioNegocioViewModel @Inject constructor(
             }
 
             InicioNegocioUiState(
-                nombreNegocio = negocio,
+                nombreNegocio = sesion?.nombreNegocio.orEmpty(),
                 ventasHoy = ventasTotal.formatearDinero(),
                 cantidadPedidos = pedidosNegocio.size,
-                ofertasActivas = ofertasNegocio.count {
+                ofertasActivas = ofertas.count {
                     !it.estaAgotada &&
                         it.estadoPublicacion == "ACTIVA"
                 },

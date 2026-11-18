@@ -31,7 +31,9 @@ internal fun InformacionCuenta(estado: PerfilUiState) {
             etiqueta = if (estado.esNegocio) "Comercio" else "Usuario",
             valor = estado.nombre
         )
-        FilaDatoPerfil(Icons.Outlined.Email, "Correo", estado.correo)
+        if (estado.correo.isNotBlank()) {
+            FilaDatoPerfil(Icons.Outlined.Email, "Correo", estado.correo)
+        }
     }
 }
 

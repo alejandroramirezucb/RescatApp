@@ -26,6 +26,7 @@ import com.rescatapp.core.designsystem.theme.bordeTarjeta
 @Composable
 internal fun EncabezadoInicio(
     usuario: String,
+    direccion: String,
     onBuscar: () -> Unit,
     conteoNoLeidas: Int,
     onVerNotificaciones: () -> Unit
@@ -43,7 +44,7 @@ internal fun EncabezadoInicio(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                UbicacionActual()
+                if (direccion.isNotBlank()) UbicacionActual(direccion)
                 Text(text = "¡Hola, $usuario!", style = MaterialTheme.typography.titleLarge)
                 Text(
                     text = "¿Qué vamos a aprovechar hoy?",
@@ -83,7 +84,7 @@ internal fun EncabezadoInicio(
 }
 
 @Composable
-private fun UbicacionActual() {
+private fun UbicacionActual(direccion: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -95,7 +96,7 @@ private fun UbicacionActual() {
             modifier = Modifier.size(18.dp)
         )
         Text(
-            text = "Santa Cruz de la Sierra",
+            text = direccion,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
@@ -110,6 +111,7 @@ private fun EncabezadoInicioPreview() {
     RescatAppTheme {
         EncabezadoInicio(
             usuario = "Alejandra",
+            direccion = "Av. Busch 123",
             onBuscar = {},
             conteoNoLeidas = 3,
             onVerNotificaciones = {}

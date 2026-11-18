@@ -58,11 +58,13 @@ internal fun EncabezadoPerfil(nombre: String, correo: String, inicial: String, e
                         )
                     }
                     Text(text = nombre, style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        text = correo,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (correo.isNotBlank()) {
+                        Text(
+                            text = correo,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

@@ -3,11 +3,11 @@ package com.rescatapp.features.notificaciones.ui
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioNotificaciones
 import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.crearAutenticacion
 import com.rescatapp.core.data.crearRepositorioNotificaciones
 import com.rescatapp.core.model.Notificacion
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.model.TipoNotificacion
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -26,14 +26,13 @@ class NotificacionesViewModelTest {
 
     @Before
     fun preparar() {
-        UsuarioDemo.cambiarRol(RolUsuario.CLIENTE)
         api = SupabaseApiFalsa()
         repositorio = crearRepositorioNotificaciones(api = api)
     }
 
     @Test
     fun estadoInicialVacio() = runTest {
-        val viewModel = NotificacionesViewModel(repositorio)
+        val viewModel = NotificacionesViewModel(repositorio, crearAutenticacion(api))
         observarDuranteLaPrueba(viewModel.uiState)
 
         val estado = viewModel.uiState.value
@@ -54,7 +53,7 @@ class NotificacionesViewModelTest {
         api.notificaciones.add(notif)
         repositorio.sincronizar()
 
-        val viewModel = NotificacionesViewModel(repositorio)
+        val viewModel = NotificacionesViewModel(repositorio, crearAutenticacion(api))
         observarDuranteLaPrueba(viewModel.uiState)
 
         assertEquals(1, viewModel.uiState.value.notificaciones.size)
@@ -78,7 +77,7 @@ class NotificacionesViewModelTest {
         )
         repositorio.sincronizar()
 
-        val viewModel = NotificacionesViewModel(repositorio)
+        val viewModel = NotificacionesViewModel(repositorio, crearAutenticacion(api))
         observarDuranteLaPrueba(viewModel.uiState)
 
         assertEquals(1, viewModel.uiState.value.notificaciones.size)

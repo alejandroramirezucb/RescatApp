@@ -1,6 +1,7 @@
 package com.rescatapp.features.pedidos.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
+import com.rescatapp.core.data.crearAutenticacion
 import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.crearRepositorioPedidos
 import com.rescatapp.core.data.pedidosDeEjemplo
@@ -65,6 +66,7 @@ class PedidosViewModelTest {
 
     private fun crearViewModel() = PedidosViewModel(
         repositorioPedidos = repositorioPedidos,
+        repositorioAutenticacion = crearAutenticacion(),
         avanzarPedido = AvanzarPedidoUseCase(repositorioPedidos),
         cancelarPedido = CancelarPedidoUseCase(repositorioPedidos, crearRepositorioOfertas()),
         construirProgreso = ConstruirProgresoPedidoUseCase()

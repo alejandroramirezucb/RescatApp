@@ -25,8 +25,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.BarraSuperior
 import com.rescatapp.core.designsystem.components.BotonPrincipal
-import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.UsuarioDemo
 
 @Composable
 fun RegistroScreen(
@@ -39,20 +37,6 @@ fun RegistroScreen(
 
     LaunchedEffect(estado.guardadoExitoso) {
         if (estado.guardadoExitoso) onPublicado()
-    }
-
-    LaunchedEffect(Unit) {
-        if (estado.campos.comercio.isBlank()) {
-            viewModel.onCampoCambiado(
-                estado.campos.copy(
-                    comercio = UsuarioDemo.negocioActual,
-                    categoria = Categoria.PANADERIA,
-                    pesoKg = "1,0",
-                    horaRetiroDesde = "18:00",
-                    horaRetiroHasta = "20:00"
-                )
-            )
-        }
     }
 
     Scaffold(
@@ -74,7 +58,7 @@ fun RegistroScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Comparte un nuevo pack", style = MaterialTheme.typography.headlineSmall)
                     Text(
-                        text = estado.campos.comercio.ifBlank { UsuarioDemo.negocioActual },
+                        text = estado.campos.comercio,
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )

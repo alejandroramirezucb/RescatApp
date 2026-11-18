@@ -30,7 +30,7 @@ internal fun ListaOfertasNegocio(
         contentPadding = PaddingValues(bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { EncabezadoOfertasNegocio() }
+        item { EncabezadoOfertasNegocio(estado.nombreNegocio) }
         item { SelectorOfertasNegocio(pestana = estado.pestana, onSeleccion = onSeleccion) }
         if (estado.ocupado) {
             item { ProgresoOfertas("Guardando cambios…") }

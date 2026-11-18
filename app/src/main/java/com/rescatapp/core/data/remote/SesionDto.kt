@@ -11,6 +11,6 @@ data class TokenDto(
 
 data class UsuarioDto(val id: String, val email: String)
 
-data class PerfilDto(val nombre: String, val rol: String)
+data class PerfilDto(val nombre: String, val rol: String, val direccion: String = "")
 
 data class NegocioDto(val id: Int, val nombre: String)

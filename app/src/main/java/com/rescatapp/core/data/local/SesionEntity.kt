@@ -14,6 +14,7 @@ data class SesionEntity(
     val nombre: String,
     val rol: RolUsuario,
     val nombreNegocio: String? = null,
+    val direccion: String = "",
     val token: String,
     val refreshToken: String,
     val expira: Long
@@ -23,7 +24,8 @@ data class SesionEntity(
         nombre = nombre,
         correo = correo,
         rol = rol,
-        nombreNegocio = nombreNegocio
+        nombreNegocio = nombreNegocio,
+        direccion = direccion
     )
 
     companion object {

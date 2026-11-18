@@ -20,10 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.rescatapp.core.model.UsuarioDemo
 
 @Composable
-internal fun EncabezadoOfertasNegocio() {
+internal fun EncabezadoOfertasNegocio(nombreNegocio: String) {
     Column(
         modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -44,7 +43,7 @@ internal fun EncabezadoOfertasNegocio() {
                 )
             }
             Text(
-                text = UsuarioDemo.negocioActual,
+                text = nombreNegocio,
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f)

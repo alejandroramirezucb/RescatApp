@@ -1,4 +1,4 @@
-package com.rescatapp.core.designsystem.components
+package com.rescatapp.features.inicio.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,7 +20,7 @@ import com.rescatapp.core.util.formatearDinero
 import com.rescatapp.core.util.formatearPeso
 
 @Composable
-fun TarjetaImpacto(titulo: String, impacto: Impacto, modifier: Modifier = Modifier) {
+internal fun BloqueImpacto(impacto: Impacto) {
     val indicadores = listOf(
         impacto.rescates.toString() to "Rescates",
         impacto.ahorrado.formatearDinero() to "Ahorrado",
@@ -28,26 +28,29 @@ fun TarjetaImpacto(titulo: String, impacto: Impacto, modifier: Modifier = Modifi
     )
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         shape = MaterialTheme.shapes.large,
-        modifier = modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().padding(rellenoLateral)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(text = titulo, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Tu impacto con RescatApp",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
             BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                 if (maxWidth < 280.dp || LocalDensity.current.fontScale > 1.2f) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         indicadores.forEach { (valor, etiqueta) ->
-                            IndicadorImpacto(valor, etiqueta)
+                            IndicadorImpactoInicio(valor, etiqueta)
                         }
                     }
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         indicadores.forEach { (valor, etiqueta) ->
-                            IndicadorImpacto(valor, etiqueta, Modifier.weight(1f))
+                            IndicadorImpactoInicio(valor, etiqueta, Modifier.weight(1f))
                         }
                     }
                 }
@@ -57,21 +60,26 @@ fun TarjetaImpacto(titulo: String, impacto: Impacto, modifier: Modifier = Modifi
 }
 
 @Composable
-private fun IndicadorImpacto(valor: String, etiqueta: String, modifier: Modifier = Modifier) {
+private fun IndicadorImpactoInicio(valor: String, etiqueta: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(text = valor, style = MaterialTheme.typography.titleLarge)
-        Text(text = etiqueta, style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = valor,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
+        Text(
+            text = etiqueta,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     }
 }
 
-@Preview(name = "Impacto", showBackground = true, widthDp = 360)
+@Preview(name = "Impacto del cliente", showBackground = true, widthDp = 360)
 @Preview(name = "Impacto con texto grande", widthDp = 320, fontScale = 1.5f)
 @Composable
-private fun TarjetaImpactoPreview() {
+private fun BloqueImpactoPreview() {
     RescatAppTheme {
-        TarjetaImpacto(
-            titulo = "Tu impacto",
-            impacto = Impacto(rescates = 4, ahorrado = 102.0, kgAprovechados = 3.6)
-        )
+        BloqueImpacto(Impacto(rescates = 4, ahorrado = 102.0, kgAprovechados = 3.6))
     }
 }

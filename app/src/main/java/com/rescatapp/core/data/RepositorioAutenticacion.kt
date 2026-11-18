@@ -7,7 +7,6 @@ import com.rescatapp.core.data.remote.TokenDto
 import com.rescatapp.core.data.remote.mensajeDeError
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.core.model.RolUsuario
-import com.rescatapp.core.model.UsuarioDemo
 import com.rescatapp.features.auth.domain.model.DatosRegistro
 import com.rescatapp.features.auth.domain.model.SesionUsuario
 import javax.inject.Inject
@@ -23,11 +22,7 @@ class RepositorioAutenticacion @Inject constructor(
 ) {
     val sesionActual: Flow<SesionUsuario?> = sesionDao.observarSesion().map { it?.toDomain() }
 
-    suspend fun sincronizarSesion() {
-        val sesion = sesionDao.obtenerSesion()
-        UsuarioDemo.actualizarNegocio(sesion?.nombreNegocio)
-        UsuarioDemo.cambiarRol(sesion?.rol ?: RolUsuario.CLIENTE)
-    }
+    val rol: Flow<RolUsuario> = sesionActual.map { it?.rol ?: RolUsuario.CLIENTE }
 
     suspend fun sesion(): SesionUsuario? = sesionDao.obtenerSesion()?.toDomain()
 
@@ -65,7 +60,6 @@ class RepositorioAutenticacion @Inject constructor(
 
     suspend fun cerrarSesion() {
         sesionDao.limpiarSesion()
-        sincronizarSesion()
     }
 
     suspend fun token(): String? {
@@ -105,12 +99,12 @@ class RepositorioAutenticacion @Inject constructor(
             nombre = perfil.nombre,
             rol = rol,
             nombreNegocio = negocio,
+            direccion = perfil.direccion,
             token = token.accessToken.orEmpty(),
             refreshToken = token.refreshToken.orEmpty(),
             expira = ahora() + (token.expiraEn ?: 0)
         )
         sesionDao.guardarSesion(sesion)
-        sincronizarSesion()
         return sesion.toDomain()
     }
 

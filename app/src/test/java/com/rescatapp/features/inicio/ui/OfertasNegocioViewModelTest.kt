@@ -3,6 +3,7 @@ package com.rescatapp.features.inicio.ui
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.SupabaseApiFalsa
 import com.rescatapp.core.data.USUARIO_PRUEBA
+import com.rescatapp.core.data.crearAutenticacion
 import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.errorServidor
 import com.rescatapp.core.data.ofertasDeEjemplo
@@ -21,7 +22,7 @@ class OfertasNegocioViewModelTest {
     private val api = SupabaseApiFalsa(propias + ofertasDeEjemplo.drop(3))
     private val repositorio = crearRepositorioOfertas(api = api)
     private val viewModel by lazy {
-        OfertasNegocioViewModel(repositorio)
+        OfertasNegocioViewModel(repositorio, crearAutenticacion(api))
     }
 
     @Test
