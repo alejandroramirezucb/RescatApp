@@ -1,102 +1,107 @@
-# Conexion de Android con Supabase
+# Arquitectura de la conexión con Supabase
 
-La aplicacion usa Supabase Auth, PostgreSQL a traves de REST con RLS y Storage.
-La clave publishable se envia como `apikey`; las operaciones privadas incluyen
-el JWT del usuario. Android no incluye claves secretas ni `service_role`.
-MockAPI deja de ser la fuente utilizada por la inyeccion de dependencias.
+## Servicios y configuración
 
-## Configuracion de cada integrante
+La aplicación utiliza Supabase Auth, PostgreSQL mediante REST y Supabase Storage.
+`SupabaseHttp` envía la clave pública en `apikey` y el JWT del usuario autenticado
+en `Authorization: Bearer`. Los permisos se validan en el servidor con RLS.
 
-En la raiz, copiar `supabase.local.properties.example` a
-`supabase.local.properties` y completar la URL del proyecto y su publishable key.
-El archivo local esta excluido de Git. Gradle tambien acepta las variables de
-entorno `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`.
-En GitHub Actions, configurar ambas como variables del repositorio en
-Settings > Secrets and variables > Actions > Variables.
+La URL base y la clave pública proceden de `supabase.local.properties` o de las
+variables de entorno `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY`. Gradle genera los
+campos correspondientes de `BuildConfig`. No se incluyen credenciales administrativas.
 
-Se requieren los SQL 001 a 003 y las cuentas con sus perfiles. Los SQL 004 y 007
-cargan las ofertas de ejemplo y enlazan sus fotos. No repetir los scripts de
-estructura en un proyecto donde ya se ejecutaron.
+| Función | Ruta relativa a la URL del proyecto |
+| --- | --- |
+| Registro | `/auth/v1/signup` |
+| Inicio y renovación de sesión | `/auth/v1/token` |
+| Consulta de usuario y cambio de contraseña | `/auth/v1/user` |
+| Recuperación de acceso | `/auth/v1/recover` |
+| Cierre de sesión | `/auth/v1/logout` |
+| Ofertas | `/rest/v1/ofertas` |
+| Perfiles y negocios | `/rest/v1/perfiles`, `/rest/v1/negocios` |
+| Pedidos y notificaciones | `/rest/v1/pedidos`, `/rest/v1/notificaciones` |
+| Operaciones transaccionales | `/rest/v1/rpc/...` |
+| Fotografías | `/storage/v1/object/ofertas/...` |
 
-## Sesiones y datos por cuenta
+## Identidad y sesiones
 
-- El login consulta Supabase Auth; el rol procede de `public.perfiles`.
-- El registro envia los metadatos al trigger que crea perfil y negocio.
-- Con confirmacion de correo activa, registrarse muestra un aviso y no inicia
-  sesion hasta que la cuenta este confirmada.
-- Access token, refresh token y verificador PKCE se cifran mediante AES-GCM con
-  una clave de Android Keystore. Los tokens no se almacenan en Room.
-- Se renueva el token antes de vencer y se reintenta una solicitud rechazada
-  por expiracion. Una renovacion rechazada elimina la sesion local.
-- La base `supabase_cache.db` guarda snapshots con clave compuesta por cuenta y
-  recurso. Cambiar de cuenta vacia inmediatamente los datos expuestos en memoria.
-  Cerrar sesion tambien elimina la cache privada de esa cuenta.
-- La base antigua `rescatapp.db` no se importa ni asigna a usuarios nuevos.
-  Sus usuarios y pedidos de demostracion no se utilizan en el flujo conectado.
+El UUID autenticado identifica al perfil. El rol se obtiene de `public.perfiles`,
+y cada negocio se vincula con su propietario mediante `propietario_id`.
+El trigger de registro crea el perfil y, cuando corresponde, el negocio.
 
-## Catalogo, ofertas, pedidos y fotos
+Access token, refresh token y verificador PKCE se cifran con AES-GCM y una clave de
+Android Keystore. Los tokens no se almacenan en Room. La conexión renueva el token
+antes de vencer y reintenta una solicitud rechazada por expiración. Una renovación
+rechazada elimina la sesión local.
 
-- Inicio y Explorar usan el mismo catalogo del servidor. Las listas se actualizan
-  despues de cada escritura y automaticamente cada 10 segundos mientras la app
-  esta visible. Es sondeo REST; no es una suscripcion WebSocket de Realtime.
-- La app conserva la ultima cache si no hay red y muestra un aviso para reintentar.
-  No se simulan escrituras exitosas sin conexion.
-- Las ofertas se crean directamente en Supabase, sin duplicarlas para publicarlas.
-  La propiedad se obtiene del negocio vinculado al UUID autenticado.
-- Pausar, reactivar y eliminar llaman a sus RPC. Eliminar conserva los pedidos.
-- Las reservas usan `reservar_oferta` con una solicitud UUID persistida para
-  reintentar una respuesta perdida sin reservar dos veces. El stock se modifica
-  exclusivamente en el servidor durante reservas y cancelaciones.
-- La preparacion y entrega usan `avanzar_pedido`; la entrega requiere escribir
-  el codigo real que muestra el cliente. Se usa el codigo calculado por Supabase.
-- Las notificaciones privadas se consultan por la cuenta permitida por RLS;
-  leer y eliminar se persisten en Supabase. Esto no implementa notificaciones
-  push cuando la aplicacion esta cerrada.
-- Las nuevas imagenes JPG/PNG/WebP, de hasta 5 MiB, se suben a
-  `ofertas/<uuid-propietario>/<uuid-archivo>.<extension>`.
-- Las ofertas tienen fecha de retiro editable. Los pedidos conservan el horario,
-  la fecha, la imagen y el precio que tenian al reservar.
-- El impacto considera pedidos recogidos. El resumen de ventas de hoy filtra
-  pedidos recogidos y la fecha de Bolivia. Los pagos siguen siendo simulados.
+El registro admite la configuración de Supabase con o sin confirmación de correo.
+Cuando el servidor devuelve una sesión, la aplicación inicia sesión directamente.
+Si exige confirmación, muestra el aviso correspondiente.
 
-## Correo y recuperacion
+El enlace Android `rescatapp://auth/callback` recibe códigos de autenticación y
+recuperación. El canje utiliza PKCE, por lo que el enlace debe abrirse en la misma
+instalación que inició el flujo. Una solicitud nueva reemplaza el verificador
+pendiente de la anterior. El envío de correos depende de la configuración SMTP.
 
-Autorizar `rescatapp://auth/callback` en Authentication > URL Configuration.
-Android recibe ese enlace y canjea el codigo mediante PKCE. Abrir el enlace en
-el mismo telefono desde el que se inicio el registro o la recuperacion.
-El login incluye "Olvide mi contrasena" y el enlace recibido abre el formulario
-para cambiarla. Solo se permite una solicitud PKCE pendiente por instalacion;
-una nueva solicitud reemplaza a la anterior.
+## Datos y caché
 
-La entrega de confirmaciones y recuperaciones a destinatarios externos sigue
-dependiendo de configurar SMTP en Supabase. Mientras tanto, usar las cuentas
-de prueba ya confirmadas; no desactivar RLS ni incorporar credenciales de admin.
+`SupabaseConexion` coordina un snapshot compartido por las pantallas. El servidor
+conserva ofertas, pedidos y notificaciones. La caché `supabase_cache.db` utiliza una
+clave compuesta por cuenta y recurso. Cambiar de cuenta vacía los datos expuestos
+en memoria; cerrar sesión elimina la caché privada de esa cuenta.
 
-## Prueba manual con dos dispositivos o sesiones
+El catálogo público y las ofertas del propietario se presentan como listas
+separadas. La consulta normal excluye ofertas eliminadas. Los clientes ven las
+ofertas disponibles según las políticas del servidor.
 
-1. Iniciar como cliente y comprobar que aparecen las cinco ofertas del servidor.
-2. Reservar un pack. Revisar que aparezca el pedido y se reduzca el stock en
-   Table Editor. Reabrir la app y verificar la persistencia.
-3. Iniciar con otro cliente. No debe ver pedidos ni notificaciones del primero.
-4. Iniciar como propietario del negocio. Debe ver sus ofertas y sus pedidos.
-5. Pausar una oferta con stock. En el cliente debe desaparecer automaticamente;
-   reactivarla debe devolverla al catalogo sin modificar su stock.
-6. Cambiar un pedido de reservado a preparando y despues a listo. Introducir
-   primero un codigo incorrecto y despues el codigo mostrado por el cliente.
-7. Cancelar otro pedido reservado y verificar que el stock se devuelve una vez.
-8. Eliminar una oferta y comprobar que desaparezca del catalogo y que sus pedidos
-   permanezcan en el historial.
-9. Publicar una oferta con foto y verificarla desde el otro dispositivo.
-10. Probar sin red: lectura desde cache y error visible al intentar escribir.
-    Volver a conectar y comprobar la actualizacion automatica.
-11. Cuando haya SMTP, probar registro confirmado y recuperacion de contrasena.
+Las consultas paginan los resultados en bloques de 500 registros. Las listas se
+actualizan después de cada escritura y cada 10 segundos mientras la app está
+visible. Se utiliza sondeo REST, no una suscripción WebSocket de Realtime.
 
-Comprobaciones locales:
+Sin conexión se conserva la última lectura disponible y se informa del error.
+Las escrituras requieren respuesta del servidor; no existe una cola de operaciones
+pendientes para trabajar sin conexión.
 
-```powershell
-.\gradlew.bat spotlessCheck :app:testDebugUnitTest :app:assembleDebug --no-daemon
-```
+## Operaciones del servidor
 
-Las pruebas HTTP de integracion usan un servidor local, no modifican el Supabase
-del equipo ni necesitan contrasenas reales. La validacion final de login,
-registro, Storage y flujos entre dispositivos requiere ejecutar la app.
+| RPC | Comportamiento |
+| --- | --- |
+| `reservar_oferta` | Verifica disponibilidad, descuenta stock y crea el pedido y sus avisos en una transacción |
+| `cancelar_pedido` | Cancela un pedido reservado y devuelve el stock una sola vez |
+| `avanzar_pedido` | Valida el estado esperado y exige el código de rescate para confirmar la entrega |
+| `cambiar_estado_oferta` | Pausa o reactiva una oferta del propietario |
+| `eliminar_oferta` | Oculta la oferta y conserva sus pedidos anteriores |
+
+Las reservas incluyen un UUID de solicitud persistido para reintentar una respuesta
+perdida sin duplicar la reserva. El servidor calcula los precios y snapshots del
+pedido. Android no modifica directamente el stock durante reservas y cancelaciones.
+
+Los pedidos conservan la fecha de retiro, horario, imagen, precio y código del
+servidor. Las notificaciones pertenecen a un destinatario concreto; leerlas o
+eliminarlas se persiste en Supabase.
+
+Las imágenes JPG, PNG o WebP de hasta 5 MiB se almacenan en el bucket `ofertas`,
+bajo `<uuid-propietario>/<uuid-archivo>.<extension>`. El catálogo utiliza sus URLs
+públicas y las políticas restringen las escrituras al propietario.
+
+## Definición del servidor
+
+| Archivo | Contenido |
+| --- | --- |
+| `001_estructura_y_permisos.sql` | Tablas, índices, triggers, permisos y políticas RLS |
+| `002_operaciones_seguras.sql` | RPC de ofertas y pedidos |
+| `003_imagenes_y_realtime.sql` | Bucket, políticas de Storage y publicación de Realtime |
+| `005_verificar_configuracion.sql` | Consultas de configuración y permisos |
+| `006_pruebas_transaccionales.sql` | Comprobaciones de reglas del servidor con reversión de las filas de prueba |
+
+Los números conservan la identificación de los scripts existentes. Los campos
+opcionales `origen` y `legacy_id` son metadatos históricos de los registros y no
+representan otra conexión activa.
+
+## Límites funcionales
+
+- Los pagos están simulados y no producen cobros reales.
+- Las notificaciones dentro de la app no incluyen entrega push con la app cerrada.
+- El impacto considera pedidos recogidos; los reservados no cuentan como rescates completados.
+- La base anterior `rescatapp.db` se conserva por compatibilidad y no se importa a cuentas reales.
+- Las pruebas HTTP de Android utilizan un servidor local simulado, sin credenciales reales.

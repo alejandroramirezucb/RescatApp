@@ -1,4 +1,4 @@
--- Ejecutar despues de la carga inicial, en el SQL Editor.
+-- Requiere una cuenta de cliente y una de negocio con su perfil registrado.
 -- Crea UNA oferta de prueba, simula roles SQL y revierte filas y existencias.
 -- Las secuencias de IDs pueden conservar saltos; no afecta a los datos.
 -- No prueba envio de correos, dispositivos ni la conexion de Android.
@@ -8,7 +8,9 @@ declare cliente uuid; propietario uuid; negocio integer; oferta integer;
 begin
     select id into cliente from public.perfiles where rol = 'CLIENTE' order by creado_at limit 1;
     select id,propietario_id into negocio,propietario from public.negocios order by id limit 1;
-    if cliente is null or propietario is null then raise exception 'Primero crea las cuentas y ejecuta 004'; end if;
+    if cliente is null or propietario is null then
+        raise exception 'Se requiere una cuenta CLIENTE y un negocio con propietario';
+    end if;
     insert into public.ofertas(negocio_id,nombre,categoria,peso_kg,precio_normal,precio_rescate,
         cantidad_disponible,fecha_retiro,hora_retiro_desde,hora_retiro_hasta)
     values (negocio,'PRUEBA TRANSACCIONAL','PANADERIA',1,40,20,1,

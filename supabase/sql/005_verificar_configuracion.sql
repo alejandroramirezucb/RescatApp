@@ -14,9 +14,9 @@ select p.id,p.nombre,p.rol,n.id as negocio_id,n.nombre as negocio
 from public.perfiles p left join public.negocios n on n.propietario_id = p.id
 order by p.creado_at;
 
-select count(*) as ofertas_mockapi from public.ofertas where origen = 'mockapi';
-select id,legacy_id,nombre,estado,cantidad_disponible,fecha_retiro,imagen_url
-from public.ofertas where origen = 'mockapi' order by id;
+select count(*) as total_ofertas from public.ofertas;
+select id,negocio_id,nombre,estado,cantidad_disponible,fecha_retiro,imagen_url
+from public.ofertas order by id;
 
 select id,public,file_size_limit,allowed_mime_types from storage.buckets where id = 'ofertas';
 select schemaname,tablename from pg_publication_tables
