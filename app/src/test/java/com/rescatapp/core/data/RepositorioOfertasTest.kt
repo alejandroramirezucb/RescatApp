@@ -3,6 +3,7 @@ package com.rescatapp.core.data
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.RolUsuario
 import java.time.LocalDate
+import java.time.ZoneId
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -29,7 +30,7 @@ class RepositorioOfertasTest {
             when (it.id) {
                 14 -> it.copy(estadoPublicacion = "PAUSADA")
                 13 -> it.copy(cantidadDisponible = 0)
-                12 -> it.copy(fechaRetiro = LocalDate.now().minusDays(1))
+                12 -> it.copy(fechaRetiro = LocalDate.now(ZoneId.of("America/La_Paz")).minusDays(1))
                 else -> it
             }
         }
