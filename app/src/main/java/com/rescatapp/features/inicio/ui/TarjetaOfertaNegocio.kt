@@ -1,6 +1,5 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -21,8 +20,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.ImagenCategoria
+import com.rescatapp.core.designsystem.components.ofertaEjemplo
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
-import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Oferta
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -37,7 +37,7 @@ internal fun TarjetaOfertaNegocio(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -89,19 +89,7 @@ internal fun TarjetaOfertaNegocio(
 private fun TarjetaOfertaNegocioPreview() {
     RescatAppTheme {
         TarjetaOfertaNegocio(
-            oferta = Oferta(
-                id = 1,
-                nombre = "Pack de panes artesanales y repostería del día",
-                comercio = "Panadería del barrio",
-                categoria = Categoria.PANADERIA,
-                descripcion = "Una selección para compartir.",
-                pesoKg = 1.0,
-                precioNormal = 40.0,
-                precioRescate = 20.0,
-                cantidadDisponible = 3,
-                horaRetiroDesde = "18:00",
-                horaRetiroHasta = "20:00"
-            ),
+            oferta = ofertaEjemplo.copy(cantidadDisponible = 3),
             habilitada = true,
             onEditar = {},
             onEliminar = {},

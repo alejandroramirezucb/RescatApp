@@ -1,6 +1,5 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearDinero
 
@@ -70,7 +70,7 @@ private fun PieOferta(precio: String, onEditar: () -> Unit, habilitada: Boolean)
         )
         OutlinedButton(
             shape = MaterialTheme.shapes.small,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = bordeTarjeta(),
             onClick = onEditar,
             enabled = habilitada
         ) {

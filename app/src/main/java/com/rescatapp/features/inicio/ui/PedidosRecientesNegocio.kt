@@ -1,6 +1,5 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.TarjetaPedido
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Pedido
 
 @Composable
@@ -47,7 +47,7 @@ private fun EstadoSinPedidos() {
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(

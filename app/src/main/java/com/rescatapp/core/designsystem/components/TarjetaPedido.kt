@@ -1,6 +1,5 @@
 package com.rescatapp.core.designsystem.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -19,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.PasoProgreso
@@ -35,7 +35,7 @@ fun TarjetaPedido(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {

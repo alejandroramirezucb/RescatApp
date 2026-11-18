@@ -1,6 +1,5 @@
 package com.rescatapp.core.designsystem.components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Disponibilidad
 import com.rescatapp.core.model.Oferta
 
@@ -38,7 +38,7 @@ fun TarjetaOferta(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 0.dp)
     ) {
         ImagenCategoria(

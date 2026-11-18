@@ -1,6 +1,5 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -20,6 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.EncabezadoSeccion
 import com.rescatapp.core.designsystem.components.ImagenCategoria
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Oferta
 
 @Composable
@@ -46,7 +46,7 @@ internal fun ComerciosInicio(ofertas: List<Oferta>, onExplorar: () -> Unit) {
                     colors = CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surface
                     ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    border = bordeTarjeta(),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     ImagenCategoria(

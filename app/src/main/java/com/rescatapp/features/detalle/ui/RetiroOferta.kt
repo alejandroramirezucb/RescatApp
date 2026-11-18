@@ -1,6 +1,5 @@
 package com.rescatapp.features.detalle.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.TextoDisponibilidad
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearHorario
 import com.rescatapp.core.util.formatearPeso
@@ -30,7 +30,7 @@ internal fun RetiroOferta(oferta: Oferta) {
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        border = bordeTarjeta()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

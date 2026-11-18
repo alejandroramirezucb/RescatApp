@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccessTime
@@ -18,10 +19,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rescatapp.core.designsystem.components.TarjetaImpacto
+import com.rescatapp.core.designsystem.components.ofertaEjemplo
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.domain.Impacto
 import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.Oferta
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 
 @Composable
@@ -91,7 +93,13 @@ internal fun InicioContenido(
             )
         }
         item { ComerciosInicio(estado.ofertas.disponibles, verTodas) }
-        item { BloqueImpacto(estado.impacto) }
+        item {
+            TarjetaImpacto(
+                "Tu impacto con RescatApp",
+                estado.impacto,
+                Modifier.padding(rellenoLateral)
+            )
+        }
         item {
             SeccionOfertas(
                 titulo = "Puede interesarte",
@@ -111,19 +119,7 @@ internal fun InicioContenido(
 @Preview(name = "Inicio Figma con texto grande", widthDp = 320, heightDp = 900, fontScale = 1.5f)
 @Composable
 private fun InicioContenidoPreview() {
-    val pack = Oferta(
-        id = 1,
-        nombre = "Pack Sorpresa",
-        comercio = "Panadería La Central",
-        categoria = Categoria.PANADERIA,
-        descripcion = "Surtido del día",
-        pesoKg = 1.0,
-        precioNormal = 45.0,
-        precioRescate = 25.0,
-        cantidadDisponible = 5,
-        horaRetiroDesde = "18:00",
-        horaRetiroHasta = "20:00"
-    )
+    val pack = ofertaEjemplo
     val ofertas = listOf(
         pack,
         pack.copy(id = 2, nombre = "Pack Croissants", cantidadDisponible = 2),

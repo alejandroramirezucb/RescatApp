@@ -1,6 +1,5 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.util.formatearDinero
 
 private val diasSemanaVentas = listOf(
@@ -42,7 +42,7 @@ internal fun VentasSemanaNegocio(ventasSemana: List<Double>, indiceDiaActual: In
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(

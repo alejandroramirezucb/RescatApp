@@ -8,7 +8,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.rescatapp.core.designsystem.theme.Naranja
 import com.rescatapp.core.designsystem.theme.Rojo
 import com.rescatapp.core.designsystem.theme.Verde
-import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Disponibilidad
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearDisponibilidad
@@ -37,19 +36,7 @@ private val Disponibilidad.color: Color
 @Composable
 private fun TextoDisponibilidadBajaPreview() {
     TextoDisponibilidad(
-        oferta = Oferta(
-            id = 1,
-            nombre = "Ejemplo",
-            comercio = "Comercio",
-            categoria = Categoria.PANADERIA,
-            descripcion = "Desc",
-            pesoKg = 1.0,
-            precioNormal = 40.0,
-            precioRescate = 20.0,
-            cantidadDisponible = 2,
-            horaRetiroDesde = "18:00",
-            horaRetiroHasta = "20:00"
-        )
+        oferta = ofertaEjemplo.copy(cantidadDisponible = 2)
     )
 }
 
@@ -57,18 +44,6 @@ private fun TextoDisponibilidadBajaPreview() {
 @Composable
 private fun TextoDisponibilidadAgotadaPreview() {
     TextoDisponibilidad(
-        oferta = Oferta(
-            id = 2,
-            nombre = "Ejemplo",
-            comercio = "Comercio",
-            categoria = Categoria.PANADERIA,
-            descripcion = "Desc",
-            pesoKg = 1.0,
-            precioNormal = 40.0,
-            precioRescate = 20.0,
-            cantidadDisponible = 0,
-            horaRetiroDesde = "18:00",
-            horaRetiroHasta = "20:00"
-        )
+        oferta = ofertaEjemplo.copy(cantidadDisponible = 0)
     )
 }

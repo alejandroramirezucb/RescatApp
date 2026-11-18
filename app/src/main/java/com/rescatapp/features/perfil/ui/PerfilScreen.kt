@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rescatapp.core.designsystem.components.TarjetaImpacto
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 
 @Composable
@@ -59,7 +60,7 @@ internal fun PerfilContenido(
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             EncabezadoPerfil(estado.nombre, estado.correo, estado.inicial, estado.esNegocio)
-            IndicadoresPerfil(estado.impacto)
+            TarjetaImpacto(titulo = "Tu impacto", impacto = estado.impacto)
             InformacionCuenta(estado)
             SesionPerfil(
                 estado = estado,

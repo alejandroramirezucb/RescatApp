@@ -1,6 +1,5 @@
 package com.rescatapp.features.perfil.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 
 @Composable
 internal fun InformacionCuenta(estado: PerfilUiState) {
@@ -41,7 +41,7 @@ internal fun PreferenciasPerfil(onVerNotificaciones: () -> Unit = {}) {
         onClick = onVerNotificaciones,
         color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -81,7 +81,7 @@ internal fun TarjetaPerfil(titulo: String, contenido: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = bordeTarjeta(),
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(

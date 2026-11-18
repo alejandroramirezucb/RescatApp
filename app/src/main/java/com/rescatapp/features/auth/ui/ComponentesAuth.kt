@@ -1,6 +1,5 @@
 package com.rescatapp.features.auth.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.BarraSuperior
 import com.rescatapp.core.designsystem.components.BotonPrincipal
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 
 @Composable
 internal fun PantallaAuth(
@@ -61,7 +61,7 @@ internal fun PantallaAuth(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.extraLarge,
                     color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    border = bordeTarjeta(),
                     shadowElevation = 1.dp
                 ) {
                     Column(

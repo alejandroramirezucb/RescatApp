@@ -172,7 +172,7 @@ avance de pedidos y rutas de navegación.
 
 | Integrante | GitHub |
 | --- | --- |
-| **Alejandro Ramirez** | [alejandroramirezucb](https://github.com/alejandroramirezucb) |
+| **Alejandro Ramirez** | [alejandroramirezucb](https://github.com/alejandroramirezucb), [alejandroramirezvallejos](https://github.com/alejandroramirezvallejos) |
 | **Dariana Pol Aramayo** | [D4ri4na](https://github.com/D4ri4na) |
 | **Josue Balbontin** | [josue-balbontin](https://github.com/josue-balbontin) |
 | **Fernando Terrazas** | [FernandoTerrazasLl](https://github.com/FernandoTerrazasLl) |

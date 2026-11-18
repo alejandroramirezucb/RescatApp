@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rescatapp.core.designsystem.components.BotonSecundario
+import com.rescatapp.core.designsystem.components.TarjetaOferta
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 
@@ -133,7 +134,7 @@ internal fun ExplorarContenido(
                 }
             } else {
                 items(estado.ofertas, key = { it.id }) { oferta ->
-                    TarjetaOfertaExplorar(oferta = oferta, onClick = { onVerDetalle(oferta.id) })
+                    TarjetaOferta(oferta, { onVerDetalle(oferta.id) }, Modifier.fillMaxWidth())
                 }
             }
         }

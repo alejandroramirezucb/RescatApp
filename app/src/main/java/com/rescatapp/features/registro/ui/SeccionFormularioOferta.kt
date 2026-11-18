@@ -1,6 +1,5 @@
 package com.rescatapp.features.registro.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -15,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 
 @Composable
 internal fun SeccionFormularioOferta(
@@ -26,7 +26,7 @@ internal fun SeccionFormularioOferta(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
         shape = MaterialTheme.shapes.large,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        border = bordeTarjeta()
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

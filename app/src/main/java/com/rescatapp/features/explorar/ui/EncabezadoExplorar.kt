@@ -12,9 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.components.ofertaEjemplo
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.features.explorar.domain.FiltrosOfertas
 
@@ -52,19 +52,7 @@ internal fun EncabezadoExplorar(
 @Preview(name = "Explorar con texto grande", widthDp = 320, heightDp = 1000, fontScale = 1.5f)
 @Composable
 private fun ExplorarContenidoPreview() {
-    val ejemplo = Oferta(
-        id = 1,
-        nombre = "Pack Sorpresa",
-        comercio = "Panadería La Central",
-        categoria = Categoria.PANADERIA,
-        descripcion = "Panes del día",
-        pesoKg = 1.0,
-        precioNormal = 45.0,
-        precioRescate = 25.0,
-        cantidadDisponible = 5,
-        horaRetiroDesde = "18:00",
-        horaRetiroHasta = "20:00"
-    )
+    val ejemplo = ofertaEjemplo
     RescatAppTheme {
         ExplorarContenido(
             estado = ExplorarUiState(

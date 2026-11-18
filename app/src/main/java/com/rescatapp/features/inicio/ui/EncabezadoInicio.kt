@@ -1,6 +1,5 @@
 package com.rescatapp.features.inicio.ui
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.BotonNotificaciones
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
+import com.rescatapp.core.designsystem.theme.bordeTarjeta
 
 @Composable
 internal fun EncabezadoInicio(
@@ -57,7 +57,7 @@ internal fun EncabezadoInicio(
             onClick = onBuscar,
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            border = bordeTarjeta(),
             modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
         ) {
             Row(
