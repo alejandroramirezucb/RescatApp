@@ -27,12 +27,16 @@ internal data class PantallasGrafo(
     val inicioCliente: @Composable (
         onExplorar: (Categoria?) -> Unit,
         onVerDetalle: (Int) -> Unit,
-        onVerNotificaciones: () -> Unit
-    ) -> Unit = { onExplorar, onVerDetalle, onVerNotificaciones ->
+        onVerNotificaciones: () -> Unit,
+        onVerComercio: (String) -> Unit,
+        onVerNegocios: () -> Unit
+    ) -> Unit = { onExplorar, onVerDetalle, onVerNotificaciones, onVerComercio, onVerNegocios ->
         InicioScreen(
             onExplorar = onExplorar,
             onVerDetalle = onVerDetalle,
-            onVerNotificaciones = onVerNotificaciones
+            onVerNotificaciones = onVerNotificaciones,
+            onVerComercio = onVerComercio,
+            onVerNegocios = onVerNegocios
         )
     },
     val inicioNegocio: @Composable (onVerNotificaciones: () -> Unit) -> Unit = {
@@ -96,7 +100,9 @@ internal fun NavGraphBuilder.grafoRescatApp(
             pantallas.inicioCliente(
                 { navController.navigate(Rutas.explorar(it)) },
                 verDetalle,
-                verNotificaciones
+                verNotificaciones,
+                { navController.navigate(Rutas.explorarComercio(it)) },
+                { navController.navigate(Rutas.explorarNegocios()) }
             )
         }
     }
@@ -106,6 +112,17 @@ internal fun NavGraphBuilder.grafoRescatApp(
             navArgument(ArgumentosRuta.CATEGORIA) {
                 type = NavType.StringType
                 nullable = true
+                defaultValue = null
+            },
+            navArgument(ArgumentosRuta.COMERCIO) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            },
+            navArgument(ArgumentosRuta.TIPO) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
             }
         )
     ) {

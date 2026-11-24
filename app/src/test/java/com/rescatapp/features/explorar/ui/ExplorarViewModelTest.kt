@@ -7,9 +7,11 @@ import com.rescatapp.core.data.ofertasDeEjemplo
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.core.navigation.ArgumentosRuta
+import com.rescatapp.features.explorar.domain.TipoBusquedaExplorar
 import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -120,8 +122,66 @@ class ExplorarViewModelTest {
         assertEquals(0, viewModel.uiState.value.cantidad)
     }
 
-    private fun crearViewModel(categoria: String? = null) = ExplorarViewModel(
-        savedStateHandle = SavedStateHandle(mapOf(ArgumentosRuta.CATEGORIA to categoria)),
+    @Test
+    fun buscaNegociosYPermiteVerSusOfertasActivas() = runTest {
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+
+        viewModel.seleccionarTipoBusqueda(TipoBusquedaExplorar.NEGOCIOS)
+        viewModel.buscar("café")
+
+        assertEquals(0, viewModel.uiState.value.cantidad)
+        assertEquals(
+            listOf("Café Aroma"),
+            viewModel.uiState.value.comerciosVisibles.map {
+                it.nombre
+            }
+        )
+
+        viewModel.buscar("")
+        viewModel.seleccionarComercio("Café Aroma")
+
+        assertEquals(3, viewModel.uiState.value.cantidad)
+        assertTrue(viewModel.uiState.value.comerciosVisibles.isEmpty())
+        assertTrue(viewModel.uiState.value.ofertasVisibles.all { it.comercio == "Café Aroma" })
+    }
+
+    @Test
+    fun sinCoincidenciasMarcaSinResultados() = runTest {
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+
+        viewModel.buscar("ComercioInexistenteXYZ")
+
+        assertTrue(viewModel.uiState.value.sinResultados)
+        assertEquals(0, viewModel.uiState.value.cantidad)
+        assertEquals(0, viewModel.uiState.value.cantidadComercios)
+    }
+
+    @Test
+    fun aplicaComercioYTipoRecibidosEnLaRuta() = runTest {
+        val viewModel = crearViewModel(
+            comercio = "Café Aroma",
+            tipo = TipoBusquedaExplorar.NEGOCIOS.name
+        )
+        observarDuranteLaPrueba(viewModel.uiState)
+
+        assertEquals("Café Aroma", viewModel.uiState.value.filtros.comercioSeleccionado)
+        assertEquals(3, viewModel.uiState.value.cantidad)
+    }
+
+    private fun crearViewModel(
+        categoria: String? = null,
+        comercio: String? = null,
+        tipo: String? = null
+    ) = ExplorarViewModel(
+        savedStateHandle = SavedStateHandle(
+            mapOf(
+                ArgumentosRuta.CATEGORIA to categoria,
+                ArgumentosRuta.COMERCIO to comercio,
+                ArgumentosRuta.TIPO to tipo
+            )
+        ),
         repositorioOfertas = repositorioOfertas
     )
 }

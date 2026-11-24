@@ -12,6 +12,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -48,7 +49,8 @@ class RepositorioOfertas @Inject constructor(
     }
 
     suspend fun agregar(oferta: Oferta) = operar { token, usuarioId ->
-        val negocio = api.obtenerNegocio(token, "eq.$usuarioId").first()
+        val negocio = api.obtenerNegocio(token, "eq.$usuarioId").firstOrNull()
+            ?: throw NoSuchElementException("No encontramos un negocio asociado a tu cuenta.")
         val imagen = imagenes.subir(oferta.imagenUri, usuarioId, token)
         api.crearOferta(
             token,
@@ -73,7 +75,12 @@ class RepositorioOfertas @Inject constructor(
     private suspend fun operar(accion: suspend (token: String, usuarioId: String) -> Unit) {
         val token = autenticacion.tokenObligatorio()
         accion(token, checkNotNull(autenticacion.sesion()).usuarioId)
-        runCatching { sincronizar() }
+        try {
+            sincronizar()
+        } catch (cancelacion: CancellationException) {
+            throw cancelacion
+        } catch (_: Exception) {
+        }
     }
 
     private fun Oferta.sigueVigente(): Boolean =

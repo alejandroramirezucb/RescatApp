@@ -165,7 +165,7 @@ class GrafoNavegacionAuthTest {
     }
 
     private fun pantallasPrueba(onAutenticarCliente: () -> Unit) = PantallasGrafo(
-        inicioCliente = { _, _, _ -> Text("Pantalla Inicio") },
+        inicioCliente = { _, _, _, _, _ -> Text("Pantalla Inicio") },
         inicioNegocio = { Text("Pantalla Inicio Negocio") },
         pedidos = { Text("Pantalla Pedidos") },
         registroOferta = { _, _ -> Text("Pantalla Crear Oferta") },

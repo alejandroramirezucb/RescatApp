@@ -17,8 +17,14 @@ class ValidarOfertaUseCase @Inject constructor(private val validarCampos: Valida
             horaHasta = campos.horaRetiroHasta
         )
         return ErroresRegistro(
-            nombre = MensajesValidacion.NOMBRE_VACIO
-                .takeIf { campos.nombre.isBlank() },
+            nombre = when {
+                campos.nombre.isBlank() -> MensajesValidacion.NOMBRE_VACIO
+
+                campos.nombre.trim().length > MAX_NOMBRE_OFERTA ->
+                    MensajesValidacion.NOMBRE_MUY_LARGO
+
+                else -> null
+            },
             comercio = MensajesValidacion.COMERCIO_VACIO
                 .takeIf { campos.comercio.isBlank() },
             categoria = MensajesValidacion.CATEGORIA_SIN_ELEGIR
@@ -41,5 +47,9 @@ class ValidarOfertaUseCase @Inject constructor(private val validarCampos: Valida
                     fecha.isBefore(java.time.LocalDate.now(java.time.ZoneId.of("America/La_Paz")))
             }
         )
+    }
+
+    private companion object {
+        const val MAX_NOMBRE_OFERTA = 160
     }
 }

@@ -9,6 +9,7 @@ import com.rescatapp.features.registro.domain.MensajesValidacion
 import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
 import com.rescatapp.features.registro.domain.ValidarOfertaUseCase
 import com.rescatapp.features.registro.domain.camposValidos
+import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -120,5 +121,26 @@ class RegistroViewModelTest {
         assertTrue(registro.uiState.value.guardadoExitoso)
         assertNull(registro.uiState.value.mensaje)
         assertEquals(15, repo.ofertas.first().size)
+    }
+
+    @Test
+    fun unErrorDeRedMuestraMensajeDeConexion() = runTest {
+        val api = SupabaseApiFalsa()
+        api.fallo = IOException("Sin internet")
+        val repo = crearRepositorioOfertas(api = api)
+        val registro = RegistroViewModel(
+            ValidarOfertaUseCase(),
+            RegistrarOfertaUseCase(repo),
+            crearAutenticacion(api)
+        )
+        registro.onCampoCambiado(camposValidos)
+
+        registro.publicar()
+
+        assertFalse(registro.uiState.value.guardadoExitoso)
+        assertEquals(
+            "No pudimos conectarnos. Revisa tu conexión e intenta nuevamente.",
+            registro.uiState.value.mensaje
+        )
     }
 }

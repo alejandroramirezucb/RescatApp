@@ -29,10 +29,19 @@ fun InicioScreen(
     onExplorar: (Categoria?) -> Unit,
     onVerDetalle: (Int) -> Unit,
     onVerNotificaciones: () -> Unit = {},
+    onVerComercio: (String) -> Unit = {},
+    onVerNegocios: () -> Unit = { onExplorar(null) },
     viewModel: InicioViewModel = hiltViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    InicioContenido(estado, onExplorar, onVerDetalle, onVerNotificaciones)
+    InicioContenido(
+        estado = estado,
+        onExplorar = onExplorar,
+        onVerDetalle = onVerDetalle,
+        onVerNotificaciones = onVerNotificaciones,
+        onVerComercio = onVerComercio,
+        onVerNegocios = onVerNegocios
+    )
 }
 
 @Composable
@@ -40,7 +49,9 @@ internal fun InicioContenido(
     estado: InicioUiState,
     onExplorar: (Categoria?) -> Unit,
     onVerDetalle: (Int) -> Unit,
-    onVerNotificaciones: () -> Unit
+    onVerNotificaciones: () -> Unit,
+    onVerComercio: (String) -> Unit = {},
+    onVerNegocios: () -> Unit = { onExplorar(null) }
 ) {
     val verTodas = { onExplorar(null) }
 
@@ -91,7 +102,7 @@ internal fun InicioContenido(
                 icono = Icons.Outlined.Star
             )
         }
-        item { ComerciosInicio(estado.ofertas.disponibles, verTodas) }
+        item { ComerciosInicio(estado.ofertas.disponibles, onVerNegocios, onVerComercio) }
         item { BloqueImpacto(estado.impacto) }
         item {
             SeccionOfertas(
