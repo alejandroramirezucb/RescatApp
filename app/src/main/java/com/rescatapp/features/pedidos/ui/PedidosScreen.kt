@@ -57,7 +57,8 @@ fun PedidosScreen(viewModel: PedidosViewModel = hiltViewModel()) {
                 pedidoParaCancelar = null
                 viewModel.cancelar(pedido.id)
             },
-            onDescartar = { pedidoParaCancelar = null }
+            onDescartar = { pedidoParaCancelar = null },
+            esNegocio = estado.esNegocio
         )
     }
 

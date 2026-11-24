@@ -66,7 +66,8 @@ internal fun DialogoConfirmarRetiro(
 internal fun DialogoCancelarPedido(
     pedido: Pedido,
     onConfirmar: () -> Unit,
-    onDescartar: () -> Unit
+    onDescartar: () -> Unit,
+    esNegocio: Boolean = false
 ) {
     DialogoConfirmacion(
         titulo = "Cancelar pedido",
@@ -76,7 +77,7 @@ internal fun DialogoCancelarPedido(
         onDescartar = onDescartar,
         colorConfirmar = MaterialTheme.colorScheme.error
     ) {
-        ResumenPedidoDialogo(pedido)
+        ResumenPedidoDialogo(pedido, esNegocio)
         Text(
             text = "¿Estás seguro de cancelar este pedido? " +
                 "La unidad se devolverá al inventario disponible de la oferta.",
@@ -86,7 +87,7 @@ internal fun DialogoCancelarPedido(
 }
 
 @Composable
-private fun ResumenPedidoDialogo(pedido: Pedido) {
+private fun ResumenPedidoDialogo(pedido: Pedido, esNegocio: Boolean) {
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -99,7 +100,10 @@ private fun ResumenPedidoDialogo(pedido: Pedido) {
         ) {
             Text(text = pedido.nombreOferta, style = MaterialTheme.typography.titleSmall)
             Text(text = pedido.comercio, style = MaterialTheme.typography.bodySmall)
-            Text(text = pedido.codigoRescate, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = if (esNegocio) "Pedido #${pedido.id}" else pedido.codigoRescate,
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }

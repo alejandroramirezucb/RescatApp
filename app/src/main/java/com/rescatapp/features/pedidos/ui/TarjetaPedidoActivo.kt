@@ -21,7 +21,9 @@ internal fun TarjetaPedidoActivo(
     val pedido = activo.pedido
     TarjetaPedido(pedido) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        FilaCodigoRetiro(pedido)
+        if (!esNegocio) {
+            FilaCodigoRetiro(pedido)
+        }
         BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))
         if (esNegocio) {
             AccionesPedidoNegocio(
