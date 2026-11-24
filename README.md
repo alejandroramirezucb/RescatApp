@@ -25,7 +25,7 @@ ODS 12, producción y consumo responsables.
 | --- | --- |
 | Todos | Registrarse, iniciar sesión, ver notificaciones y su perfil |
 | Cliente | Buscar ofertas, ver el detalle, reservar, pagar con QR simulado o en efectivo, cancelar y seguir sus pedidos |
-| Negocio | Crear ofertas con foto, editarlas, pausarlas, eliminarlas, preparar pedidos y confirmar la entrega con el código del cliente |
+| Negocio | Crear ofertas con foto, editarlas, pausarlas, eliminarlas, ver el nombre y teléfono disponible del comprador, preparar pedidos y confirmar la entrega con el código del cliente |
 
 Lo que publica un negocio aparece en el teléfono de cualquier cliente porque los
 datos se guardan en Supabase.

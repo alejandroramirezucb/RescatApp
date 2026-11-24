@@ -73,6 +73,14 @@ Se ejecutan una sola vez, en orden, en el SQL Editor de un proyecto nuevo.
 | `sql/003_imagenes_y_realtime.sql` | Bucket de fotografías y sus políticas |
 | `sql/005_verificar_configuracion.sql` | Consultas para revisar la configuración |
 | `sql/006_pruebas_transaccionales.sql` | Pruebas de las reglas del servidor; revierte los datos creados |
+| `sql/007_contacto_cliente_pedidos.sql` | Incorpora el teléfono del comprador en los pedidos existentes y nuevos |
+| `sql/008_pruebas_contacto_cliente.sql` | Verifica contacto y permisos después de aplicar 007; revierte los datos de prueba |
+
+Para actualizar una instalación existente, ejecutar `007_contacto_cliente_pedidos.sql`
+en el SQL Editor. El nombre y el teléfono se conservan como datos del pedido al
+reservar. Solo pueden consultarlos quienes ya tienen acceso al pedido mediante
+sus políticas RLS; no se habilita la lectura de perfiles ajenos. Si no se ejecuta
+el script, la app sigue mostrando el nombre y señala que el teléfono no está disponible.
 
 Las fotografías aceptan JPG, PNG o WebP de hasta 5 MB y se guardan como
 `<uuid-propietario>/<uuid-archivo>.<extension>`.
