@@ -19,6 +19,15 @@ class RutasTest {
     }
 
     @Test
+    fun explorarNegociosYComercioConstruyenRutasValidas() {
+        assertEquals("explorar?tipo=NEGOCIOS", Rutas.explorarNegocios())
+        assertEquals(
+            "explorar?comercio=Panader%C3%ADa%20Central",
+            Rutas.explorarComercio("Panadería Central")
+        )
+    }
+
+    @Test
     fun detalleIncluyeElIdDeLaOferta() {
         assertEquals("detalle/14", Rutas.detalle(14))
     }

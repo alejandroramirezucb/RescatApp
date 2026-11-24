@@ -48,6 +48,15 @@ fun FormularioOferta(
             error = errores.categoria,
             onSeleccion = { onCampoCambiado(campos.copy(categoria = it)) }
         )
+
+        CampoConError(
+            etiqueta = "Peso estimado (kg)",
+            valor = campos.pesoKg,
+            ejemplo = "1.5",
+            tipoTeclado = KeyboardType.Decimal,
+            onValorCambiado = { onCampoCambiado(campos.copy(pesoKg = it)) },
+            error = errores.pesoKg
+        )
     }
 
     SeccionFormularioOferta(
