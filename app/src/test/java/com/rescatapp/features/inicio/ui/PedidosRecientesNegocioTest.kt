@@ -35,7 +35,9 @@ class PedidosRecientesNegocioTest {
             horaRetiroDesde = "18:00",
             horaRetiroHasta = "20:00",
             estado = EstadoPedido.LISTO,
-            codigoServidor = "#APV-77"
+            codigoServidor = "#APV-77",
+            clienteNombre = "Ana Pérez",
+            clienteTelefono = "71234567"
         )
 
         compose.setContent {
@@ -45,6 +47,9 @@ class PedidosRecientesNegocioTest {
         }
 
         compose.onNodeWithText("Pedido #77 · Listo").assertIsDisplayed()
+        compose.onNodeWithText("Cliente comprador").assertIsDisplayed()
+        compose.onNodeWithText("Ana Pérez").assertIsDisplayed()
+        compose.onNodeWithText("Teléfono: 71234567").assertIsDisplayed()
         compose.onNodeWithText("#APV-77", substring = true).assertDoesNotExist()
         compose.onNodeWithText("Código de rescate", substring = true).assertDoesNotExist()
     }

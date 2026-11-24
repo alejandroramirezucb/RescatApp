@@ -15,6 +15,22 @@ class RepositorioPedidosTest {
     private val repositorio = crearRepositorioPedidos(api = api)
 
     @Test
+    fun sincronizarConservaElNombreYTelefonoDelComprador() = runTest {
+        val remoto = pedidosDeEjemplo.first().copy(
+            clienteNombre = "Ana Pérez",
+            clienteTelefono = "71234567"
+        )
+        api.pedidos.add(remoto)
+
+        repositorio.sincronizar()
+
+        val guardado = checkNotNull(repositorio.buscarPorId(remoto.id))
+        assertEquals("Ana Pérez", guardado.clienteNombre)
+        assertEquals("71234567", guardado.clienteTelefono)
+        assertEquals(listOf(guardado), repositorio.pedidos.first())
+    }
+
+    @Test
     fun reservarCreaElPedidoYLoGuardaEnLaBaseLocal() = runTest {
         val resultado = repositorio.reservar(13)
 

@@ -13,7 +13,9 @@ class PedidoEntityTest {
     @Test
     fun mapeaTodosLosCamposEntreEntidadYModeloDeDominio() {
         val original = pedidosDeEjemplo.first().copy(
-            fecha = LocalDate.of(2026, 11, 5)
+            fecha = LocalDate.of(2026, 11, 5),
+            clienteNombre = "Ana Pérez",
+            clienteTelefono = "71234567"
         )
         val entidad = original.toEntity()
 
@@ -30,6 +32,8 @@ class PedidoEntityTest {
         assertEquals(original.estado, entidad.estado)
         assertEquals(original.imagenUri, entidad.imagenUri)
         assertEquals(original.fecha, entidad.fecha)
+        assertEquals(original.clienteNombre, entidad.clienteNombre)
+        assertEquals(original.clienteTelefono, entidad.clienteTelefono)
 
         val reconstruido = entidad.toDomain()
         assertEquals(original, reconstruido)

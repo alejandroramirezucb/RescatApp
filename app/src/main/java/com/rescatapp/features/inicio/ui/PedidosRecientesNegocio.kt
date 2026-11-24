@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.components.DetallesClientePedido
 import com.rescatapp.core.designsystem.components.TarjetaPedido
 import com.rescatapp.core.designsystem.theme.bordeTarjeta
 import com.rescatapp.core.model.Pedido
@@ -30,6 +31,7 @@ internal fun PedidosRecientesNegocio(pedidos: List<Pedido>) {
             pedidos.forEach { pedido ->
                 TarjetaPedido(pedido) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    DetallesClientePedido(pedido, Modifier.padding(16.dp))
                     Text(
                         text = "Pedido #${pedido.id} · ${pedido.estado.etiqueta}",
                         style = MaterialTheme.typography.labelLarge,

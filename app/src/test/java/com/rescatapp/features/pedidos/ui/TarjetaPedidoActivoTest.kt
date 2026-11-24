@@ -34,7 +34,9 @@ class TarjetaPedidoActivoTest {
         horaRetiroDesde = "18:00",
         horaRetiroHasta = "20:00",
         estado = EstadoPedido.RESERVADO,
-        codigoServidor = "#APV-77"
+        codigoServidor = "#APV-77",
+        clienteNombre = "Ana Pérez",
+        clienteTelefono = "71234567"
     )
 
     private val pedidoConProgreso = PedidoConProgreso(
@@ -61,6 +63,9 @@ class TarjetaPedidoActivoTest {
 
         compose.onNodeWithText("CÓDIGO DE RESCATE").assertIsDisplayed()
         compose.onNodeWithText("#APV-77").assertIsDisplayed()
+        compose.onNodeWithText("Cliente comprador").assertDoesNotExist()
+        compose.onNodeWithText("Ana Pérez").assertDoesNotExist()
+        compose.onNodeWithText("Teléfono: 71234567").assertDoesNotExist()
     }
 
     @Test
@@ -79,6 +84,55 @@ class TarjetaPedidoActivoTest {
         compose.onNodeWithText("CÓDIGO DE RESCATE").assertDoesNotExist()
         compose.onNodeWithText("#APV-77").assertDoesNotExist()
         compose.onNodeWithText("Comenzar a preparar").assertIsDisplayed()
+        compose.onNodeWithText("Cliente comprador").assertIsDisplayed()
+        compose.onNodeWithText("Ana Pérez").assertIsDisplayed()
+        compose.onNodeWithText("Teléfono: 71234567").assertIsDisplayed()
+    }
+
+    @Test
+    fun negocioVeUnMensajeCuandoElPedidoNoTieneDatosDelCliente() {
+        compose.setContent {
+            RescatAppTheme {
+                TarjetaPedidoActivo(
+                    activo = pedidoConProgreso.copy(
+                        pedido = pedido.copy(clienteNombre = "  ", clienteTelefono = null)
+                    ),
+                    esNegocio = true,
+                    onAvanzar = {},
+                    onCancelar = {}
+                )
+            }
+        }
+
+        compose.onNodeWithText("Nombre no disponible").assertIsDisplayed()
+        compose.onNodeWithText("Teléfono no disponible").assertIsDisplayed()
+    }
+
+    @Test
+    fun historialDelNegocioMuestraElComprador() {
+        compose.setContent {
+            RescatAppTheme {
+                TarjetaPedidoHistorial(
+                    pedido.copy(estado = EstadoPedido.RECOGIDO),
+                    esNegocio = true
+                )
+            }
+        }
+
+        compose.onNodeWithText("Ana Pérez").assertIsDisplayed()
+        compose.onNodeWithText("Teléfono: 71234567").assertIsDisplayed()
+    }
+
+    @Test
+    fun historialDelClienteNoMuestraDetallesDelComprador() {
+        compose.setContent {
+            RescatAppTheme {
+                TarjetaPedidoHistorial(pedido.copy(estado = EstadoPedido.RECOGIDO))
+            }
+        }
+
+        compose.onNodeWithText("Cliente comprador").assertDoesNotExist()
+        compose.onNodeWithText("Ana Pérez").assertDoesNotExist()
     }
 
     @Test

@@ -23,7 +23,9 @@ data class PedidoDto(
     @SerializedName("imagen_url") val imagenUrl: String?,
     val estado: String,
     @SerializedName("codigo_rescate") val codigoRescate: String,
-    @SerializedName("creado_at") val creadoAt: String
+    @SerializedName("creado_at") val creadoAt: String,
+    @SerializedName("cliente_nombre") val clienteNombre: String? = null,
+    @SerializedName("cliente_telefono") val clienteTelefono: String? = null
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,
@@ -42,6 +44,8 @@ data class PedidoDto(
             .atZoneSameInstant(ZoneId.systemDefault())
             .toLocalDate(),
         codigoServidor = codigoRescate,
-        fechaRetiro = LocalDate.parse(fechaRetiro)
+        fechaRetiro = LocalDate.parse(fechaRetiro),
+        clienteNombre = clienteNombre?.trim()?.takeIf { it.isNotEmpty() },
+        clienteTelefono = clienteTelefono?.trim()?.takeIf { it.isNotEmpty() }
     )
 }

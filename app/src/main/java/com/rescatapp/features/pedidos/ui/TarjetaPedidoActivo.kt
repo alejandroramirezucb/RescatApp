@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.BarraProgresoPedido
+import com.rescatapp.core.designsystem.components.DetallesClientePedido
 import com.rescatapp.core.designsystem.components.TarjetaPedido
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
@@ -21,7 +22,9 @@ internal fun TarjetaPedidoActivo(
     val pedido = activo.pedido
     TarjetaPedido(pedido) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        if (!esNegocio) {
+        if (esNegocio) {
+            DetallesClientePedido(pedido, Modifier.padding(16.dp))
+        } else {
             FilaCodigoRetiro(pedido)
         }
         BarraProgresoPedido(activo.pasos, modifier = Modifier.padding(16.dp))

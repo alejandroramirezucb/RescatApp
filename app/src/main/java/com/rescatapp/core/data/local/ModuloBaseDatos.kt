@@ -20,7 +20,8 @@ object ModuloBaseDatos {
             contexto,
             RescatAppDatabase::class.java,
             RescatAppDatabase.NOMBRE_BASE_DATOS
-        ).fallbackToDestructiveMigration(dropAllTables = true)
+        ).addMigrations(MIGRACION_5_6)
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
     @Provides

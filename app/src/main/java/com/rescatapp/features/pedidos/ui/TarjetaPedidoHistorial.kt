@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rescatapp.core.designsystem.components.DetallesClientePedido
 import com.rescatapp.core.designsystem.components.ImagenCategoria
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
@@ -28,7 +29,7 @@ import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.util.formatearDinero
 
 @Composable
-internal fun TarjetaPedidoHistorial(pedido: Pedido) {
+internal fun TarjetaPedidoHistorial(pedido: Pedido, esNegocio: Boolean = false) {
     val textoGrande = LocalDensity.current.fontScale > 1.2f
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -63,6 +64,9 @@ internal fun TarjetaPedidoHistorial(pedido: Pedido) {
                     overflow = TextOverflow.Ellipsis
                 )
                 EstadoHistorial(pedido.estado)
+                if (esNegocio) {
+                    DetallesClientePedido(pedido)
+                }
             }
         }
     }

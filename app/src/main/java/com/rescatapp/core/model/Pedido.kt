@@ -17,7 +17,9 @@ data class Pedido(
     val imagenUri: String? = null,
     val fecha: LocalDate = LocalDate.now(),
     val codigoServidor: String? = null,
-    val fechaRetiro: LocalDate = fecha
+    val fechaRetiro: LocalDate = fecha,
+    val clienteNombre: String? = null,
+    val clienteTelefono: String? = null
 ) {
     val estaActivo: Boolean
         get() = !estado.esFinal

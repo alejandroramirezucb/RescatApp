@@ -43,7 +43,9 @@ fun Pedido.aDto() = PedidoDto(
     codigoRescate,
     fecha.atStartOfDay(
         ZoneId.systemDefault()
-    ).toOffsetDateTime().toString()
+    ).toOffsetDateTime().toString(),
+    clienteNombre,
+    clienteTelefono
 )
 
 fun Notificacion.aDto() = NotificacionDto(

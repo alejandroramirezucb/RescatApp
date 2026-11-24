@@ -24,7 +24,9 @@ data class PedidoEntity(
     val imagenUri: String? = null,
     val fecha: LocalDate = LocalDate.now(),
     val codigoServidor: String? = null,
-    val fechaRetiro: LocalDate = fecha
+    val fechaRetiro: LocalDate = fecha,
+    val clienteNombre: String? = null,
+    val clienteTelefono: String? = null
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,
@@ -41,7 +43,9 @@ data class PedidoEntity(
         imagenUri = imagenUri,
         fecha = fecha,
         codigoServidor = codigoServidor,
-        fechaRetiro = fechaRetiro
+        fechaRetiro = fechaRetiro,
+        clienteNombre = clienteNombre,
+        clienteTelefono = clienteTelefono
     )
 }
 
@@ -60,5 +64,7 @@ fun Pedido.toEntity(): PedidoEntity = PedidoEntity(
     imagenUri = imagenUri,
     fecha = fecha,
     codigoServidor = codigoServidor,
-    fechaRetiro = fechaRetiro
+    fechaRetiro = fechaRetiro,
+    clienteNombre = clienteNombre,
+    clienteTelefono = clienteTelefono
 )
