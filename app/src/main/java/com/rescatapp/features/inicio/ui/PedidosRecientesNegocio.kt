@@ -31,7 +31,7 @@ internal fun PedidosRecientesNegocio(pedidos: List<Pedido>) {
                 TarjetaPedido(pedido) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Text(
-                        text = "Código de rescate: ${pedido.codigoRescate}",
+                        text = "Pedido #${pedido.id} · ${pedido.estado.etiqueta}",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(16.dp)
