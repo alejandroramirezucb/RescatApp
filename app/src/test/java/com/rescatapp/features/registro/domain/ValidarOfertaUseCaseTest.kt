@@ -55,4 +55,11 @@ class ValidarOfertaUseCaseTest {
         assertTrue(errores.hayErrores)
         assertEquals(ValidadorCamposOferta.FORMATO_HORA_INVALIDO, errores.horaRetiroHasta)
     }
+
+    @Test
+    fun unNombreMuyLargoSuperando160CaracteresTieneError() {
+        val errores = validarOferta(camposValidos.copy(nombre = "a".repeat(161)))
+
+        assertEquals(MensajesValidacion.NOMBRE_MUY_LARGO, errores.nombre)
+    }
 }

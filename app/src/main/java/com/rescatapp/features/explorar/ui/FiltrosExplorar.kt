@@ -2,12 +2,15 @@ package com.rescatapp.features.explorar.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -29,33 +32,78 @@ import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.features.explorar.domain.FiltrosOfertas
+import com.rescatapp.features.explorar.domain.TipoBusquedaExplorar
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FiltrosExplorar(
     filtros: FiltrosOfertas,
     onCategoriaSeleccionada: (Categoria?) -> Unit,
-    onOrdenSeleccionado: (OrdenOfertas) -> Unit
+    onOrdenSeleccionado: (OrdenOfertas) -> Unit,
+    onTipoSeleccionado: (TipoBusquedaExplorar) -> Unit = {},
+    onLimpiarComercio: () -> Unit = {}
 ) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        MenuFiltroExplorar(
-            etiqueta = filtros.categoria?.etiqueta ?: "Categorías",
-            destacado = filtros.categoria != null,
-            icono = Icons.Outlined.Tune,
-            indiceActual = filtros.categoria?.ordinal?.plus(1) ?: 0,
-            opciones = listOf("Todas" to { onCategoriaSeleccionada(null) }) +
-                Categoria.entries.map { categoria ->
-                    categoria.etiqueta to { onCategoriaSeleccionada(categoria) }
-                }
-        )
-        MenuFiltroExplorar(
-            etiqueta = filtros.orden.etiqueta,
-            destacado = filtros.orden != OrdenOfertas.RECOMENDADAS,
-            indiceActual = filtros.orden.ordinal,
-            opciones = OrdenOfertas.entries.map { orden ->
-                orden.etiqueta to { onOrdenSeleccionado(orden) }
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TipoBusquedaExplorar.entries.forEach { tipo ->
+                FilterChip(
+                    label = { Text(tipo.etiqueta, style = MaterialTheme.typography.labelMedium) },
+                    selected = filtros.tipo == tipo && filtros.comercioSeleccionado == null,
+                    onClick = { onTipoSeleccionado(tipo) },
+                    shape = MaterialTheme.shapes.small,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
             }
-        )
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            filtros.comercioSeleccionado?.let { comercio ->
+                FilterChip(
+                    label = { Text(comercio, style = MaterialTheme.typography.labelMedium) },
+                    selected = true,
+                    onClick = onLimpiarComercio,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Outlined.Storefront,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = "Quitar negocio",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    },
+                    shape = MaterialTheme.shapes.small,
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+            MenuFiltroExplorar(
+                etiqueta = filtros.categoria?.etiqueta ?: "Categorías",
+                destacado = filtros.categoria != null,
+                icono = Icons.Outlined.Tune,
+                indiceActual = filtros.categoria?.ordinal?.plus(1) ?: 0,
+                opciones = listOf("Todas" to { onCategoriaSeleccionada(null) }) +
+                    Categoria.entries.map { categoria ->
+                        categoria.etiqueta to { onCategoriaSeleccionada(categoria) }
+                    }
+            )
+            MenuFiltroExplorar(
+                etiqueta = filtros.orden.etiqueta,
+                destacado = filtros.orden != OrdenOfertas.RECOMENDADAS,
+                indiceActual = filtros.orden.ordinal,
+                opciones = OrdenOfertas.entries.map { orden ->
+                    orden.etiqueta to { onOrdenSeleccionado(orden) }
+                }
+            )
+        }
     }
 }
 

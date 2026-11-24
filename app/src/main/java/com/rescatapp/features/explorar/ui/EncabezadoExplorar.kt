@@ -17,6 +17,7 @@ import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.OrdenOfertas
 import com.rescatapp.features.explorar.domain.FiltrosOfertas
+import com.rescatapp.features.explorar.domain.TipoBusquedaExplorar
 
 @Composable
 internal fun EncabezadoExplorar(
@@ -25,6 +26,8 @@ internal fun EncabezadoExplorar(
     onBuscar: (String) -> Unit,
     onCategoriaSeleccionada: (Categoria?) -> Unit,
     onOrdenSeleccionado: (OrdenOfertas) -> Unit,
+    onTipoSeleccionado: (TipoBusquedaExplorar) -> Unit,
+    onLimpiarComercio: () -> Unit,
     onLimpiarFiltros: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -43,7 +46,13 @@ internal fun EncabezadoExplorar(
             }
         }
         BusquedaExplorar(texto = filtros.texto, onTextoCambiado = onBuscar)
-        FiltrosExplorar(filtros, onCategoriaSeleccionada, onOrdenSeleccionado)
+        FiltrosExplorar(
+            filtros = filtros,
+            onCategoriaSeleccionada = onCategoriaSeleccionada,
+            onOrdenSeleccionado = onOrdenSeleccionado,
+            onTipoSeleccionado = onTipoSeleccionado,
+            onLimpiarComercio = onLimpiarComercio
+        )
     }
 }
 

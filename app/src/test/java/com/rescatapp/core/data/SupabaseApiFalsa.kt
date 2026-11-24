@@ -22,6 +22,7 @@ class SupabaseApiFalsa(
     val pedidos = pedidos.toMutableList()
     val notificaciones = notificaciones.toMutableList()
     val ofertasCreadas = mutableListOf<Map<String, Any?>>()
+    var negocios = listOf(NegocioDto(1, "Panadería La Central"))
     var perfil = PerfilDto("Ana Pérez", "CLIENTE")
     var confirmarCorreo = false
     var fallo: Exception? = null
@@ -38,7 +39,7 @@ class SupabaseApiFalsa(
     override suspend fun obtenerPerfil(token: String, id: String) = responder { listOf(perfil) }
 
     override suspend fun obtenerNegocio(token: String, propietarioId: String) =
-        responder { listOf(NegocioDto(1, "Panadería La Central")) }
+        responder { negocios }
 
     override suspend fun obtenerOfertas(token: String?) = responder { ofertas.map { it.aDto() } }
 

@@ -73,7 +73,7 @@ fun RegistroScreen(
                     errores = estado.errores,
                     onCampoCambiado = viewModel::onCampoCambiado
                 )
-                estado.mensaje?.let { mensaje ->
+                (estado.mensaje ?: estado.errores.comercio)?.let { mensaje ->
                     Surface(
                         color = MaterialTheme.colorScheme.errorContainer,
                         shape = MaterialTheme.shapes.medium,

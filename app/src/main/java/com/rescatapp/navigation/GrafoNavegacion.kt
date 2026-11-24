@@ -40,7 +40,9 @@ fun NavGraphBuilder.grafoRescatApp(navController: NavHostController, sesion: () 
             InicioScreen(
                 onExplorar = { navController.navigate(Rutas.explorar(it)) },
                 onVerDetalle = verDetalle,
-                onVerNotificaciones = verNotificaciones
+                onVerNotificaciones = verNotificaciones,
+                onVerComercio = { navController.navigate(Rutas.explorarComercio(it)) },
+                onVerNegocios = { navController.navigate(Rutas.explorarNegocios()) }
             )
         }
     }
@@ -50,6 +52,17 @@ fun NavGraphBuilder.grafoRescatApp(navController: NavHostController, sesion: () 
             navArgument(ArgumentosRuta.CATEGORIA) {
                 type = NavType.StringType
                 nullable = true
+                defaultValue = null
+            },
+            navArgument(ArgumentosRuta.COMERCIO) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
+            },
+            navArgument(ArgumentosRuta.TIPO) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
             }
         )
     ) {

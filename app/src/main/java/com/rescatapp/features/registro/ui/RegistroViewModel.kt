@@ -3,11 +3,13 @@ package com.rescatapp.features.registro.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rescatapp.core.data.RepositorioAutenticacion
+import com.rescatapp.core.data.remote.mensajeDeError
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.RegistrarOfertaUseCase
 import com.rescatapp.features.registro.domain.ValidarOfertaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @HiltViewModel
 class RegistroViewModel @Inject constructor(
@@ -61,6 +64,20 @@ class RegistroViewModel @Inject constructor(
                 }
             } catch (cancelacion: CancellationException) {
                 throw cancelacion
+            } catch (error: HttpException) {
+                estado.update { it.copy(mensaje = mensajeDeError(error)) }
+            } catch (error: IOException) {
+                estado.update { it.copy(mensaje = mensajeDeError(error)) }
+            } catch (error: IllegalArgumentException) {
+                estado.update {
+                    it.copy(mensaje = error.message ?: "Revisa los datos de la oferta.")
+                }
+            } catch (error: NoSuchElementException) {
+                estado.update {
+                    it.copy(
+                        mensaje = error.message ?: "No encontramos un negocio asociado a tu cuenta."
+                    )
+                }
             } catch (_: Exception) {
                 estado.update {
                     it.copy(mensaje = "No se pudo guardar la oferta. Intenta nuevamente.")

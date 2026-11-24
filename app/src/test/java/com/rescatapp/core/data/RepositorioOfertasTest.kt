@@ -69,6 +69,21 @@ class RepositorioOfertasTest {
 
         assertEquals(1, api.ofertasCreadas.single()["negocio_id"])
         assertEquals("Pack Sorpresa", api.ofertasCreadas.single()["nombre"])
+        assertEquals(15, negocio.ofertas.first().size)
+    }
+
+    @Test
+    fun agregarFallaConMensajeClaroSiElUsuarioNoTieneNegocio() = runTest {
+        val apiSinNegocio = SupabaseApiFalsa().apply { negocios = emptyList() }
+        val repo = crearRepositorioOfertas(
+            api = apiSinNegocio,
+            autenticacion = crearAutenticacion(apiSinNegocio, sesionDePrueba(RolUsuario.NEGOCIO))
+        )
+
+        val error = runCatching { repo.agregar(ofertasDeEjemplo.first()) }.exceptionOrNull()
+
+        assertTrue(error is NoSuchElementException)
+        assertEquals("No encontramos un negocio asociado a tu cuenta.", error?.message)
     }
 
     @Test
