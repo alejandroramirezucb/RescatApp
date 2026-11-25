@@ -3,6 +3,8 @@ package com.rescatapp.features.perfil.ui
 import com.rescatapp.ReglaDispatcherPrincipal
 import com.rescatapp.core.data.RepositorioAutenticacion
 import com.rescatapp.core.data.SupabaseApiFalsa
+import com.rescatapp.core.data.USUARIO_PRUEBA
+import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.crearRepositorioPedidos
 import com.rescatapp.core.data.local.FakeSesionDao
 import com.rescatapp.core.data.pedidosDeEjemplo
@@ -113,6 +115,29 @@ class PerfilViewModelTest {
         assertNull(viewModel.uiState.value.sesion)
     }
 
-    private fun crearViewModel() =
-        PerfilViewModel(repositorioPedidos, CalcularImpactoUseCase(), repositorioAutenticacion)
+    @Test
+    fun negocioEligeYGuardaLaUbicacionDeSuTienda() = runTest {
+        fakeSesionDao.guardarSesion(sesionDePrueba(RolUsuario.NEGOCIO))
+        api.ofertas.replaceAll { it.copy(propietarioId = USUARIO_PRUEBA) }
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+
+        viewModel.elegirUbicacion(-16.5, -68.13)
+        assertTrue(viewModel.uiState.value.ubicacionPendiente)
+
+        viewModel.guardarUbicacion()
+
+        val estado = viewModel.uiState.value
+        assertEquals(-16.5, estado.latitudTienda ?: 0.0, 0.0001)
+        assertEquals(-68.13, estado.longitudTienda ?: 0.0, 0.0001)
+        assertFalse(estado.ubicacionPendiente)
+        assertEquals("Ubicación de la tienda guardada.", estado.mensaje)
+    }
+
+    private fun crearViewModel() = PerfilViewModel(
+        repositorioPedidos,
+        CalcularImpactoUseCase(),
+        repositorioAutenticacion,
+        crearRepositorioOfertas(api = api, autenticacion = repositorioAutenticacion)
+    )
 }

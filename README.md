@@ -24,8 +24,8 @@ ODS 12, producción y consumo responsables.
 | Usuario | Puede |
 | --- | --- |
 | Todos | Registrarse, iniciar sesión, ver notificaciones y su perfil |
-| Cliente | Buscar ofertas y negocios, ver el detalle, juntar varias ofertas y cantidades en el carrito, reservarlas en una sola compra, pagar con QR simulado o en efectivo, cancelar antes de que la tienda acepte y seguir sus pedidos |
-| Negocio | Crear ofertas con foto, editarlas, pausarlas, eliminarlas, ver el nombre y teléfono del comprador, preparar pedidos y confirmar la entrega con el código del cliente |
+| Cliente | Buscar ofertas y negocios, ver el detalle y la ubicación de la tienda en el mapa, juntar varias ofertas y cantidades en el carrito, reservarlas en una sola compra, pagar con QR simulado o en efectivo, cancelar antes de que la tienda acepte y seguir sus pedidos |
+| Negocio | Marcar su tienda en el mapa, crear ofertas con foto, editarlas, pausarlas, eliminarlas, ver el nombre y teléfono del comprador, preparar pedidos y confirmar la entrega con el código del cliente |
 
 Lo que publica un negocio aparece en el teléfono de cualquier cliente porque los
 datos se guardan en Supabase.
@@ -42,6 +42,7 @@ datos se guardan en Supabase.
 | Room | Base local (caché y sesión) |
 | Retrofit y Gson | Llamadas REST y conversión JSON |
 | Supabase | Auth, PostgreSQL, Storage y funciones del servidor |
+| osmdroid | Mapa de OpenStreetMap para la ubicación de la tienda (gratis, sin API key) |
 | JUnit y Robolectric | Pruebas |
 | Spotless y ktlint | Formato del código |
 | Git y GitHub Actions | Control de versiones y verificación automática |
@@ -81,7 +82,7 @@ Pantalla Compose ──acción──► ViewModel ──► Repositorio ──�
 
 | Requisito | Dónde se cumple |
 | --- | --- |
-| Room | Entidades `OfertaEntity`, `PedidoEntity`, `NotificacionEntity` y `SesionEntity`; sus DAO; base `RescatAppDatabase` versión 7 con migraciones que conservan los pedidos |
+| Room | Entidades `OfertaEntity`, `PedidoEntity`, `NotificacionEntity` y `SesionEntity`; sus DAO; base `RescatAppDatabase` versión 8 con migraciones que conservan los pedidos |
 | Persistencia | Room guarda ofertas, pedidos y sesión; al reabrir la app se muestran sin esperar al servidor |
 | CRUD | Crear oferta en `RegistroScreen`; leer en Explorar; editar, pausar y eliminar en Mis ofertas |
 | Flow y StateFlow | Los DAO devuelven `Flow`; los ViewModels exponen `StateFlow` con `MutableStateFlow` o `stateIn` |
@@ -108,13 +109,13 @@ ORDER BY id DESC
 | --- | --- |
 | Inicio | Cliente: ofertas destacadas. Negocio: pedidos recientes y ventas de la semana |
 | Explorar | Buscar y filtrar ofertas y negocios; ver las ofertas de un negocio |
-| Detalle | Ver una oferta y agregarla al carrito |
+| Detalle | Ver una oferta, dónde retirarla en el mapa con "Cómo llegar" y agregarla al carrito |
 | Carrito | Cambiar cantidades, quitar productos, ver total y ahorro, pagar y reservar todo |
 | Registro | Publicar una oferta nueva (negocio) |
 | Mis ofertas | Editar, pausar o eliminar ofertas (negocio) |
 | Pedidos | Seguir, cancelar o avanzar pedidos |
 | Notificaciones | Avisos de reservas y cambios de estado |
-| Perfil | Datos de la cuenta, impacto y cierre de sesión |
+| Perfil | Datos de la cuenta, impacto, ubicación de la tienda (negocio) y cierre de sesión |
 | Acceso requerido | Elegir entre iniciar sesión o registrarse al abrir una pantalla que necesita cuenta |
 | Login y Registro de usuario | Entrar o crear una cuenta de cliente o negocio |
 
@@ -171,7 +172,7 @@ y rutas de navegación.
 - Notificaciones push con Firebase Cloud Messaging.
 - Actualización en tiempo real con Supabase Realtime.
 - Pagos reales con una pasarela bancaria.
-- Mapa de negocios cercanos.
+- Mapa con todos los negocios cercanos al cliente.
 
 ## Equipo
 

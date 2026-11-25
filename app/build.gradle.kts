@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
     implementation(libs.coil.compose)
+    implementation(libs.osmdroid.android)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.room.runtime)

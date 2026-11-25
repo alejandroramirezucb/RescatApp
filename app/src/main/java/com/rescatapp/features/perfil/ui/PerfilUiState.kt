@@ -8,7 +8,11 @@ data class PerfilUiState(
     val nombre: String = "Invitado",
     val correo: String = "",
     val esNegocio: Boolean = false,
-    val sesion: SesionUsuario? = null
+    val sesion: SesionUsuario? = null,
+    val latitudTienda: Double? = null,
+    val longitudTienda: Double? = null,
+    val ubicacionPendiente: Boolean = false,
+    val mensaje: String? = null
 ) {
     val inicial: String
         get() = nombre.take(1).uppercase()

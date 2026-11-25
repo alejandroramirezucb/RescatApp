@@ -13,6 +13,7 @@ spotless = "8.10.3"
 ktlint = "1.8.0"
 coroutinesTest = "1.10.2"
 coil = "2.7.0"
+osmdroid = "6.1.20"
 retrofit = "3.0.0"
 room = "2.8.5"
 robolectric = "4.17"
@@ -35,6 +36,7 @@ hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", ve
 junit = { module = "junit:junit", version.ref = "junit" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroid" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }

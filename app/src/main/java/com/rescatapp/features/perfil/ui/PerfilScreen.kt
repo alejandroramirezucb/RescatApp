@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.rescatapp.core.designsystem.components.AvisoTemporal
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 
 @Composable
@@ -34,7 +35,10 @@ fun PerfilScreen(
         onVerNotificaciones = onVerNotificaciones,
         onIrALogin = onIrALogin,
         onIrARegistro = onIrARegistro,
-        onCerrarSesion = viewModel::cerrarSesion
+        onCerrarSesion = viewModel::cerrarSesion,
+        onElegirUbicacion = viewModel::elegirUbicacion,
+        onGuardarUbicacion = viewModel::guardarUbicacion,
+        onMensajeMostrado = viewModel::limpiarMensaje
     )
 }
 
@@ -44,7 +48,10 @@ internal fun PerfilContenido(
     onVerNotificaciones: () -> Unit,
     onIrALogin: () -> Unit,
     onIrARegistro: () -> Unit,
-    onCerrarSesion: () -> Unit
+    onCerrarSesion: () -> Unit,
+    onElegirUbicacion: (Double, Double) -> Unit = { _, _ -> },
+    onGuardarUbicacion: () -> Unit = {},
+    onMensajeMostrado: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
@@ -61,6 +68,9 @@ internal fun PerfilContenido(
             EncabezadoPerfil(estado.nombre, estado.correo, estado.inicial, estado.esNegocio)
             IndicadoresPerfil(estado.impacto)
             InformacionCuenta(estado)
+            if (estado.esNegocio && estado.estaAutenticado) {
+                UbicacionTienda(estado, onElegirUbicacion, onGuardarUbicacion)
+            }
             SesionPerfil(
                 estado = estado,
                 onIrALogin = onIrALogin,
@@ -70,6 +80,11 @@ internal fun PerfilContenido(
             PreferenciasPerfil(onVerNotificaciones = onVerNotificaciones)
             SeccionSostenibilidadODS()
         }
+        AvisoTemporal(
+            mensaje = estado.mensaje,
+            onMostrado = onMensajeMostrado,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
