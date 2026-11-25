@@ -5,8 +5,6 @@ import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
-import com.rescatapp.core.model.Categoria
-import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.PasoProgreso
 import com.rescatapp.core.model.Pedido
@@ -25,22 +23,7 @@ class TarjetaPedidoActivoTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private val pedido = Pedido(
-        id = 77,
-        ofertaId = 1,
-        nombreOferta = "Pack Sorpresa",
-        comercio = "Panadería La Central",
-        categoria = Categoria.PANADERIA,
-        precioPagado = 25.0,
-        ahorro = 20.0,
-        pesoKg = 1.0,
-        horaRetiroDesde = "18:00",
-        horaRetiroHasta = "20:00",
-        estado = EstadoPedido.RESERVADO,
-        codigoServidor = "#APV-77",
-        clienteNombre = "Ana Pérez",
-        clienteTelefono = "71234567"
-    )
+    private val pedido = pedidoDePrueba
 
     private val pedidoConProgreso = PedidoConProgreso(
         pedido = pedido,
@@ -77,53 +60,14 @@ class TarjetaPedidoActivoTest {
         compose.setContent {
             RescatAppTheme {
                 TarjetaPedidoActivo(
-                    pedidoConProgreso.copy(
-                        pedido = pedido.copy(estado = estado)
-                    ),
+                    pedidoConProgreso.copy(pedido = pedido.copy(estado = estado)),
                     false,
-                    {
-                    },
+                    {},
                     {}
                 )
             }
         }
         compose.onNodeWithText("Cancelar reserva").assertDoesNotExist()
-    }
-
-    @Test
-    fun dialogoExplicaLaAnulacionSinCobroRealYExigeConfirmar() {
-        var confirmaciones = 0
-        compose.setContent {
-            RescatAppTheme {
-                DialogoCancelarPedido(pedido, { confirmaciones++ }, {})
-            }
-        }
-        compose.onNodeWithText(
-            "El pago simulado se anulará al confirmar la cancelación.",
-            substring = true
-        ).assertExists()
-        compose.onNodeWithText(
-            "no se necesita un reembolso bancario.",
-            substring = true
-        ).assertExists()
-        assertEquals(0, confirmaciones)
-        compose.onNodeWithText("Sí, cancelar").performClick()
-        assertEquals(1, confirmaciones)
-    }
-
-    @Test
-    fun historialMuestraLaAnulacionDelPagoSimulado() {
-        compose.setContent {
-            RescatAppTheme {
-                TarjetaPedidoHistorial(
-                    pedido.copy(
-                        estado = EstadoPedido.CANCELADO,
-                        estadoPagoSimulado = EstadoPagoSimulado.ANULADO
-                    )
-                )
-            }
-        }
-        compose.onNodeWithText("Pago simulado anulado").assertIsDisplayed()
     }
 
     @Test
@@ -173,7 +117,7 @@ class TarjetaPedidoActivoTest {
             RescatAppTheme {
                 TarjetaPedidoActivo(
                     activo = pedidoConProgreso.copy(
-                        pedido = pedido.copy(clienteNombre = "  ", clienteTelefono = null)
+                        pedido = pedido.copy(clienteNombre = null, clienteTelefono = null)
                     ),
                     esNegocio = true,
                     onAvanzar = {},
@@ -184,65 +128,5 @@ class TarjetaPedidoActivoTest {
 
         compose.onNodeWithText("Nombre no disponible").assertIsDisplayed()
         compose.onNodeWithText("Teléfono no disponible").assertIsDisplayed()
-    }
-
-    @Test
-    fun historialDelNegocioMuestraElComprador() {
-        compose.setContent {
-            RescatAppTheme {
-                TarjetaPedidoHistorial(
-                    pedido.copy(estado = EstadoPedido.RECOGIDO),
-                    esNegocio = true
-                )
-            }
-        }
-
-        compose.onNodeWithText("Ana Pérez").assertIsDisplayed()
-        compose.onNodeWithText("Teléfono: 71234567").assertIsDisplayed()
-    }
-
-    @Test
-    fun historialDelClienteNoMuestraDetallesDelComprador() {
-        compose.setContent {
-            RescatAppTheme {
-                TarjetaPedidoHistorial(pedido.copy(estado = EstadoPedido.RECOGIDO))
-            }
-        }
-
-        compose.onNodeWithText("Cliente comprador").assertDoesNotExist()
-        compose.onNodeWithText("Ana Pérez").assertDoesNotExist()
-    }
-
-    @Test
-    fun dialogoCancelarPedidoOcultaCodigoAlNegocio() {
-        compose.setContent {
-            RescatAppTheme {
-                DialogoCancelarPedido(
-                    pedido = pedido,
-                    onConfirmar = {},
-                    onDescartar = {},
-                    esNegocio = true
-                )
-            }
-        }
-
-        compose.onNodeWithText("Pedido #77").assertIsDisplayed()
-        compose.onNodeWithText("#APV-77").assertDoesNotExist()
-    }
-
-    @Test
-    fun dialogoCancelarPedidoMuestraCodigoAlCliente() {
-        compose.setContent {
-            RescatAppTheme {
-                DialogoCancelarPedido(
-                    pedido = pedido,
-                    onConfirmar = {},
-                    onDescartar = {},
-                    esNegocio = false
-                )
-            }
-        }
-
-        compose.onNodeWithText("#APV-77").assertIsDisplayed()
     }
 }

@@ -4,6 +4,8 @@ import com.rescatapp.core.data.remote.NegocioOfertaDto
 import com.rescatapp.core.data.remote.NotificacionDto
 import com.rescatapp.core.data.remote.OfertaDto
 import com.rescatapp.core.data.remote.PedidoDto
+import com.rescatapp.core.data.remote.TokenDto
+import com.rescatapp.core.data.remote.UsuarioDto
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Notificacion
@@ -68,3 +70,8 @@ fun Oferta.crearPedido(idPedido: Int, estado: EstadoPedido = EstadoPedido.RESERV
     estado = estado,
     imagenUri = imagenUri
 )
+
+fun tokenDePrueba() =
+    TokenDto("acceso", "renovacion", 3600, UsuarioDto(USUARIO_PRUEBA, "ana@correo.com"))
+
+fun Notificacion.coincide(id: String?) = id == null || "eq.${this.id}" == id

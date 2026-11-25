@@ -42,43 +42,25 @@ class ExplorarViewModel @Inject constructor(
                 .map { ofertasDeCategoria ->
                     val texto = filtrosActuales.texto.trim()
                     val comercioActivo = filtrosActuales.comercioSeleccionado
-                    val ofertasDeComercio = if (comercioActivo != null) {
-                        ofertasDeCategoria.filter {
-                            it.comercio.equals(comercioActivo, ignoreCase = true)
-                        }
-                    } else {
-                        ofertasDeCategoria
+                    val porDescuento = filtrosActuales.orden == OrdenOfertas.MAYOR_DESCUENTO
+                    val ofertas = ofertasDeCategoria.filter {
+                        (comercioActivo == null || it.comercio.equals(comercioActivo, true)) &&
+                            (it.nombre.contains(texto, true) || it.comercio.contains(texto, true))
                     }
-                    val ofertasFiltradas = if (texto.isEmpty()) {
-                        ofertasDeComercio
-                    } else {
-                        ofertasDeComercio.filter {
-                            it.nombre.contains(texto, ignoreCase = true) ||
-                                it.comercio.contains(texto, ignoreCase = true)
-                        }
-                    }
-                    val ofertasOrdenadas = when (filtrosActuales.orden) {
-                        OrdenOfertas.RECOMENDADAS -> ofertasFiltradas
-
-                        OrdenOfertas.MAYOR_DESCUENTO ->
-                            ofertasFiltradas.sortedByDescending { it.porcentajeDescuento }
-                    }
-                    val comerciosBase = ofertasDeCategoria.agruparComercios()
-                    val comerciosFiltrados = if (texto.isEmpty()) {
-                        comerciosBase
-                    } else {
-                        comerciosBase.filter { it.nombre.contains(texto, ignoreCase = true) }
-                    }
-                    val comerciosOrdenados = when (filtrosActuales.orden) {
-                        OrdenOfertas.RECOMENDADAS -> comerciosFiltrados
-
-                        OrdenOfertas.MAYOR_DESCUENTO ->
-                            comerciosFiltrados.sortedByDescending { it.mejorDescuento }
-                    }
+                    val comercios = ofertasDeCategoria.agruparComercios()
+                        .filter { it.nombre.contains(texto, true) }
                     ExplorarUiState(
                         filtros = filtrosActuales,
-                        ofertas = ofertasOrdenadas,
-                        comercios = comerciosOrdenados
+                        ofertas = if (porDescuento) {
+                            ofertas.sortedByDescending { it.porcentajeDescuento }
+                        } else {
+                            ofertas
+                        },
+                        comercios = if (porDescuento) {
+                            comercios.sortedByDescending { it.mejorDescuento }
+                        } else {
+                            comercios
+                        }
                     )
                 }
         }.stateIn(

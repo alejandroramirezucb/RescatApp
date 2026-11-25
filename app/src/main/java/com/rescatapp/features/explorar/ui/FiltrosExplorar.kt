@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -40,8 +38,7 @@ fun FiltrosExplorar(
     filtros: FiltrosOfertas,
     onCategoriaSeleccionada: (Categoria?) -> Unit,
     onOrdenSeleccionado: (OrdenOfertas) -> Unit,
-    onTipoSeleccionado: (TipoBusquedaExplorar) -> Unit = {},
-    onLimpiarComercio: () -> Unit = {}
+    onTipoSeleccionado: (TipoBusquedaExplorar) -> Unit = {}
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -51,40 +48,11 @@ fun FiltrosExplorar(
                     selected = filtros.tipo == tipo && filtros.comercioSeleccionado == null,
                     onClick = { onTipoSeleccionado(tipo) },
                     shape = MaterialTheme.shapes.small,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    colors = coloresChip()
                 )
             }
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            filtros.comercioSeleccionado?.let { comercio ->
-                FilterChip(
-                    label = { Text(comercio, style = MaterialTheme.typography.labelMedium) },
-                    selected = true,
-                    onClick = onLimpiarComercio,
-                    leadingIcon = {
-                        Icon(
-                            Icons.Outlined.Storefront,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            Icons.Outlined.Close,
-                            contentDescription = "Quitar negocio",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    },
-                    shape = MaterialTheme.shapes.small,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                )
-            }
             MenuFiltroExplorar(
                 etiqueta = filtros.categoria?.etiqueta ?: "Categorías",
                 destacado = filtros.categoria != null,
@@ -128,10 +96,7 @@ private fun MenuFiltroExplorar(
                 Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
             },
             shape = MaterialTheme.shapes.small,
-            colors = FilterChipDefaults.filterChipColors(
-                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            colors = coloresChip()
         )
         DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
             opciones.forEachIndexed { indice, (texto, seleccionar) ->
@@ -151,6 +116,12 @@ private fun MenuFiltroExplorar(
         }
     }
 }
+
+@Composable
+private fun coloresChip() = FilterChipDefaults.filterChipColors(
+    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+)
 
 @Preview(name = "Filtros compactos", showBackground = true, widthDp = 360)
 @Preview(name = "Filtros con texto grande", widthDp = 320, fontScale = 1.5f)

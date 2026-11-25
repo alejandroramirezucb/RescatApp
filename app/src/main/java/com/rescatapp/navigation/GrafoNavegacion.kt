@@ -6,7 +6,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.navigation.ArgumentosRuta
 import com.rescatapp.features.auth.domain.model.SesionUsuario
@@ -23,64 +22,7 @@ import com.rescatapp.features.pedidos.ui.PedidosScreen
 import com.rescatapp.features.perfil.ui.PerfilScreen
 import com.rescatapp.features.registro.ui.RegistroScreen
 
-internal data class PantallasGrafo(
-    val inicioCliente: @Composable (
-        onExplorar: (Categoria?) -> Unit,
-        onVerDetalle: (Int) -> Unit,
-        onVerNotificaciones: () -> Unit,
-        onVerComercio: (String) -> Unit,
-        onVerNegocios: () -> Unit
-    ) -> Unit = { onExplorar, onVerDetalle, onVerNotificaciones, onVerComercio, onVerNegocios ->
-        InicioScreen(
-            onExplorar = onExplorar,
-            onVerDetalle = onVerDetalle,
-            onVerNotificaciones = onVerNotificaciones,
-            onVerComercio = onVerComercio,
-            onVerNegocios = onVerNegocios
-        )
-    },
-    val inicioNegocio: @Composable (onVerNotificaciones: () -> Unit) -> Unit = {
-        InicioNegocioScreen(onVerNotificaciones = it)
-    },
-    val pedidos: @Composable () -> Unit = { PedidosScreen() },
-    val registroOferta: @Composable (onVolver: () -> Unit, onPublicado: () -> Unit) -> Unit =
-        { onVolver, onPublicado ->
-            RegistroScreen(onVolver = onVolver, onPublicado = onPublicado)
-        },
-    val ofertasNegocio: @Composable () -> Unit = { OfertasNegocioScreen() },
-    val login: @Composable (
-        onLoginExitoso: () -> Unit,
-        onIrARegistro: () -> Unit,
-        onVolver: () -> Unit
-    ) -> Unit = { onLoginExitoso, onIrARegistro, onVolver ->
-        LoginScreen(
-            onLoginExitoso = onLoginExitoso,
-            onIrARegistro = onIrARegistro,
-            onVolver = onVolver
-        )
-    },
-    val registroUsuario: @Composable (
-        onRegistroExitoso: () -> Unit,
-        onIrALogin: () -> Unit,
-        onVolver: () -> Unit
-    ) -> Unit = { onRegistroExitoso, onIrALogin, onVolver ->
-        RegistroUsuarioScreen(
-            onRegistroExitoso = onRegistroExitoso,
-            onIrALogin = onIrALogin,
-            onVolver = onVolver
-        )
-    }
-)
-
 fun NavGraphBuilder.grafoRescatApp(navController: NavHostController, sesion: () -> SesionUsuario?) {
-    grafoRescatApp(navController = navController, sesion = sesion, pantallas = PantallasGrafo())
-}
-
-internal fun NavGraphBuilder.grafoRescatApp(
-    navController: NavHostController,
-    sesion: () -> SesionUsuario?,
-    pantallas: PantallasGrafo
-) {
     val verDetalle = { ofertaId: Int -> navController.navigate(Rutas.detalle(ofertaId)) }
     val verNotificaciones = { navController.navigate(Rutas.NOTIFICACIONES) }
     val volver: () -> Unit = { navController.popBackStack() }
@@ -95,36 +37,27 @@ internal fun NavGraphBuilder.grafoRescatApp(
 
     composable(Rutas.INICIO) {
         if (sesion()?.rol == RolUsuario.NEGOCIO) {
-            pantallas.inicioNegocio(verNotificaciones)
+            InicioNegocioScreen(onVerNotificaciones = verNotificaciones)
         } else {
-            pantallas.inicioCliente(
-                { navController.navigate(Rutas.explorar(it)) },
-                verDetalle,
-                verNotificaciones,
-                { navController.navigate(Rutas.explorarComercio(it)) },
-                { navController.navigate(Rutas.explorarNegocios()) }
+            InicioScreen(
+                onExplorar = { navController.navigate(Rutas.explorar(it)) },
+                onVerDetalle = verDetalle,
+                onVerNotificaciones = verNotificaciones,
+                onVerComercio = { navController.navigate(Rutas.explorarComercio(it)) },
+                onVerNegocios = { navController.navigate(Rutas.explorarNegocios()) }
             )
         }
     }
     composable(
         route = Rutas.EXPLORAR_POR_CATEGORIA,
-        arguments = listOf(
-            navArgument(ArgumentosRuta.CATEGORIA) {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            },
-            navArgument(ArgumentosRuta.COMERCIO) {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
-            },
-            navArgument(ArgumentosRuta.TIPO) {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = null
+        arguments = listOf(ArgumentosRuta.CATEGORIA, ArgumentosRuta.COMERCIO, ArgumentosRuta.TIPO)
+            .map { nombre ->
+                navArgument(nombre) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             }
-        )
     ) {
         ExplorarScreen(onVerDetalle = verDetalle)
     }
@@ -136,13 +69,13 @@ internal fun NavGraphBuilder.grafoRescatApp(
     }
     composable(Rutas.REGISTRO) {
         if (sesion()?.rol == RolUsuario.NEGOCIO) {
-            pantallas.registroOferta(volver, volver)
+            RegistroScreen(onVolver = volver, onPublicado = volver)
         } else {
             pedirAcceso(true)
         }
     }
     composable(Rutas.PEDIDOS) {
-        if (sesion() != null) pantallas.pedidos() else pedirAcceso(false)
+        if (sesion() != null) PedidosScreen() else pedirAcceso(false)
     }
     composable(Rutas.PERFIL) {
         PerfilScreen(
@@ -152,7 +85,7 @@ internal fun NavGraphBuilder.grafoRescatApp(
         )
     }
     composable(Rutas.OFERTAS_NEGOCIO) {
-        if (sesion()?.rol == RolUsuario.NEGOCIO) pantallas.ofertasNegocio() else pedirAcceso(true)
+        if (sesion()?.rol == RolUsuario.NEGOCIO) OfertasNegocioScreen() else pedirAcceso(true)
     }
     composable(Rutas.NOTIFICACIONES) {
         NotificacionesScreen(
@@ -161,25 +94,25 @@ internal fun NavGraphBuilder.grafoRescatApp(
         )
     }
     composable(Rutas.LOGIN) {
-        pantallas.login(
-            volver,
-            {
+        LoginScreen(
+            onLoginExitoso = volver,
+            onIrARegistro = {
                 navController.navigate(Rutas.REGISTRO_USUARIO) {
                     popUpTo(Rutas.LOGIN) { inclusive = true }
                 }
             },
-            volver
+            onVolver = volver
         )
     }
     composable(Rutas.REGISTRO_USUARIO) {
-        pantallas.registroUsuario(
-            volver,
-            {
+        RegistroUsuarioScreen(
+            onRegistroExitoso = volver,
+            onIrALogin = {
                 navController.navigate(Rutas.LOGIN) {
                     popUpTo(Rutas.REGISTRO_USUARIO) { inclusive = true }
                 }
             },
-            volver
+            onVolver = volver
         )
     }
 }

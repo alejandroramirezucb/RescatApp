@@ -27,7 +27,6 @@ internal fun EncabezadoExplorar(
     onCategoriaSeleccionada: (Categoria?) -> Unit,
     onOrdenSeleccionado: (OrdenOfertas) -> Unit,
     onTipoSeleccionado: (TipoBusquedaExplorar) -> Unit,
-    onLimpiarComercio: () -> Unit,
     onLimpiarFiltros: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -50,8 +49,7 @@ internal fun EncabezadoExplorar(
             filtros = filtros,
             onCategoriaSeleccionada = onCategoriaSeleccionada,
             onOrdenSeleccionado = onOrdenSeleccionado,
-            onTipoSeleccionado = onTipoSeleccionado,
-            onLimpiarComercio = onLimpiarComercio
+            onTipoSeleccionado = onTipoSeleccionado
         )
     }
 }

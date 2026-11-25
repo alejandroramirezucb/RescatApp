@@ -5,8 +5,7 @@ import com.rescatapp.core.data.remote.PedidoDto
 import com.rescatapp.core.data.remote.PerfilDto
 import com.rescatapp.core.data.remote.SupabaseApi
 import com.rescatapp.core.data.remote.TokenDto
-import com.rescatapp.core.data.remote.UsuarioDto
-import com.rescatapp.core.model.EstadoPagoSimulado
+import com.rescatapp.core.model.EstadoPagoSimulado.ANULADO
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Notificacion
 import com.rescatapp.core.model.Oferta
@@ -32,12 +31,12 @@ class SupabaseApiFalsa(
     var esperaCancelacion: CompletableDeferred<Unit>? = null
     var esperaCreacion: CompletableDeferred<Unit>? = null
 
-    override suspend fun iniciarSesion(datos: Map<String, String>) = responder { token() }
+    override suspend fun iniciarSesion(datos: Map<String, String>) = responder { tokenDePrueba() }
 
-    override suspend fun renovarToken(datos: Map<String, String>) = responder { token() }
+    override suspend fun renovarToken(datos: Map<String, String>) = responder { tokenDePrueba() }
 
     override suspend fun registrarUsuario(datos: Map<String, Any>) = responder {
-        if (confirmarCorreo) TokenDto(null, null, null, null) else token()
+        if (confirmarCorreo) TokenDto(null, null, null, null) else tokenDePrueba()
     }
 
     override suspend fun obtenerPerfil(token: String, id: String) = responder { listOf(perfil) }
@@ -64,9 +63,8 @@ class SupabaseApiFalsa(
             reemplazarOferta(id.removePrefix("eq.").toInt()) { it.conCampos(oferta) }
         }
 
-    override suspend fun eliminarOferta(token: String, datos: Map<String, Any>) = responder {
-        ofertas.removeAll { it.id == datos["p_oferta_id"] }
-        Unit
+    override suspend fun eliminarOferta(token: String, datos: Map<String, Any>) {
+        responder { ofertas.removeAll { it.id == datos["p_oferta_id"] } }
     }
 
     override suspend fun cambiarEstadoOferta(token: String, datos: Map<String, Any>) = responder {
@@ -92,22 +90,17 @@ class SupabaseApiFalsa(
     override suspend fun cancelarPedido(token: String, datos: Map<String, Any>): List<PedidoDto> {
         cancelacionesSolicitadas++
         esperaCancelacion?.await()
-        return responder {
-            val pedido = pedidos.first { it.id == datos["p_pedido_id"] }
-            if (pedido.estado == EstadoPedido.CANCELADO) return@responder listOf(pedido.aDto())
-            if (pedido.estado != EstadoPedido.RESERVADO) {
-                throw errorServidor("Solo puedes cancelar un pedido reservado")
-            }
-            reemplazarOferta(pedido.ofertaId) {
-                it.copy(cantidadDisponible = it.cantidadDisponible + 1)
-            }
-            guardarPedido(
-                pedido.copy(
-                    estado = EstadoPedido.CANCELADO,
-                    estadoPagoSimulado = EstadoPagoSimulado.ANULADO
-                )
-            )
+        fallo?.let { throw it }
+        val pedido = pedidos.first { it.id == datos["p_pedido_id"] }
+        if (pedido.estado == EstadoPedido.CANCELADO) return listOf(pedido.aDto())
+        if (pedido.estado != EstadoPedido.RESERVADO) {
+            throw errorServidor("Solo puedes cancelar un pedido reservado")
         }
+        reemplazarOferta(pedido.ofertaId) {
+            it.copy(cantidadDisponible = it.cantidadDisponible + 1)
+        }
+        val cancelado = pedido.copy(estado = EstadoPedido.CANCELADO, estadoPagoSimulado = ANULADO)
+        return guardarPedido(cancelado)
     }
 
     override suspend fun avanzarPedido(token: String, datos: Map<String, Any?>) = responder {
@@ -126,33 +119,21 @@ class SupabaseApiFalsa(
         id: String?,
         datos: Map<String, Boolean>
     ) = responder {
-        notificaciones.replaceAll {
-            if (id == null ||
-                "eq.${it.id}" == id
-            ) {
-                it.copy(leida = true)
-            } else {
-                it
-            }
-        }
+        notificaciones.replaceAll { if (it.coincide(id)) it.copy(leida = true) else it }
     }
 
     override suspend fun eliminarNotificaciones(
         token: String,
         destinatarioId: String,
         id: String?
-    ) = responder {
-        notificaciones.removeAll { id == null || "eq.${it.id}" == id }
-        Unit
+    ) {
+        responder { notificaciones.removeAll { it.coincide(id) } }
     }
 
     private fun <T> responder(respuesta: () -> T): T {
         fallo?.let { throw it }
         return respuesta()
     }
-
-    private fun token() =
-        TokenDto("acceso", "renovacion", 3600, UsuarioDto(USUARIO_PRUEBA, "ana@correo.com"))
 
     private fun reemplazarOferta(id: Int, cambio: (Oferta) -> Oferta) {
         ofertas.replaceAll { if (it.id == id) cambio(it) else it }
