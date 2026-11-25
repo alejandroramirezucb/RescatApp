@@ -9,3 +9,12 @@ val MIGRACION_5_6 = object : Migration(5, 6) {
         db.execSQL("ALTER TABLE pedidos ADD COLUMN clienteTelefono TEXT")
     }
 }
+
+val MIGRACION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "ALTER TABLE pedidos ADD COLUMN estadoPagoSimulado TEXT NOT NULL DEFAULT 'APROBADO'"
+        )
+        db.execSQL("UPDATE pedidos SET estadoPagoSimulado = 'ANULADO' WHERE estado = 'CANCELADO'")
+    }
+}

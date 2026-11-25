@@ -24,6 +24,7 @@ import com.rescatapp.core.designsystem.components.DetallesClientePedido
 import com.rescatapp.core.designsystem.components.ImagenCategoria
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.util.formatearDinero
@@ -64,6 +65,13 @@ internal fun TarjetaPedidoHistorial(pedido: Pedido, esNegocio: Boolean = false) 
                     overflow = TextOverflow.Ellipsis
                 )
                 EstadoHistorial(pedido.estado)
+                if (pedido.estadoPagoSimulado == EstadoPagoSimulado.ANULADO) {
+                    Text(
+                        text = "Pago simulado anulado",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 if (esNegocio) {
                     DetallesClientePedido(pedido)
                 }

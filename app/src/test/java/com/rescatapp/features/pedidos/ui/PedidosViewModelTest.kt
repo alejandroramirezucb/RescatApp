@@ -1,14 +1,18 @@
 package com.rescatapp.features.pedidos.ui
 
 import com.rescatapp.ReglaDispatcherPrincipal
+import com.rescatapp.core.data.SupabaseApiFalsa
 import com.rescatapp.core.data.crearAutenticacion
 import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.crearRepositorioPedidos
 import com.rescatapp.core.data.pedidosDeEjemplo
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.features.pedidos.domain.AvanzarPedidoUseCase
 import com.rescatapp.features.pedidos.domain.CancelarPedidoUseCase
 import com.rescatapp.features.pedidos.domain.ConstruirProgresoPedidoUseCase
 import com.rescatapp.observarDuranteLaPrueba
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -19,7 +23,47 @@ class PedidosViewModelTest {
     @get:Rule
     val reglaDispatcher = ReglaDispatcherPrincipal()
 
-    private val repositorioPedidos = crearRepositorioPedidos(pedidosDeEjemplo)
+    private val api = SupabaseApiFalsa(pedidos = pedidosDeEjemplo)
+    private val repositorioPedidos = crearRepositorioPedidos(api = api)
+
+    @Test
+    fun pulsarConfirmarDosVecesSoloEnviaUnaCancelacion() = runTest {
+        repositorioPedidos.reservar(13)
+        val id = repositorioPedidos.pedidos.first().first().id
+        val espera = CompletableDeferred<Unit>()
+        api.esperaCancelacion = espera
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+
+        viewModel.cancelar(id)
+        viewModel.cancelar(id)
+        assertEquals(1, api.cancelacionesSolicitadas)
+        espera.complete(Unit)
+
+        assertEquals(
+            EstadoPagoSimulado.ANULADO,
+            viewModel.uiState.value.historial.first().estadoPagoSimulado
+        )
+    }
+
+    @Test
+    fun cancelarMueveAlHistorialYConfirmaLaAnulacionDelPago() = runTest {
+        repositorioPedidos.reservar(13)
+        val id = repositorioPedidos.pedidos.first().first().id
+        val viewModel = crearViewModel()
+        observarDuranteLaPrueba(viewModel.uiState)
+
+        viewModel.cancelar(id)
+
+        assertEquals(
+            EstadoPagoSimulado.ANULADO,
+            viewModel.uiState.value.historial.first().estadoPagoSimulado
+        )
+        assertEquals(
+            "Pedido cancelado. El pago simulado fue anulado.",
+            viewModel.uiState.value.mensaje
+        )
+    }
 
     @Test
     fun separaActivosEHistorialDelMasRecienteAlMasAntiguo() = runTest {
@@ -68,7 +112,10 @@ class PedidosViewModelTest {
         repositorioPedidos = repositorioPedidos,
         repositorioAutenticacion = crearAutenticacion(),
         avanzarPedido = AvanzarPedidoUseCase(repositorioPedidos),
-        cancelarPedido = CancelarPedidoUseCase(repositorioPedidos, crearRepositorioOfertas()),
+        cancelarPedido = CancelarPedidoUseCase(
+            repositorioPedidos,
+            crearRepositorioOfertas(api = api)
+        ),
         construirProgreso = ConstruirProgresoPedidoUseCase()
     )
 }

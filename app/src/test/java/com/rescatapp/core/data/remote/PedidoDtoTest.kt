@@ -3,6 +3,7 @@ package com.rescatapp.core.data.remote
 import com.google.gson.Gson
 import com.rescatapp.core.data.aDto
 import com.rescatapp.core.data.pedidosDeEjemplo
+import com.rescatapp.core.model.EstadoPagoSimulado
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -10,6 +11,30 @@ import org.junit.Test
 class PedidoDtoTest {
     private val gson = Gson()
     private val json = gson.toJsonTree(pedidosDeEjemplo.first().aDto()).asJsonObject
+
+    @Test
+    fun servidorMapeaElPagoAnulado() {
+        json.addProperty("estado", "CANCELADO")
+        json.addProperty("estado_pago_simulado", "ANULADO")
+        assertEquals(
+            EstadoPagoSimulado.ANULADO,
+            gson.fromJson(json, PedidoDto::class.java).toDomain().estadoPagoSimulado
+        )
+    }
+
+    @Test
+    fun servidorAnteriorSinEstadoDePagoConservaLaCompatibilidad() {
+        json.remove("estado_pago_simulado")
+        assertEquals(
+            EstadoPagoSimulado.APROBADO,
+            gson.fromJson(json, PedidoDto::class.java).toDomain().estadoPagoSimulado
+        )
+        json.addProperty("estado", "CANCELADO")
+        assertEquals(
+            EstadoPagoSimulado.ANULADO,
+            gson.fromJson(json, PedidoDto::class.java).toDomain().estadoPagoSimulado
+        )
+    }
 
     @Test
     fun jsonDeSupabaseMapeaYNormalizaLosDatosDelCliente() {

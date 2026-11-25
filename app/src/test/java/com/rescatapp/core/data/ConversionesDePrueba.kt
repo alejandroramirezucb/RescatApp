@@ -45,7 +45,8 @@ fun Pedido.aDto() = PedidoDto(
         ZoneId.systemDefault()
     ).toOffsetDateTime().toString(),
     clienteNombre,
-    clienteTelefono
+    clienteTelefono,
+    estadoPagoSimulado.name
 )
 
 fun Notificacion.aDto() = NotificacionDto(

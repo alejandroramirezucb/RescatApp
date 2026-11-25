@@ -101,12 +101,20 @@ internal fun AccionesPedidoNegocio(pedido: Pedido, onAvanzar: () -> Unit, onCanc
 
 @Composable
 internal fun AccionCancelarReserva(onCancelar: () -> Unit) {
-    TextButton(
-        onClick = onCancelar,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Cancelar reserva", color = MaterialTheme.colorScheme.error)
+        Text(
+            text = "Puedes cancelar hasta que la tienda acepte el pedido.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        TextButton(
+            onClick = onCancelar,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        ) {
+            Text("Cancelar reserva", color = MaterialTheme.colorScheme.error)
+        }
     }
 }

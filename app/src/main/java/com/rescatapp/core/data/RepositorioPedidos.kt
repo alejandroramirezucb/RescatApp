@@ -10,6 +10,7 @@ import com.rescatapp.core.model.ResultadoOperacion
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -57,8 +58,17 @@ class RepositorioPedidos @Inject constructor(
     private suspend fun operar(accion: suspend (String) -> List<PedidoDto>): ResultadoOperacion =
         try {
             val pedido = accion(autenticacion.tokenObligatorio()).first().toDomain()
-            runCatching { sincronizar() }
+            pedidoDao.insertarTodos(listOf(pedido.toEntity()))
+            try {
+                sincronizar()
+            } catch (cancelacion: CancellationException) {
+                throw cancelacion
+            } catch (_: Exception) {
+                // El pedido retornado por el RPC ya quedó guardado en Room.
+            }
             ResultadoOperacion.Exito(pedido)
+        } catch (cancelacion: CancellationException) {
+            throw cancelacion
         } catch (error: Exception) {
             ResultadoOperacion.Error(mensajeDeError(error))
         }

@@ -2,6 +2,7 @@ package com.rescatapp.core.data.remote
 
 import com.google.gson.annotations.SerializedName
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
 import java.time.LocalDate
@@ -25,7 +26,8 @@ data class PedidoDto(
     @SerializedName("codigo_rescate") val codigoRescate: String,
     @SerializedName("creado_at") val creadoAt: String,
     @SerializedName("cliente_nombre") val clienteNombre: String? = null,
-    @SerializedName("cliente_telefono") val clienteTelefono: String? = null
+    @SerializedName("cliente_telefono") val clienteTelefono: String? = null,
+    @SerializedName("estado_pago_simulado") val estadoPagoSimulado: String? = null
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,
@@ -46,6 +48,12 @@ data class PedidoDto(
         codigoServidor = codigoRescate,
         fechaRetiro = LocalDate.parse(fechaRetiro),
         clienteNombre = clienteNombre?.trim()?.takeIf { it.isNotEmpty() },
-        clienteTelefono = clienteTelefono?.trim()?.takeIf { it.isNotEmpty() }
+        clienteTelefono = clienteTelefono?.trim()?.takeIf { it.isNotEmpty() },
+        estadoPagoSimulado = estadoPagoSimulado?.let(EstadoPagoSimulado::valueOf)
+            ?: if (estado == EstadoPedido.CANCELADO.name) {
+                EstadoPagoSimulado.ANULADO
+            } else {
+                EstadoPagoSimulado.APROBADO
+            }
     )
 }

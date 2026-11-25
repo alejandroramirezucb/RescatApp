@@ -3,11 +3,14 @@ package com.rescatapp.features.pedidos.ui
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import com.rescatapp.core.designsystem.theme.RescatAppTheme
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.PasoProgreso
 import com.rescatapp.core.model.Pedido
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,6 +50,81 @@ class TarjetaPedidoActivoTest {
             PasoProgreso("Listo", completado = false, actual = false)
         )
     )
+
+    @Test
+    fun clientePuedeSolicitarCancelarUnaReserva() {
+        var cancelado: Pedido? = null
+        compose.setContent {
+            RescatAppTheme {
+                TarjetaPedidoActivo(pedidoConProgreso, false, {}, { cancelado = it })
+            }
+        }
+        compose.onNodeWithText("Cancelar reserva").performClick()
+        assertEquals(pedido, cancelado)
+    }
+
+    @Test
+    fun clienteNoPuedeCancelarUnPedidoEnPreparacion() {
+        comprobarCancelacionOculta(EstadoPedido.PREPARANDO)
+    }
+
+    @Test
+    fun clienteNoPuedeCancelarUnPedidoListo() {
+        comprobarCancelacionOculta(EstadoPedido.LISTO)
+    }
+
+    private fun comprobarCancelacionOculta(estado: EstadoPedido) {
+        compose.setContent {
+            RescatAppTheme {
+                TarjetaPedidoActivo(
+                    pedidoConProgreso.copy(
+                        pedido = pedido.copy(estado = estado)
+                    ),
+                    false,
+                    {
+                    },
+                    {}
+                )
+            }
+        }
+        compose.onNodeWithText("Cancelar reserva").assertDoesNotExist()
+    }
+
+    @Test
+    fun dialogoExplicaLaAnulacionSinCobroRealYExigeConfirmar() {
+        var confirmaciones = 0
+        compose.setContent {
+            RescatAppTheme {
+                DialogoCancelarPedido(pedido, { confirmaciones++ }, {})
+            }
+        }
+        compose.onNodeWithText(
+            "El pago simulado se anulará al confirmar la cancelación.",
+            substring = true
+        ).assertExists()
+        compose.onNodeWithText(
+            "no se necesita un reembolso bancario.",
+            substring = true
+        ).assertExists()
+        assertEquals(0, confirmaciones)
+        compose.onNodeWithText("Sí, cancelar").performClick()
+        assertEquals(1, confirmaciones)
+    }
+
+    @Test
+    fun historialMuestraLaAnulacionDelPagoSimulado() {
+        compose.setContent {
+            RescatAppTheme {
+                TarjetaPedidoHistorial(
+                    pedido.copy(
+                        estado = EstadoPedido.CANCELADO,
+                        estadoPagoSimulado = EstadoPagoSimulado.ANULADO
+                    )
+                )
+            }
+        }
+        compose.onNodeWithText("Pago simulado anulado").assertIsDisplayed()
+    }
 
     @Test
     fun clienteVeSuCodigoDeRescateEnPedidoActivo() {

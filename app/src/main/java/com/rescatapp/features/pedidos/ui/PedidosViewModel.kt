@@ -77,7 +77,10 @@ class PedidosViewModel @Inject constructor(
         cancelacionEnCurso = true
         viewModelScope.launch {
             try {
-                mostrarErrorSiFalla(cancelarPedido(pedidoId))
+                mensaje.value = when (val resultado = cancelarPedido(pedidoId)) {
+                    is ResultadoOperacion.Exito -> "Pedido cancelado. El pago simulado fue anulado."
+                    is ResultadoOperacion.Error -> resultado.mensaje
+                }
             } catch (cancelacion: CancellationException) {
                 throw cancelacion
             } catch (_: Exception) {

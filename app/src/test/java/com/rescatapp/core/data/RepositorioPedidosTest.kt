@@ -1,9 +1,11 @@
 package com.rescatapp.core.data
 
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
 import com.rescatapp.core.model.ResultadoOperacion
 import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -13,6 +15,25 @@ import org.junit.Test
 class RepositorioPedidosTest {
     private val api = SupabaseApiFalsa()
     private val repositorio = crearRepositorioPedidos(api = api)
+
+    @Test
+    fun cancelacionConfirmadaSeGuardaAunqueFalleLaConsultaPosterior() = runTest {
+        repositorio.reservar(13)
+        val id = repositorio.pedidos.first().single().id
+        api.falloSincronizarPedidos = IOException()
+
+        val resultado = repositorio.cancelar(id)
+
+        assertTrue(resultado is ResultadoOperacion.Exito)
+        assertEquals(EstadoPedido.CANCELADO, repositorio.buscarPorId(id)?.estado)
+        assertEquals(EstadoPagoSimulado.ANULADO, repositorio.buscarPorId(id)?.estadoPagoSimulado)
+    }
+
+    @Test(expected = CancellationException::class)
+    fun cancelacionDeLaCorrutinaNoSeConvierteEnErrorDeRed() = runTest {
+        api.fallo = CancellationException()
+        repositorio.cancelar(1)
+    }
 
     @Test
     fun sincronizarConservaElNombreYTelefonoDelComprador() = runTest {

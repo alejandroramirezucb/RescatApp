@@ -83,6 +83,15 @@ internal fun DialogoCancelarPedido(
                 "La unidad se devolverá al inventario disponible de la oferta.",
             style = MaterialTheme.typography.bodyMedium
         )
+        Text(
+            text = "El pago simulado se anulará al confirmar la cancelación. " +
+                "No se realizó un cobro bancario real y no se necesita un reembolso bancario.",
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = "Solo se puede cancelar antes de que la tienda acepte el pedido.",
+            style = MaterialTheme.typography.bodySmall
+        )
     }
 }
 

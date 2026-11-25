@@ -1,8 +1,10 @@
 package com.rescatapp.core.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Pedido
 import java.time.LocalDate
@@ -26,7 +28,9 @@ data class PedidoEntity(
     val codigoServidor: String? = null,
     val fechaRetiro: LocalDate = fecha,
     val clienteNombre: String? = null,
-    val clienteTelefono: String? = null
+    val clienteTelefono: String? = null,
+    @ColumnInfo(defaultValue = "'APROBADO'")
+    val estadoPagoSimulado: String = if (estado == EstadoPedido.CANCELADO) "ANULADO" else "APROBADO"
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,
@@ -45,7 +49,8 @@ data class PedidoEntity(
         codigoServidor = codigoServidor,
         fechaRetiro = fechaRetiro,
         clienteNombre = clienteNombre,
-        clienteTelefono = clienteTelefono
+        clienteTelefono = clienteTelefono,
+        estadoPagoSimulado = EstadoPagoSimulado.valueOf(estadoPagoSimulado)
     )
 }
 
@@ -66,5 +71,6 @@ fun Pedido.toEntity(): PedidoEntity = PedidoEntity(
     codigoServidor = codigoServidor,
     fechaRetiro = fechaRetiro,
     clienteNombre = clienteNombre,
-    clienteTelefono = clienteTelefono
+    clienteTelefono = clienteTelefono,
+    estadoPagoSimulado = estadoPagoSimulado.name
 )

@@ -36,7 +36,7 @@ RLS de PostgreSQL deciden qué puede leer o modificar cada usuario.
 | RPC | Qué hace |
 | --- | --- |
 | `reservar_oferta` | Revisa el stock, lo descuenta, crea el pedido y avisa al cliente y al negocio |
-| `cancelar_pedido` | Cancela un pedido reservado, devuelve el stock y avisa al cliente y al negocio |
+| `cancelar_pedido` | Cancela un pedido reservado, anula el pago simulado, devuelve el stock una sola vez y avisa a ambas partes |
 | `avanzar_pedido` | Pasa el pedido a preparando, listo o recogido y avisa al cliente; para entregar exige el código de rescate |
 | `cambiar_estado_oferta` | Pausa o reactiva una oferta del propietario |
 | `eliminar_oferta` | Oculta la oferta y conserva los pedidos anteriores |
@@ -75,12 +75,24 @@ Se ejecutan una sola vez, en orden, en el SQL Editor de un proyecto nuevo.
 | `sql/006_pruebas_transaccionales.sql` | Pruebas de las reglas del servidor; revierte los datos creados |
 | `sql/007_contacto_cliente_pedidos.sql` | Incorpora el teléfono del comprador en los pedidos existentes y nuevos |
 | `sql/008_pruebas_contacto_cliente.sql` | Verifica contacto y permisos después de aplicar 007; revierte los datos de prueba |
+| `sql/009_cancelacion_pago_simulado.sql` | Registra la anulación del pago simulado en la misma transacción que la cancelación y el stock |
+| `sql/010_pruebas_cancelacion_pago.sql` | Verifica cancelación, pago, reintentos, estados y permisos; revierte los datos de prueba |
 
 Para actualizar una instalación existente, ejecutar `007_contacto_cliente_pedidos.sql`
 en el SQL Editor. El nombre y el teléfono se conservan como datos del pedido al
 reservar. Solo pueden consultarlos quienes ya tienen acceso al pedido mediante
 sus políticas RLS; no se habilita la lectura de perfiles ajenos. Si no se ejecuta
 el script, la app sigue mostrando el nombre y señala que el teléfono no está disponible.
+
+Para el issue #87, ejecutar `009_cancelacion_pago_simulado.sql` y luego las pruebas
+`010_pruebas_cancelacion_pago.sql`. No volver a ejecutar 002 sobre esta actualización.
+`estado_pago_simulado` queda en `APROBADO` hasta cancelar y pasa a `ANULADO` junto con
+el pedido `CANCELADO`. Es una simulación: no se cobra ni se reembolsa dinero bancario.
+La restricción de la tabla impide estados de pago incoherentes. El RPC bloquea el
+pedido igual que `avanzar_pedido`: si la tienda ya lo aceptó, rechaza la cancelación
+sin modificar pago ni stock. Repetir una cancelación confirmada no duplica stock ni
+notificaciones. Se conserva la cancelación del negocio de pedidos aún reservados.
+Room migra de 6 a 7 conservando pedidos, contacto y sesión; también admite la cadena 5 → 6 → 7.
 
 Las fotografías aceptan JPG, PNG o WebP de hasta 5 MB y se guardan como
 `<uuid-propietario>/<uuid-archivo>.<extension>`.

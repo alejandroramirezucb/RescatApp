@@ -6,6 +6,7 @@ import com.rescatapp.core.data.remote.PerfilDto
 import com.rescatapp.core.data.remote.SupabaseApi
 import com.rescatapp.core.data.remote.TokenDto
 import com.rescatapp.core.data.remote.UsuarioDto
+import com.rescatapp.core.model.EstadoPagoSimulado
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.Notificacion
 import com.rescatapp.core.model.Oferta
@@ -26,6 +27,9 @@ class SupabaseApiFalsa(
     var perfil = PerfilDto("Ana Pérez", "CLIENTE")
     var confirmarCorreo = false
     var fallo: Exception? = null
+    var falloSincronizarPedidos: Exception? = null
+    var cancelacionesSolicitadas = 0
+    var esperaCancelacion: CompletableDeferred<Unit>? = null
     var esperaCreacion: CompletableDeferred<Unit>? = null
 
     override suspend fun iniciarSesion(datos: Map<String, String>) = responder { token() }
@@ -73,7 +77,10 @@ class SupabaseApiFalsa(
 
     override suspend fun subirImagen(token: String, ruta: String, imagen: RequestBody) = Unit
 
-    override suspend fun obtenerPedidos(token: String) = responder { pedidos.map { it.aDto() } }
+    override suspend fun obtenerPedidos(token: String) = responder {
+        falloSincronizarPedidos?.let { throw it }
+        pedidos.map { it.aDto() }
+    }
 
     override suspend fun reservarOferta(token: String, datos: Map<String, Any>) = responder {
         val oferta = ofertas.first { it.id == datos["p_oferta_id"] }
@@ -82,15 +89,25 @@ class SupabaseApiFalsa(
         guardarPedido(oferta.crearPedido((pedidos.maxOfOrNull { it.id } ?: 0) + 1))
     }
 
-    override suspend fun cancelarPedido(token: String, datos: Map<String, Any>) = responder {
-        val pedido = pedidos.first { it.id == datos["p_pedido_id"] }
-        if (pedido.estado != EstadoPedido.RESERVADO) {
-            throw errorServidor("Solo puedes cancelar un pedido reservado")
+    override suspend fun cancelarPedido(token: String, datos: Map<String, Any>): List<PedidoDto> {
+        cancelacionesSolicitadas++
+        esperaCancelacion?.await()
+        return responder {
+            val pedido = pedidos.first { it.id == datos["p_pedido_id"] }
+            if (pedido.estado == EstadoPedido.CANCELADO) return@responder listOf(pedido.aDto())
+            if (pedido.estado != EstadoPedido.RESERVADO) {
+                throw errorServidor("Solo puedes cancelar un pedido reservado")
+            }
+            reemplazarOferta(pedido.ofertaId) {
+                it.copy(cantidadDisponible = it.cantidadDisponible + 1)
+            }
+            guardarPedido(
+                pedido.copy(
+                    estado = EstadoPedido.CANCELADO,
+                    estadoPagoSimulado = EstadoPagoSimulado.ANULADO
+                )
+            )
         }
-        reemplazarOferta(pedido.ofertaId) {
-            it.copy(cantidadDisponible = it.cantidadDisponible + 1)
-        }
-        guardarPedido(pedido.copy(estado = EstadoPedido.CANCELADO))
     }
 
     override suspend fun avanzarPedido(token: String, datos: Map<String, Any?>) = responder {
