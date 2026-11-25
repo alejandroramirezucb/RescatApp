@@ -24,8 +24,8 @@ ODS 12, producción y consumo responsables.
 | Usuario | Puede |
 | --- | --- |
 | Todos | Registrarse, iniciar sesión, ver notificaciones y su perfil |
-| Cliente | Buscar ofertas, ver el detalle, reservar, pagar con QR simulado o en efectivo, cancelar y seguir sus pedidos |
-| Negocio | Crear ofertas con foto, editarlas, pausarlas, eliminarlas, ver el nombre y teléfono disponible del comprador, preparar pedidos y confirmar la entrega con el código del cliente |
+| Cliente | Buscar ofertas y negocios, ver el detalle, reservar, pagar con QR simulado o en efectivo, cancelar antes de que la tienda acepte y seguir sus pedidos |
+| Negocio | Crear ofertas con foto, editarlas, pausarlas, eliminarlas, ver el nombre y teléfono del comprador, preparar pedidos y confirmar la entrega con el código del cliente |
 
 Lo que publica un negocio aparece en el teléfono de cualquier cliente porque los
 datos se guardan en Supabase.
@@ -81,11 +81,11 @@ Pantalla Compose ──acción──► ViewModel ──► Repositorio ──�
 
 | Requisito | Dónde se cumple |
 | --- | --- |
-| Room | Entidades `OfertaEntity`, `PedidoEntity`, `NotificacionEntity` y `SesionEntity`; sus DAO; base `RescatAppDatabase` |
+| Room | Entidades `OfertaEntity`, `PedidoEntity`, `NotificacionEntity` y `SesionEntity`; sus DAO; base `RescatAppDatabase` versión 7 con migraciones que conservan los pedidos |
 | Persistencia | Room guarda ofertas, pedidos y sesión; al reabrir la app se muestran sin esperar al servidor |
 | CRUD | Crear oferta en `RegistroScreen`; leer en Explorar; editar, pausar y eliminar en Mis ofertas |
 | Flow y StateFlow | Los DAO devuelven `Flow`; los ViewModels exponen `StateFlow` con `MutableStateFlow` o `stateIn` |
-| Filtro dinámico | `OfertaDao.filtrar(categoria, texto)` en Explorar; cambia al escribir o elegir categoría |
+| Filtro dinámico | `OfertaDao.filtrar` por categoría y `ExplorarViewModel` por texto, negocio y tipo (todo, productos o negocios); cambia al escribir o elegir un filtro |
 | Retrofit | `SupabaseApi` con GET, POST, PATCH y DELETE; `GsonConverterFactory`; DTO con `toDomain()` |
 | Carga y errores | Indicadores de progreso, mensajes de error, `try/catch/finally` y aviso sin conexión con reintento |
 | Navegación | `NavHost` en `RescatAppNavHost`; rutas en `Rutas`; `navigate()` y `popBackStack()` |
@@ -107,13 +107,14 @@ ORDER BY id DESC
 | Pantalla | Para qué sirve |
 | --- | --- |
 | Inicio | Cliente: ofertas destacadas. Negocio: pedidos recientes y ventas de la semana |
-| Explorar | Buscar y filtrar ofertas |
+| Explorar | Buscar y filtrar ofertas y negocios; ver las ofertas de un negocio |
 | Detalle | Ver una oferta, reservarla y pagar |
 | Registro | Publicar una oferta nueva (negocio) |
 | Mis ofertas | Editar, pausar o eliminar ofertas (negocio) |
 | Pedidos | Seguir, cancelar o avanzar pedidos |
 | Notificaciones | Avisos de reservas y cambios de estado |
 | Perfil | Datos de la cuenta, impacto y cierre de sesión |
+| Acceso requerido | Elegir entre iniciar sesión o registrarse al abrir una pantalla que necesita cuenta |
 | Login y Registro de usuario | Entrar o crear una cuenta de cliente o negocio |
 
 ## Configuración
@@ -151,8 +152,9 @@ GitHub Actions ([android.yml](.github/workflows/android.yml)) ejecuta los tres
 
 Las pruebas unitarias están en `app/src/test` y cubren registro y validación de
 ofertas, edición y eliminación, DAO de Room, filtros de Explorar, repositorios con
-un `SupabaseApi` falso, login, registro de usuarios, reservas, pago simulado,
-avance de pedidos y rutas de navegación.
+un `SupabaseApi` falso, login, registro de usuarios, reservas, pago simulado y su
+anulación al cancelar, datos del comprador, migraciones de Room, avance de pedidos
+y rutas de navegación.
 
 ## Limitaciones
 

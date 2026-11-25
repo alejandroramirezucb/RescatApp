@@ -22,5 +22,4 @@ AGENTS.md
 .DS_Store
 Thumbs.db
 
-# Configuracion local de la conexion.
 /supabase.local.properties
