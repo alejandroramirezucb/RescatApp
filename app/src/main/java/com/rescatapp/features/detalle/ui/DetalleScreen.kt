@@ -13,32 +13,20 @@ import com.rescatapp.core.designsystem.components.AvisoTemporal
 import com.rescatapp.core.designsystem.components.BarraSuperior
 import com.rescatapp.core.designsystem.components.BotonPrincipal
 import com.rescatapp.core.designsystem.components.EstadoVacio
-import com.rescatapp.features.pago.ui.PasarelaPagoDialog
 
 @Composable
 fun DetalleScreen(onVolver: () -> Unit, viewModel: DetalleViewModel = hiltViewModel()) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (estado.pasarela.visible) {
-        estado.oferta?.let { oferta ->
-            PasarelaPagoDialog(
-                oferta = oferta,
-                estado = estado.pasarela,
-                onSeleccionarMetodo = viewModel::seleccionarMetodoPago,
-                onGenerarQr = viewModel::generarQrPago,
-                onSimularPagoQr = viewModel::simularPagoQr,
-                onPagarEnEfectivo = viewModel::reservar,
-                onCompletarReserva = viewModel::reservar,
-                onCerrar = viewModel::cerrarPasarelaPago
-            )
-        }
-    }
-
     Scaffold(
         topBar = { BarraSuperior(titulo = "Detalle de la oferta", onVolver = onVolver) },
         bottomBar = {
             estado.oferta?.let { oferta ->
-                BarraReservaOferta(oferta = oferta, onReservar = viewModel::abrirPasarelaPago)
+                BarraReservaOferta(
+                    oferta = oferta,
+                    enCarrito = estado.enCarrito,
+                    onAgregar = viewModel::agregarAlCarrito
+                )
             }
         },
         snackbarHost = { AvisoTemporal(estado.mensaje, viewModel::limpiarMensaje) }

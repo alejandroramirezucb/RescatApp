@@ -8,7 +8,6 @@ import com.rescatapp.core.data.crearRepositorioOfertas
 import com.rescatapp.core.data.crearRepositorioPedidos
 import com.rescatapp.core.data.pedidosDeEjemplo
 import com.rescatapp.core.domain.CalcularImpactoUseCase
-import com.rescatapp.features.detalle.domain.ReservarOfertaUseCase
 import com.rescatapp.features.inicio.domain.SeleccionarOfertasInicioUseCase
 import com.rescatapp.observarDuranteLaPrueba
 import kotlinx.coroutines.test.runTest
@@ -45,7 +44,8 @@ class InicioViewModelTest {
         val viewModel = crearViewModel()
         observarDuranteLaPrueba(viewModel.uiState)
 
-        ReservarOfertaUseCase(repositorioOfertas, repositorioPedidos)(13)
+        repositorioPedidos.reservar(13)
+        repositorioOfertas.sincronizar()
 
         val estado = viewModel.uiState.value
         assertEquals(2, estado.impacto.rescates)

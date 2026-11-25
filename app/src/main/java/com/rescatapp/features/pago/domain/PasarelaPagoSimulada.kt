@@ -1,6 +1,5 @@
 package com.rescatapp.features.pago.domain
 
-import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.model.ResultadoOperacion
 import com.rescatapp.features.pago.model.ComprobantePago
 import com.rescatapp.features.pago.model.DatosQrPago
@@ -18,15 +17,14 @@ class PasarelaPagoSimulada(private val esperaMs: Long) {
 
     private var ultimaTransaccion = 1000
 
-    fun generarQrParaOferta(oferta: Oferta): DatosQrPago {
+    fun generarQr(monto: Double, comercio: String): DatosQrPago {
         ultimaTransaccion++
         val referencia = "QR-$ultimaTransaccion"
         return DatosQrPago(
             referenciaTransaccion = referencia,
-            codigoQrPayload = "SIMPLE-QR|BOL|RESCATAPP|$referencia|OFERTA-${oferta.id}|" +
-                "${oferta.comercio}|${oferta.precioRescate}",
-            monto = oferta.precioRescate,
-            comercio = oferta.comercio
+            codigoQrPayload = "SIMPLE-QR|BOL|RESCATAPP|$referencia|$comercio|$monto",
+            monto = monto,
+            comercio = comercio
         )
     }
 

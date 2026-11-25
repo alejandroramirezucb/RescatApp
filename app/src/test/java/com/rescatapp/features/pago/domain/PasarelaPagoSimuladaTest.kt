@@ -15,8 +15,8 @@ class PasarelaPagoSimuladaTest {
     private val oferta = ofertasDeEjemplo.first()
 
     @Test
-    fun generarQrParaOfertaCreaDatosConReferenciaYPayloadCorrectos() {
-        val datosQr = pasarela.generarQrParaOferta(oferta)
+    fun generarQrCreaDatosConReferenciaYPayloadCorrectos() {
+        val datosQr = pasarela.generarQr(oferta.precioRescate, oferta.comercio)
 
         assertTrue(datosQr.referenciaTransaccion.startsWith("QR-"))
         assertTrue(datosQr.codigoQrPayload.contains("SIMPLE-QR"))
@@ -28,8 +28,8 @@ class PasarelaPagoSimuladaTest {
 
     @Test
     fun generarQrConsecutivosProduceReferenciasDistintas() {
-        val qr1 = pasarela.generarQrParaOferta(oferta)
-        val qr2 = pasarela.generarQrParaOferta(oferta)
+        val qr1 = pasarela.generarQr(oferta.precioRescate, oferta.comercio)
+        val qr2 = pasarela.generarQr(oferta.precioRescate, oferta.comercio)
 
         assertNotEquals(qr1.referenciaTransaccion, qr2.referenciaTransaccion)
         assertNotEquals(qr1.codigoQrPayload, qr2.codigoQrPayload)
@@ -37,7 +37,7 @@ class PasarelaPagoSimuladaTest {
 
     @Test
     fun procesarPagoQrAprobadoRetornaComprobante() = runTest {
-        val datosQr = pasarela.generarQrParaOferta(oferta)
+        val datosQr = pasarela.generarQr(oferta.precioRescate, oferta.comercio)
 
         val resultado = pasarela.procesarPagoQr(datosQr, aprobado = true)
 
@@ -49,7 +49,7 @@ class PasarelaPagoSimuladaTest {
 
     @Test
     fun procesarPagoQrRechazadoRetornaErrorConMotivo() = runTest {
-        val datosQr = pasarela.generarQrParaOferta(oferta)
+        val datosQr = pasarela.generarQr(oferta.precioRescate, oferta.comercio)
 
         val resultado = pasarela.procesarPagoQr(datosQr, aprobado = false)
 

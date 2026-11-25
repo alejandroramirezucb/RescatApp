@@ -52,11 +52,12 @@ class RutasTest {
     }
 
     @Test
-    fun cadaRolTieneCuatroPestanasAlcanzables() {
+    fun cadaRolTieneSusPestanasAlcanzables() {
         assertEquals(
             listOf(
                 DestinoPrincipal.INICIO,
                 DestinoPrincipal.EXPLORAR,
+                DestinoPrincipal.CARRITO,
                 DestinoPrincipal.PEDIDOS,
                 DestinoPrincipal.PERFIL
             ),

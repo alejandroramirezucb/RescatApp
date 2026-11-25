@@ -12,6 +12,7 @@ import com.rescatapp.features.auth.domain.model.SesionUsuario
 import com.rescatapp.features.auth.ui.AccesoRequeridoScreen
 import com.rescatapp.features.auth.ui.login.LoginScreen
 import com.rescatapp.features.auth.ui.registro.RegistroUsuarioScreen
+import com.rescatapp.features.carrito.ui.CarritoScreen
 import com.rescatapp.features.detalle.ui.DetalleScreen
 import com.rescatapp.features.explorar.ui.ExplorarScreen
 import com.rescatapp.features.inicio.ui.InicioNegocioScreen
@@ -73,6 +74,9 @@ fun NavGraphBuilder.grafoRescatApp(navController: NavHostController, sesion: () 
         } else {
             pedirAcceso(true)
         }
+    }
+    composable(Rutas.CARRITO) {
+        CarritoScreen(onExplorar = { navController.navegarAPestana(DestinoPrincipal.EXPLORAR) })
     }
     composable(Rutas.PEDIDOS) {
         if (sesion() != null) PedidosScreen() else pedirAcceso(false)

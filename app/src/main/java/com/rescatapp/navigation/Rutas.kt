@@ -14,6 +14,7 @@ object Rutas {
             "&${ArgumentosRuta.TIPO}={${ArgumentosRuta.TIPO}}"
     const val DETALLE = "detalle/{${ArgumentosRuta.OFERTA_ID}}"
     const val REGISTRO = "registro"
+    const val CARRITO = "carrito"
     const val PEDIDOS = "pedidos"
     const val PERFIL = "perfil"
     const val OFERTAS_NEGOCIO = "ofertas_negocio"

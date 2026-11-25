@@ -21,7 +21,7 @@ import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.formatearDinero
 
 @Composable
-internal fun BarraReservaOferta(oferta: Oferta, onReservar: () -> Unit) {
+internal fun BarraReservaOferta(oferta: Oferta, enCarrito: Int, onAgregar: () -> Unit) {
     Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
         Column(modifier = Modifier.navigationBarsPadding()) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -47,9 +47,13 @@ internal fun BarraReservaOferta(oferta: Oferta, onReservar: () -> Unit) {
                         )
                     }
                     BotonPrincipal(
-                        texto = if (oferta.estaAgotada) "Agotado" else "Reservar",
-                        onClick = onReservar,
-                        habilitado = !oferta.estaAgotada,
+                        texto = when {
+                            oferta.estaAgotada -> "Agotado"
+                            enCarrito > 0 -> "Agregar otro ($enCarrito)"
+                            else -> "Agregar al carrito"
+                        },
+                        onClick = onAgregar,
+                        habilitado = enCarrito < oferta.cantidadDisponible,
                         modifier = Modifier.weight(1.2f)
                     )
                 }

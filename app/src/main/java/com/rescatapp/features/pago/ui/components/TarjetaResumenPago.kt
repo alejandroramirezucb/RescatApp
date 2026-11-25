@@ -19,11 +19,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.theme.Verde
 import com.rescatapp.core.designsystem.theme.VerdeSuave
-import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.model.Carrito
 import com.rescatapp.core.util.formatearDinero
 
 @Composable
-fun TarjetaResumenPago(oferta: Oferta, modifier: Modifier = Modifier) {
+fun TarjetaResumenPago(carrito: Carrito, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -41,13 +41,19 @@ fun TarjetaResumenPago(oferta: Oferta, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = oferta.nombre,
+                    text = if (carrito.unidades ==
+                        1
+                    ) {
+                        "1 producto"
+                    } else {
+                        "${carrito.unidades} productos"
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
                 Text(
-                    text = oferta.precioRescate.formatearDinero(),
+                    text = carrito.total.formatearDinero(),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
@@ -60,9 +66,10 @@ fun TarjetaResumenPago(oferta: Oferta, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = oferta.comercio,
+                    text = carrito.comercios,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
                 )
                 Row(
                     modifier = Modifier
@@ -71,7 +78,7 @@ fun TarjetaResumenPago(oferta: Oferta, modifier: Modifier = Modifier) {
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text = "Ahorras ${oferta.ahorroPorUnidad.formatearDinero()}",
+                        text = "Ahorras ${carrito.ahorro.formatearDinero()}",
                         style = MaterialTheme.typography.labelSmall,
                         color = Verde,
                         fontWeight = FontWeight.Bold

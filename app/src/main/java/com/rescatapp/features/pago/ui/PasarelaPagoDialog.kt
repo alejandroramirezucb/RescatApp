@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.rescatapp.core.designsystem.components.BotonPrincipal
-import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.model.Carrito
 import com.rescatapp.features.pago.model.EstadoPago
 import com.rescatapp.features.pago.model.EstadoPasarela
 import com.rescatapp.features.pago.model.MetodoPago
@@ -30,7 +30,7 @@ import com.rescatapp.features.pago.ui.components.TarjetaResumenPago
 
 @Composable
 fun PasarelaPagoDialog(
-    oferta: Oferta,
+    carrito: Carrito,
     estado: EstadoPasarela,
     onSeleccionarMetodo: (MetodoPago) -> Unit,
     onGenerarQr: () -> Unit,
@@ -62,7 +62,7 @@ fun PasarelaPagoDialog(
                 when (estado.estado) {
                     EstadoPago.PENDIENTE -> if (estado.datosQr == null) {
                         SeleccionMetodo(
-                            oferta = oferta,
+                            carrito = carrito,
                             metodo = estado.metodo,
                             onSeleccionarMetodo = onSeleccionarMetodo,
                             onContinuar = {
@@ -96,13 +96,13 @@ fun PasarelaPagoDialog(
 
 @Composable
 private fun SeleccionMetodo(
-    oferta: Oferta,
+    carrito: Carrito,
     metodo: MetodoPago,
     onSeleccionarMetodo: (MetodoPago) -> Unit,
     onContinuar: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        TarjetaResumenPago(oferta)
+        TarjetaResumenPago(carrito)
         Text("Elige tu método de pago", style = MaterialTheme.typography.labelLarge)
         SelectorMetodoPago(metodo, onSeleccionarMetodo)
         BotonPrincipal(
