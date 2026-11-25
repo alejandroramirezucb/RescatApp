@@ -20,14 +20,12 @@ declare
     propietario uuid;
 begin
     if usuario is null then raise exception 'Se necesita sesion'; end if;
-    -- Comparte el bloqueo con avanzar_pedido: solo una de las operaciones puede ganar.
     select * into pedido from public.pedidos where id = p_pedido_id for update;
     if not found then raise exception 'Pedido no encontrado'; end if;
     select propietario_id into propietario from public.negocios where id = pedido.negocio_id;
     if usuario <> pedido.cliente_id and usuario <> propietario then
         raise exception 'No tienes acceso a este pedido';
     end if;
-    -- Reintentar una respuesta perdida no vuelve a sumar stock ni genera otra anulación.
     if pedido.estado = 'CANCELADO' then return next pedido; return; end if;
     if pedido.estado <> 'RESERVADO' then
         raise exception 'Solo se cancela un pedido reservado';

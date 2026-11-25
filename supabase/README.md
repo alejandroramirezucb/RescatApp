@@ -68,9 +68,10 @@ Se ejecutan una sola vez, en orden, en el SQL Editor de un proyecto nuevo.
 
 | Archivo | Contenido |
 | --- | --- |
-| `sql/001_estructura_y_permisos.sql` | Tablas, índices, triggers y políticas RLS |
-| `sql/002_operaciones_seguras.sql` | Funciones RPC de ofertas y pedidos |
-| `sql/003_imagenes_y_realtime.sql` | Bucket de fotografías y sus políticas |
+| `sql/001_estructura.sql` | Tablas, índices y triggers de fecha y catálogo |
+| `sql/002_operaciones_pedidos.sql` | RPC de pedidos: reservar, cancelar y avanzar |
+| `sql/003_permisos_imagenes_y_realtime.sql` | Perfil al registrarse, políticas RLS, permisos, bucket de fotografías y Realtime |
+| `sql/004_operaciones_ofertas.sql` | RPC de ofertas: pausar, reactivar y eliminar |
 | `sql/005_verificar_configuracion.sql` | Consultas para revisar la configuración |
 | `sql/006_pruebas_transaccionales.sql` | Pruebas de las reglas del servidor; revierte los datos creados |
 | `sql/007_contacto_cliente_pedidos.sql` | Incorpora el teléfono del comprador en los pedidos existentes y nuevos |
@@ -78,21 +79,19 @@ Se ejecutan una sola vez, en orden, en el SQL Editor de un proyecto nuevo.
 | `sql/009_cancelacion_pago_simulado.sql` | Registra la anulación del pago simulado en la misma transacción que la cancelación y el stock |
 | `sql/010_pruebas_cancelacion_pago.sql` | Verifica cancelación, pago, reintentos, estados y permisos; revierte los datos de prueba |
 
-Para actualizar una instalación existente, ejecutar `007_contacto_cliente_pedidos.sql`
-en el SQL Editor. El nombre y el teléfono se conservan como datos del pedido al
-reservar. Solo pueden consultarlos quienes ya tienen acceso al pedido mediante
-sus políticas RLS; no se habilita la lectura de perfiles ajenos. Si no se ejecuta
-el script, la app sigue mostrando el nombre y señala que el teléfono no está disponible.
+Una instalación existente se actualiza ejecutando solo `007` y `009`, sin repetir
+`002`; después se pueden correr sus pruebas, `008` y `010`.
 
-Para el issue #87, ejecutar `009_cancelacion_pago_simulado.sql` y luego las pruebas
-`010_pruebas_cancelacion_pago.sql`. No volver a ejecutar 002 sobre esta actualización.
-`estado_pago_simulado` queda en `APROBADO` hasta cancelar y pasa a `ANULADO` junto con
-el pedido `CANCELADO`. Es una simulación: no se cobra ni se reembolsa dinero bancario.
-La restricción de la tabla impide estados de pago incoherentes. El RPC bloquea el
-pedido igual que `avanzar_pedido`: si la tienda ya lo aceptó, rechaza la cancelación
-sin modificar pago ni stock. Repetir una cancelación confirmada no duplica stock ni
-notificaciones. Se conserva la cancelación del negocio de pedidos aún reservados.
-Room migra de 6 a 7 conservando pedidos, contacto y sesión; también admite la cadena 5 → 6 → 7.
+- `007` guarda el nombre y el teléfono del comprador en el pedido al reservar. Solo
+  los ve quien ya tiene acceso al pedido por RLS. Sin este script la app muestra
+  "Teléfono no disponible".
+- `009` agrega `estado_pago_simulado` (`APROBADO` o `ANULADO`). `cancelar_pedido`
+  bloquea el pedido como `avanzar_pedido`, así que si la tienda ya lo aceptó la
+  cancelación falla sin tocar pago ni stock. Repetir una cancelación ya hecha no
+  devuelve stock dos veces. No hay cobro ni reembolso bancario real.
+
+En el teléfono, Room pasa de la versión 5 a la 7 con migraciones que conservan
+pedidos y sesión.
 
 Las fotografías aceptan JPG, PNG o WebP de hasta 5 MB y se guardan como
 `<uuid-propietario>/<uuid-archivo>.<extension>`.

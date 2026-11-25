@@ -1,4 +1,3 @@
--- Ejecutar después de 009. No conserva pedidos, stock ni notificaciones de prueba.
 begin;
 do $$
 declare cliente uuid; propietario uuid; negocio integer; oferta integer;
@@ -30,7 +29,6 @@ begin
     perform set_config('request.jwt.claim.sub',cliente::text,true);
     select * into strict pedido from public.reservar_oferta(oferta,gen_random_uuid());
     if pedido.estado_pago_simulado <> 'APROBADO' then raise exception 'FALLO: pago inicial'; end if;
-    -- Un tercero y una sesión ausente no pueden anular el pedido ni el pago.
     perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
     begin
         perform public.cancelar_pedido(pedido.id);
@@ -58,7 +56,6 @@ begin
         and tipo = 'PEDIDO_CANCELADO') <> 1 then
         raise exception 'FALLO: notificacion del cliente duplicada';
     end if;
-    -- Si ganó la cancelación, el comercio no puede aceptar el pedido después.
     perform set_config('request.jwt.claim.sub',propietario::text,true);
     begin
         perform public.avanzar_pedido(pedido.id,'RESERVADO');
@@ -66,13 +63,11 @@ begin
     exception when raise_exception then
         if sqlerrm <> 'El estado del pedido cambio; actualiza la pantalla' then raise; end if;
     end;
-    -- Se mantiene la cancelación del negocio antes de aceptar.
     perform set_config('request.jwt.claim.sub',cliente::text,true);
     select * into strict pedido from public.reservar_oferta(oferta,gen_random_uuid());
     perform set_config('request.jwt.claim.sub',propietario::text,true);
     select * into strict resultado from public.cancelar_pedido(pedido.id);
     if resultado.estado_pago_simulado <> 'ANULADO' then raise exception 'FALLO: cancelacion del negocio'; end if;
-    -- Si ganó la aceptación, PREPARANDO y LISTO ya no admiten cancelaciones.
     perform set_config('request.jwt.claim.sub',cliente::text,true);
     select * into strict pedido from public.reservar_oferta(oferta,gen_random_uuid());
     perform set_config('request.jwt.claim.sub',propietario::text,true);
