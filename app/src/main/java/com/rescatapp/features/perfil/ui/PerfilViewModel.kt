@@ -37,9 +37,8 @@ class PerfilViewModel @Inject constructor(
         puntoElegido,
         mensaje
     ) { pedidos, sesion, propias, punto, mensaje ->
-        val guardada = propias.ubicacionGuardada()
-        crearEstado(pedidos, sesion, punto ?: guardada)
-            .copy(ubicacionPendiente = punto != null && punto != guardada, mensaje = mensaje)
+        crearEstado(pedidos, sesion, punto ?: propias.ubicacionGuardada())
+            .copy(ubicacionPendiente = punto != null, mensaje = mensaje)
     }.stateIn(
         scope = viewModelScope,
         started = suscripcionPantalla,
@@ -59,6 +58,7 @@ class PerfilViewModel @Inject constructor(
         viewModelScope.launch {
             mensaje.value = try {
                 repositorioOfertas.guardarUbicacion(latitud, longitud)
+                puntoElegido.value = null
                 "Ubicación de la tienda guardada."
             } catch (cancelacion: CancellationException) {
                 throw cancelacion

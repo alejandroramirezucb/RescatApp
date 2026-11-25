@@ -17,7 +17,7 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 
-private val CENTRO_LA_PAZ = GeoPoint(-16.5, -68.15)
+private val CENTRO_SANTA_CRUZ = GeoPoint(-17.7833, -63.1821)
 
 @Composable
 fun MapaUbicacion(
@@ -38,7 +38,7 @@ fun MapaUbicacion(
                     if (latitud != null && longitud != null) {
                         GeoPoint(latitud, longitud)
                     } else {
-                        CENTRO_LA_PAZ
+                        CENTRO_SANTA_CRUZ
                     }
                 )
                 overlays.add(
