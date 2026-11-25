@@ -3,6 +3,8 @@ package com.rescatapp.features.registro.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
 import com.rescatapp.core.designsystem.components.CampoConError
+import com.rescatapp.core.designsystem.components.SelectorFechaOferta
+import com.rescatapp.core.designsystem.components.SelectorHoraOferta
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.ErroresRegistro
 import kotlin.math.roundToInt
@@ -103,10 +105,8 @@ fun FormularioOferta(
             onValorCambiado = { onCampoCambiado(campos.copy(cantidadDisponible = it)) },
             error = errores.cantidadDisponible
         )
-        CampoConError(
-            etiqueta = "Fecha de retiro",
+        SelectorFechaOferta(
             valor = campos.fechaRetiro,
-            ejemplo = "2026-11-18",
             onValorCambiado = {
                 onCampoCambiado(campos.copy(fechaRetiro = it))
             },
@@ -114,20 +114,18 @@ fun FormularioOferta(
         )
         FilaCamposOferta(
             primero = { espacio ->
-                CampoConError(
+                SelectorHoraOferta(
                     etiqueta = "Hora inicio",
                     valor = campos.horaRetiroDesde,
-                    ejemplo = "18:00",
                     onValorCambiado = { onCampoCambiado(campos.copy(horaRetiroDesde = it)) },
                     error = errores.horaRetiroDesde,
                     modifier = espacio
                 )
             },
             segundo = { espacio ->
-                CampoConError(
+                SelectorHoraOferta(
                     etiqueta = "Hora fin",
                     valor = campos.horaRetiroHasta,
-                    ejemplo = "20:00",
                     onValorCambiado = { onCampoCambiado(campos.copy(horaRetiroHasta = it)) },
                     error = errores.horaRetiroHasta,
                     modifier = espacio

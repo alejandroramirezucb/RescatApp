@@ -5,11 +5,9 @@ import com.rescatapp.core.data.local.toEntity
 import com.rescatapp.core.data.remote.ImagenesOfertas
 import com.rescatapp.core.data.remote.SupabaseApi
 import com.rescatapp.core.data.remote.toCampos
+import com.rescatapp.core.domain.sigueVigente
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Oferta
-import java.time.Instant
-import java.time.LocalTime
-import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -82,10 +80,4 @@ class RepositorioOfertas @Inject constructor(
         } catch (_: Exception) {
         }
     }
-
-    private fun Oferta.sigueVigente(): Boolean =
-        fechaRetiro.atTime(LocalTime.parse(horaRetiroHasta))
-            .atZone(ZoneId.of("America/La_Paz"))
-            .toInstant()
-            .isAfter(Instant.now())
 }

@@ -3,6 +3,7 @@ package com.rescatapp.core.data.remote
 import com.google.gson.annotations.SerializedName
 import com.rescatapp.core.model.Categoria
 import com.rescatapp.core.model.Oferta
+import com.rescatapp.core.util.horaRemotaNormalizada
 import java.time.LocalDate
 
 data class OfertaDto(
@@ -31,8 +32,8 @@ data class OfertaDto(
         precioNormal = precioNormal,
         precioRescate = precioRescate,
         cantidadDisponible = cantidadDisponible,
-        horaRetiroDesde = horaRetiroDesde.take(5),
-        horaRetiroHasta = horaRetiroHasta.take(5),
+        horaRetiroDesde = horaRetiroDesde.horaRemotaNormalizada(),
+        horaRetiroHasta = horaRetiroHasta.horaRemotaNormalizada(),
         imagenUri = imagenUrl,
         propietarioId = negocios?.propietarioId,
         estadoPublicacion = estado,

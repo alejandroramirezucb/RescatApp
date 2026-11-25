@@ -9,6 +9,7 @@ import com.rescatapp.core.data.RepositorioPedidos
 import com.rescatapp.core.model.EstadoPedido
 import com.rescatapp.core.model.RolUsuario
 import com.rescatapp.core.util.formatearDinero
+import com.rescatapp.core.util.hoyEnBolivia
 import com.rescatapp.core.util.suscripcionPantalla
 import com.rescatapp.features.inicio.domain.CalcularVentasSemanaUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,7 +36,7 @@ class InicioNegocioViewModel @Inject constructor(
         ) { ofertas, pedidosNegocio, noLeidas, sesion ->
             val pedidosVigentes = pedidosNegocio.filter {
                 it.estado == EstadoPedido.RECOGIDO &&
-                    it.fecha == java.time.LocalDate.now(java.time.ZoneId.of("America/La_Paz"))
+                    it.fecha == hoyEnBolivia()
             }
             val ventasTotal = pedidosVigentes.sumOf { it.precioPagado }
             val rescatadosTotal = pedidosNegocio.count {

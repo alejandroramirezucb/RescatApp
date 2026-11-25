@@ -1,6 +1,7 @@
 package com.rescatapp.features.registro.domain
 
 import com.rescatapp.core.model.Categoria
+import com.rescatapp.core.util.hoyEnBolivia
 
 data class CamposRegistro(
     val nombre: String = "",
@@ -14,7 +15,5 @@ data class CamposRegistro(
     val horaRetiroDesde: String = "",
     val horaRetiroHasta: String = "",
     val imagenUri: String? = null,
-    val fechaRetiro: String = java.time.LocalDate.now(
-        java.time.ZoneId.of("America/La_Paz")
-    ).toString()
+    val fechaRetiro: String = hoyEnBolivia().toString()
 )

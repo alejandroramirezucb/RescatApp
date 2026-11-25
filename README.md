@@ -89,7 +89,7 @@ Pantalla Compose ──acción──► ViewModel ──► Repositorio ──�
 | Retrofit | `SupabaseApi` con GET, POST, PATCH y DELETE; `GsonConverterFactory`; DTO con `toDomain()` |
 | Carga y errores | Indicadores de progreso, mensajes de error, `try/catch/finally` y aviso sin conexión con reintento |
 | Navegación | `NavHost` en `RescatAppNavHost`; rutas en `Rutas`; `navigate()` y `popBackStack()` |
-| Validaciones | Campos obligatorios, números válidos, horas `HH:mm`, precio de rescate menor al normal, correo y contraseña |
+| Validaciones | Campos obligatorios, números válidos, fecha de retiro desde hoy y horas con `DatePickerDialog` y `TimePickerDialog`, hora fin mayor a hora inicio, precio de rescate menor al normal, correo y contraseña |
 | Diseño adaptable | Columnas según el ancho; contenido centrado hasta 600 dp en tablets |
 
 Filtro de Explorar:
