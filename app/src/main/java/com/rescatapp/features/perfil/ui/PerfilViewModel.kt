@@ -72,10 +72,9 @@ class PerfilViewModel @Inject constructor(
         mensaje.value = null
     }
 
-    private fun List<Oferta>.ubicacionGuardada(): Pair<Double, Double>? =
-        firstNotNullOfOrNull { oferta ->
-            oferta.latitud?.let { latitud -> oferta.longitud?.let { latitud to it } }
-        }
+    private fun List<Oferta>.ubicacionGuardada(): Pair<Double, Double>? = firstNotNullOfOrNull {
+        if (it.latitud != null && it.longitud != null) it.latitud to it.longitud else null
+    }
 
     private fun crearEstado(
         pedidos: List<Pedido>,

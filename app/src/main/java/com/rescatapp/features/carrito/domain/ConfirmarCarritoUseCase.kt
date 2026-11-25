@@ -24,18 +24,20 @@ class ConfirmarCarritoUseCase @Inject constructor(
                 )
             }
         }
-        carrito.items.forEach { item ->
-            repeat(item.cantidad) { reservadas ->
-                val resultado = repositorioPedidos.reservar(item.oferta.id)
-                if (resultado is ResultadoOperacion.Error) {
-                    repositorioCarrito.cambiarCantidad(item.oferta, item.cantidad - reservadas)
-                    runCatching { repositorioOfertas.sincronizar() }
-                    return resultado
+        try {
+            carrito.items.forEach { item ->
+                repeat(item.cantidad) { reservadas ->
+                    val resultado = repositorioPedidos.reservar(item.oferta.id)
+                    if (resultado is ResultadoOperacion.Error) {
+                        repositorioCarrito.cambiarCantidad(item.oferta, item.cantidad - reservadas)
+                        return resultado
+                    }
                 }
+                repositorioCarrito.eliminar(item.oferta.id)
             }
-            repositorioCarrito.eliminar(item.oferta.id)
+        } finally {
+            runCatching { repositorioOfertas.sincronizar() }
         }
-        runCatching { repositorioOfertas.sincronizar() }
         return ResultadoOperacion.Exito(carrito.unidades)
     }
 }
