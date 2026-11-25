@@ -64,24 +64,16 @@ class RegistroViewModel @Inject constructor(
                 }
             } catch (cancelacion: CancellationException) {
                 throw cancelacion
-            } catch (error: HttpException) {
-                estado.update { it.copy(mensaje = mensajeDeError(error)) }
-            } catch (error: IOException) {
-                estado.update { it.copy(mensaje = mensajeDeError(error)) }
-            } catch (error: IllegalArgumentException) {
-                estado.update {
-                    it.copy(mensaje = error.message ?: "Revisa los datos de la oferta.")
+            } catch (error: Exception) {
+                val mensaje = when (error) {
+                    is HttpException,
+                    is IOException,
+                    is IllegalArgumentException,
+                    is NoSuchElementException -> mensajeDeError(error)
+
+                    else -> "No se pudo guardar la oferta. Intenta nuevamente."
                 }
-            } catch (error: NoSuchElementException) {
-                estado.update {
-                    it.copy(
-                        mensaje = error.message ?: "No encontramos un negocio asociado a tu cuenta."
-                    )
-                }
-            } catch (_: Exception) {
-                estado.update {
-                    it.copy(mensaje = "No se pudo guardar la oferta. Intenta nuevamente.")
-                }
+                estado.update { it.copy(mensaje = mensaje) }
             } finally {
                 estado.update { it.copy(guardando = false) }
             }

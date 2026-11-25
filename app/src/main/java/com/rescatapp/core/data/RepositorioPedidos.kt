@@ -64,7 +64,6 @@ class RepositorioPedidos @Inject constructor(
             } catch (cancelacion: CancellationException) {
                 throw cancelacion
             } catch (_: Exception) {
-                // El pedido retornado por el RPC ya quedó guardado en Room.
             }
             ResultadoOperacion.Exito(pedido)
         } catch (cancelacion: CancellationException) {

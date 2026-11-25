@@ -27,7 +27,6 @@ class CancelarPedidoUseCase @Inject constructor(
         } catch (cancelacion: CancellationException) {
             throw cancelacion
         } catch (_: Exception) {
-            // El resultado confirmado por el RPC prevalece sobre un fallo de sincronización.
         }
         return resultado
     }
