@@ -24,7 +24,7 @@ ODS 12, producción y consumo responsables.
 | Usuario | Puede |
 | --- | --- |
 | Todos | Registrarse, iniciar sesión, ver notificaciones y su perfil |
-| Cliente | Buscar ofertas y negocios, ver el detalle, reservar, pagar con QR simulado o en efectivo, cancelar antes de que la tienda acepte y seguir sus pedidos |
+| Cliente | Buscar ofertas y negocios, ver el detalle, juntar varias ofertas y cantidades en el carrito, reservarlas en una sola compra, pagar con QR simulado o en efectivo, cancelar antes de que la tienda acepte y seguir sus pedidos |
 | Negocio | Crear ofertas con foto, editarlas, pausarlas, eliminarlas, ver el nombre y teléfono del comprador, preparar pedidos y confirmar la entrega con el código del cliente |
 
 Lo que publica un negocio aparece en el teléfono de cualquier cliente porque los
@@ -108,7 +108,8 @@ ORDER BY id DESC
 | --- | --- |
 | Inicio | Cliente: ofertas destacadas. Negocio: pedidos recientes y ventas de la semana |
 | Explorar | Buscar y filtrar ofertas y negocios; ver las ofertas de un negocio |
-| Detalle | Ver una oferta, reservarla y pagar |
+| Detalle | Ver una oferta y agregarla al carrito |
+| Carrito | Cambiar cantidades, quitar productos, ver total y ahorro, pagar y reservar todo |
 | Registro | Publicar una oferta nueva (negocio) |
 | Mis ofertas | Editar, pausar o eliminar ofertas (negocio) |
 | Pedidos | Seguir, cancelar o avanzar pedidos |
@@ -152,7 +153,7 @@ GitHub Actions ([android.yml](.github/workflows/android.yml)) ejecuta los tres
 
 Las pruebas unitarias están en `app/src/test` y cubren registro y validación de
 ofertas, edición y eliminación, DAO de Room, filtros de Explorar, repositorios con
-un `SupabaseApi` falso, login, registro de usuarios, reservas, pago simulado y su
+un `SupabaseApi` falso, login, registro de usuarios, carrito, reservas, pago simulado y su
 anulación al cancelar, datos del comprador, migraciones de Room, avance de pedidos
 y rutas de navegación.
 
@@ -161,6 +162,8 @@ y rutas de navegación.
 - Los pagos no cobran dinero real.
 - La app se actualiza cada 10 segundos solo cuando está abierta; no hay notificaciones push con la app cerrada.
 - Crear, editar o reservar necesita internet.
+- El carrito vive en memoria: si se cierra la app se vacía.
+- Cada unidad del carrito genera su propio pedido, porque `reservar_oferta` reserva una unidad por llamada.
 - No hay recuperación de contraseña desde la app.
 
 ## Mejoras futuras
