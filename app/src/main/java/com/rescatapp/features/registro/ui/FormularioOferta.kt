@@ -3,6 +3,7 @@ package com.rescatapp.features.registro.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
 import com.rescatapp.core.designsystem.components.CampoConError
+import com.rescatapp.core.designsystem.components.SelectorFechaOferta
 import com.rescatapp.core.designsystem.components.SelectorHoraOferta
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.ErroresRegistro
@@ -104,10 +105,8 @@ fun FormularioOferta(
             onValorCambiado = { onCampoCambiado(campos.copy(cantidadDisponible = it)) },
             error = errores.cantidadDisponible
         )
-        CampoConError(
-            etiqueta = "Fecha de retiro",
+        SelectorFechaOferta(
             valor = campos.fechaRetiro,
-            ejemplo = "2026-11-18",
             onValorCambiado = {
                 onCampoCambiado(campos.copy(fechaRetiro = it))
             },

@@ -2,6 +2,7 @@ package com.rescatapp.features.registro.domain
 
 import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.util.aDecimalPositivoOrNull
+import com.rescatapp.core.util.aFechaRetiroValidaOrNull
 import javax.inject.Inject
 
 class ValidarOfertaUseCase @Inject constructor(private val validarCampos: ValidadorCamposOferta) {
@@ -39,12 +40,8 @@ class ValidarOfertaUseCase @Inject constructor(private val validarCampos: Valida
             cantidadDisponible = erroresCampos.cantidadDisponible,
             horaRetiroDesde = erroresCampos.horaRetiroDesde,
             horaRetiroHasta = erroresCampos.horaRetiroHasta,
-            fechaRetiro = "Indica una fecha valida desde hoy (AAAA-MM-DD)".takeIf {
-                val fecha = runCatching {
-                    java.time.LocalDate.parse(campos.fechaRetiro)
-                }.getOrNull()
-                fecha == null ||
-                    fecha.isBefore(java.time.LocalDate.now(java.time.ZoneId.of("America/La_Paz")))
+            fechaRetiro = "Selecciona una fecha valida desde hoy.".takeIf {
+                campos.fechaRetiro.aFechaRetiroValidaOrNull() == null
             }
         )
     }

@@ -19,11 +19,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.CampoConError
+import com.rescatapp.core.designsystem.components.SelectorFechaOferta
 import com.rescatapp.core.designsystem.components.SelectorHoraOferta
 import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.aDecimalOrNull
-import java.time.LocalDate
+import com.rescatapp.core.util.aFechaRetiroValidaOrNull
 
 @Composable
 internal fun EditorOferta(
@@ -37,7 +38,7 @@ internal fun EditorOferta(
     var horaDesde by remember { mutableStateOf(oferta.horaRetiroDesde) }
     var horaHasta by remember { mutableStateOf(oferta.horaRetiroHasta) }
     var fecha by remember { mutableStateOf(oferta.fechaRetiro.toString()) }
-    val fechaValida = runCatching { LocalDate.parse(fecha) }.getOrNull()
+    val fechaValida = fecha.aFechaRetiroValidaOrNull()
     var mostrarErrores by remember { mutableStateOf(false) }
     val validarCampos = remember { ValidadorCamposOferta() }
     val errores = validarCampos(
@@ -53,14 +54,15 @@ internal fun EditorOferta(
         {
             gestorFoco.clearFocus()
             mostrarErrores = true
-            if (!errores.hayErrores && fechaValida != null) {
+            val fechaAlGuardar = fecha.aFechaRetiroValidaOrNull()
+            if (!errores.hayErrores && fechaAlGuardar != null) {
                 onGuardar(
                     oferta.copy(
                         cantidadDisponible = cantidad.trim().toInt(),
                         precioRescate = checkNotNull(precioRescate.aDecimalOrNull()),
                         horaRetiroDesde = horaDesde.trim(),
                         horaRetiroHasta = horaHasta.trim(),
-                        fechaRetiro = checkNotNull(fechaValida)
+                        fechaRetiro = fechaAlGuardar
                     )
                 )
             }
@@ -103,12 +105,10 @@ internal fun EditorOferta(
                 destacarBordeNaranja = true,
                 onValorCambiado = { precioRescate = it }
             )
-            CampoConError(
-                etiqueta = "Fecha de retiro",
+            SelectorFechaOferta(
                 valor = fecha,
                 onValorCambiado = { fecha = it },
-                ejemplo = "AAAA-MM-DD",
-                error = "Fecha no valida".takeIf {
+                error = "Selecciona una fecha desde hoy.".takeIf {
                     mostrarErrores &&
                         fechaValida == null
                 }
