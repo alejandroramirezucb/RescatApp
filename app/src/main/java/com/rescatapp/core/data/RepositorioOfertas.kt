@@ -70,6 +70,14 @@ class RepositorioOfertas @Inject constructor(
         api.cambiarEstadoOferta(token, mapOf("p_oferta_id" to oferta.id, "p_estado" to nuevoEstado))
     }
 
+    suspend fun guardarUbicacion(latitud: Double, longitud: Double) = operar { token, usuarioId ->
+        api.guardarUbicacionNegocio(
+            token,
+            "eq.$usuarioId",
+            mapOf("latitud" to latitud, "longitud" to longitud)
+        )
+    }
+
     private suspend fun operar(accion: suspend (token: String, usuarioId: String) -> Unit) {
         val token = autenticacion.tokenObligatorio()
         accion(token, checkNotNull(autenticacion.sesion()).usuarioId)

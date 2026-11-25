@@ -37,13 +37,17 @@ data class OfertaDto(
         imagenUri = imagenUrl,
         propietarioId = negocios?.propietarioId,
         estadoPublicacion = estado,
-        fechaRetiro = LocalDate.parse(fechaRetiro)
+        fechaRetiro = LocalDate.parse(fechaRetiro),
+        latitud = negocios?.latitud,
+        longitud = negocios?.longitud
     )
 }
 
 data class NegocioOfertaDto(
     val nombre: String,
-    @SerializedName("propietario_id") val propietarioId: String?
+    @SerializedName("propietario_id") val propietarioId: String?,
+    val latitud: Double? = null,
+    val longitud: Double? = null
 )
 
 fun Oferta.toCampos(): Map<String, Any?> = mapOf(

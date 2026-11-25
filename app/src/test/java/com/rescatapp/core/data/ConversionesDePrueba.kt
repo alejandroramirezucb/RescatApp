@@ -36,7 +36,7 @@ fun errorServidor(mensaje: String) = HttpException(
 fun Oferta.aDto() = OfertaDto(
     id, nombre, categoria.name, descripcion, pesoKg, precioNormal, precioRescate,
     cantidadDisponible, fechaRetiro.toString(), horaRetiroDesde, horaRetiroHasta, imagenUri,
-    estadoPublicacion, NegocioOfertaDto(comercio, propietarioId)
+    estadoPublicacion, NegocioOfertaDto(comercio, propietarioId, latitud, longitud)
 )
 
 fun Pedido.aDto() = PedidoDto(
@@ -75,3 +75,9 @@ fun tokenDePrueba() =
     TokenDto("acceso", "renovacion", 3600, UsuarioDto(USUARIO_PRUEBA, "ana@correo.com"))
 
 fun Notificacion.coincide(id: String?) = id == null || "eq.${this.id}" == id
+
+fun MutableList<Pedido>.guardar(pedido: Pedido): List<PedidoDto> {
+    removeAll { it.id == pedido.id }
+    add(0, pedido)
+    return listOf(pedido.aDto())
+}

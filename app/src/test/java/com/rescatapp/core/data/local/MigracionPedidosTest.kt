@@ -84,7 +84,7 @@ class MigracionPedidosTest {
         helper.close()
 
         val database = Room.databaseBuilder(contexto, RescatAppDatabase::class.java, nombre)
-            .addMigrations(MIGRACION_5_6, MIGRACION_6_7)
+            .addMigrations(MIGRACION_5_6, MIGRACION_6_7, MIGRACION_7_8)
             .allowMainThreadQueries()
             .build()
         try {

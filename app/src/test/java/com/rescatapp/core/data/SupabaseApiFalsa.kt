@@ -73,6 +73,14 @@ class SupabaseApiFalsa(
         }
     }
 
+    override suspend fun guardarUbicacionNegocio(
+        token: String,
+        propietarioId: String,
+        datos: Map<String, Double>
+    ) = responder {
+        ofertas.replaceAll { it.copy(latitud = datos["latitud"], longitud = datos["longitud"]) }
+    }
+
     override suspend fun subirImagen(token: String, ruta: String, imagen: RequestBody) = Unit
 
     override suspend fun obtenerPedidos(token: String) = responder {
@@ -84,7 +92,7 @@ class SupabaseApiFalsa(
         val oferta = ofertas.first { it.id == datos["p_oferta_id"] }
         if (oferta.estaAgotada) throw errorServidor("Esta oferta está agotada")
         reemplazarOferta(oferta.id) { it.copy(cantidadDisponible = it.cantidadDisponible - 1) }
-        guardarPedido(oferta.crearPedido((pedidos.maxOfOrNull { it.id } ?: 0) + 1))
+        pedidos.guardar(oferta.crearPedido((pedidos.maxOfOrNull { it.id } ?: 0) + 1))
     }
 
     override suspend fun cancelarPedido(token: String, datos: Map<String, Any>): List<PedidoDto> {
@@ -100,14 +108,14 @@ class SupabaseApiFalsa(
             it.copy(cantidadDisponible = it.cantidadDisponible + 1)
         }
         val cancelado = pedido.copy(estado = EstadoPedido.CANCELADO, estadoPagoSimulado = ANULADO)
-        return guardarPedido(cancelado)
+        return pedidos.guardar(cancelado)
     }
 
     override suspend fun avanzarPedido(token: String, datos: Map<String, Any?>) = responder {
         val pedido = pedidos.first { it.id == datos["p_pedido_id"] }
         val siguiente = pedido.estado.siguiente()
             ?: throw errorServidor("El pedido ya está ${pedido.estado.etiqueta}")
-        guardarPedido(pedido.copy(estado = siguiente))
+        pedidos.guardar(pedido.copy(estado = siguiente))
     }
 
     override suspend fun obtenerNotificaciones(token: String) =
@@ -137,11 +145,5 @@ class SupabaseApiFalsa(
 
     private fun reemplazarOferta(id: Int, cambio: (Oferta) -> Oferta) {
         ofertas.replaceAll { if (it.id == id) cambio(it) else it }
-    }
-
-    private fun guardarPedido(pedido: Pedido): List<PedidoDto> {
-        pedidos.removeAll { it.id == pedido.id }
-        pedidos.add(0, pedido)
-        return listOf(pedido.aDto())
     }
 }

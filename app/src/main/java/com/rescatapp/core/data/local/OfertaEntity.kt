@@ -23,7 +23,9 @@ data class OfertaEntity(
     val imagenUri: String? = null,
     val propietarioId: String? = null,
     val estadoPublicacion: String = "ACTIVA",
-    val fechaRetiro: LocalDate = LocalDate.now()
+    val fechaRetiro: LocalDate = LocalDate.now(),
+    val latitud: Double? = null,
+    val longitud: Double? = null
 ) {
     fun toDomain(): Oferta = Oferta(
         id = id,
@@ -40,7 +42,9 @@ data class OfertaEntity(
         imagenUri = imagenUri,
         propietarioId = propietarioId,
         estadoPublicacion = estadoPublicacion,
-        fechaRetiro = fechaRetiro
+        fechaRetiro = fechaRetiro,
+        latitud = latitud,
+        longitud = longitud
     )
 }
 
@@ -59,5 +63,7 @@ fun Oferta.toEntity(): OfertaEntity = OfertaEntity(
     imagenUri = imagenUri,
     propietarioId = propietarioId,
     estadoPublicacion = estadoPublicacion,
-    fechaRetiro = fechaRetiro
+    fechaRetiro = fechaRetiro,
+    latitud = latitud,
+    longitud = longitud
 )

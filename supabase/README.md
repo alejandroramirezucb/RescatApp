@@ -24,6 +24,7 @@ RLS de PostgreSQL deciden qué puede leer o modificar cada usuario.
 | Registro | POST | `/auth/v1/signup` |
 | Inicio y renovación de sesión | POST | `/auth/v1/token` |
 | Perfil y negocio del usuario | GET | `/rest/v1/perfiles`, `/rest/v1/negocios` |
+| Ubicación de la tienda | PATCH | `/rest/v1/negocios` |
 | Catálogo de ofertas | GET | `/rest/v1/ofertas` |
 | Crear y editar oferta | POST, PATCH | `/rest/v1/ofertas` |
 | Pedidos | GET | `/rest/v1/pedidos` |
@@ -78,8 +79,9 @@ Se ejecutan una sola vez, en orden, en el SQL Editor de un proyecto nuevo.
 | `sql/008_pruebas_contacto_cliente.sql` | Verifica contacto y permisos después de aplicar 007; revierte los datos de prueba |
 | `sql/009_cancelacion_pago_simulado.sql` | Registra la anulación del pago simulado en la misma transacción que la cancelación y el stock |
 | `sql/010_pruebas_cancelacion_pago.sql` | Verifica cancelación, pago, reintentos, estados y permisos; revierte los datos de prueba |
+| `sql/011_ubicacion_negocios.sql` | Agrega latitud y longitud a `negocios` para el mapa de la tienda |
 
-Una instalación existente se actualiza ejecutando solo `007` y `009`, sin repetir
+Una instalación existente se actualiza ejecutando solo `007`, `009` y `011`, sin repetir
 `002`; después se pueden correr sus pruebas, `008` y `010`.
 
 - `007` guarda el nombre y el teléfono del comprador en el pedido al reservar. Solo
@@ -89,8 +91,10 @@ Una instalación existente se actualiza ejecutando solo `007` y `009`, sin repet
   bloquea el pedido como `avanzar_pedido`, así que si la tienda ya lo aceptó la
   cancelación falla sin tocar pago ni stock. Repetir una cancelación ya hecha no
   devuelve stock dos veces. No hay cobro ni reembolso bancario real.
+- `011` agrega `latitud` y `longitud` a `negocios`. Solo el dueño puede cambiarlas
+  (política `negocios_edicion`); cualquiera puede leerlas junto con las ofertas.
 
-En el teléfono, Room pasa de la versión 5 a la 7 con migraciones que conservan
+En el teléfono, Room pasa de la versión 5 a la 8 con migraciones que conservan
 pedidos y sesión.
 
 Las fotografías aceptan JPG, PNG o WebP de hasta 5 MB y se guardan como

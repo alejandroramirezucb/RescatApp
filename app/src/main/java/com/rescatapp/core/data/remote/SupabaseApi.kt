@@ -34,8 +34,16 @@ interface SupabaseApi {
         @Query("propietario_id") propietarioId: String
     ): List<NegocioDto>
 
+    @PATCH("rest/v1/negocios")
+    suspend fun guardarUbicacionNegocio(
+        @Header("Authorization") token: String,
+        @Query("propietario_id") propietarioId: String,
+        @Body ubicacion: Map<String, Double>
+    )
+
     @GET(
-        "rest/v1/ofertas?select=*,negocios(nombre,propietario_id)&estado=neq.ELIMINADA&order=id.desc"
+        "rest/v1/ofertas?select=*,negocios(nombre,propietario_id,latitud,longitud)" +
+            "&estado=neq.ELIMINADA&order=id.desc"
     )
     suspend fun obtenerOfertas(@Header("Authorization") token: String?): List<OfertaDto>
 

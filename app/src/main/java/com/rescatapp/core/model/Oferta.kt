@@ -21,7 +21,9 @@ data class Oferta(
     val imagenUri: String? = null,
     val propietarioId: String? = null,
     val estadoPublicacion: String = "ACTIVA",
-    val fechaRetiro: java.time.LocalDate = java.time.LocalDate.now()
+    val fechaRetiro: java.time.LocalDate = java.time.LocalDate.now(),
+    val latitud: Double? = null,
+    val longitud: Double? = null
 ) {
     val porcentajeDescuento: Int
         get() = ((1 - precioRescate / precioNormal) * PORCENTAJE_TOTAL).roundToInt()
