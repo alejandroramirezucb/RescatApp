@@ -154,7 +154,7 @@ GitHub Actions ([android.yml](.github/workflows/android.yml)) ejecuta los tres
 
 Las pruebas unitarias están en `app/src/test` y cubren registro y validación de
 ofertas, edición y eliminación, DAO de Room, filtros de Explorar, repositorios con
-un `SupabaseApi` falso, login, registro de usuarios, carrito, reservas, pago simulado y su
+un `SupabaseApi` falso, login, registro de usuarios, carrito, ubicación de la tienda, reservas, pago simulado y su
 anulación al cancelar, datos del comprador, migraciones de Room, avance de pedidos
 y rutas de navegación.
 
