@@ -3,6 +3,7 @@ package com.rescatapp.features.registro.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.input.KeyboardType
 import com.rescatapp.core.designsystem.components.CampoConError
+import com.rescatapp.core.designsystem.components.SelectorHoraOferta
 import com.rescatapp.features.registro.domain.CamposRegistro
 import com.rescatapp.features.registro.domain.ErroresRegistro
 import kotlin.math.roundToInt
@@ -114,20 +115,18 @@ fun FormularioOferta(
         )
         FilaCamposOferta(
             primero = { espacio ->
-                CampoConError(
+                SelectorHoraOferta(
                     etiqueta = "Hora inicio",
                     valor = campos.horaRetiroDesde,
-                    ejemplo = "18:00",
                     onValorCambiado = { onCampoCambiado(campos.copy(horaRetiroDesde = it)) },
                     error = errores.horaRetiroDesde,
                     modifier = espacio
                 )
             },
             segundo = { espacio ->
-                CampoConError(
+                SelectorHoraOferta(
                     etiqueta = "Hora fin",
                     valor = campos.horaRetiroHasta,
-                    ejemplo = "20:00",
                     onValorCambiado = { onCampoCambiado(campos.copy(horaRetiroHasta = it)) },
                     error = errores.horaRetiroHasta,
                     modifier = espacio

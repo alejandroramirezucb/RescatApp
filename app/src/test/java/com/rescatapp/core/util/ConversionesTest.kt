@@ -30,4 +30,14 @@ class ConversionesTest {
         assertEquals(LocalTime.of(9, 0), "09:00".aHoraOrNull())
         listOf("9:00", "25:00", "12:60", "18h").forEach { assertNull(it.aHoraOrNull()) }
     }
+
+    @Test
+    fun normalizaHorasRemotasSinAceptarSufijosInvalidos() {
+        assertEquals("09:05", "09:05".horaRemotaNormalizada())
+        assertEquals("09:05", "09:05:00".horaRemotaNormalizada())
+        assertEquals("23:59", "23:59:59.123456".horaRemotaNormalizada())
+        for (hora in listOf("24:00:00", "12:60:00", "20:00basura", "", "9:00")) {
+            assertEquals("", hora.horaRemotaNormalizada())
+        }
+    }
 }

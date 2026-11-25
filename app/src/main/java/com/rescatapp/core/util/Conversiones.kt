@@ -20,3 +20,9 @@ fun String.aHoraOrNull(): LocalTime? = try {
 } catch (_: DateTimeParseException) {
     null
 }
+
+fun String.horaRemotaNormalizada(): String = try {
+    LocalTime.parse(trim(), DateTimeFormatter.ISO_LOCAL_TIME).format(FORMATO_HORA)
+} catch (_: DateTimeParseException) {
+    ""
+}

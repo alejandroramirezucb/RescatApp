@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.rescatapp.core.designsystem.components.CampoConError
+import com.rescatapp.core.designsystem.components.SelectorHoraOferta
 import com.rescatapp.core.domain.ValidadorCamposOferta
 import com.rescatapp.core.model.Oferta
 import com.rescatapp.core.util.aDecimalOrNull
@@ -114,19 +115,17 @@ internal fun EditorOferta(
             )
             Text(text = "Horario de retiro", style = MaterialTheme.typography.titleSmall)
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                CampoConError(
+                SelectorHoraOferta(
                     etiqueta = "Hora inicio",
                     valor = horaDesde,
                     error = errores.horaRetiroDesde.takeIf { mostrarErrores },
-                    ejemplo = "18:00",
                     modifier = Modifier.fillMaxWidth(),
                     onValorCambiado = { horaDesde = it }
                 )
-                CampoConError(
+                SelectorHoraOferta(
                     etiqueta = "Hora fin",
                     valor = horaHasta,
                     error = errores.horaRetiroHasta.takeIf { mostrarErrores },
-                    ejemplo = "20:00",
                     modifier = Modifier.fillMaxWidth(),
                     onValorCambiado = { horaHasta = it }
                 )
