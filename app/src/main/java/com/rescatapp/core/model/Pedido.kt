@@ -20,11 +20,7 @@ data class Pedido(
     val fechaRetiro: LocalDate = fecha,
     val clienteNombre: String? = null,
     val clienteTelefono: String? = null,
-    val estadoPagoSimulado: EstadoPagoSimulado = if (estado == EstadoPedido.CANCELADO) {
-        EstadoPagoSimulado.ANULADO
-    } else {
-        EstadoPagoSimulado.APROBADO
-    }
+    val estadoPagoSimulado: EstadoPagoSimulado = EstadoPagoSimulado.segun(estado)
 ) {
     val estaActivo: Boolean
         get() = !estado.esFinal

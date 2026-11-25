@@ -30,7 +30,7 @@ data class PedidoEntity(
     val clienteNombre: String? = null,
     val clienteTelefono: String? = null,
     @ColumnInfo(defaultValue = "'APROBADO'")
-    val estadoPagoSimulado: String = if (estado == EstadoPedido.CANCELADO) "ANULADO" else "APROBADO"
+    val estadoPagoSimulado: String = EstadoPagoSimulado.segun(estado).name
 ) {
     fun toDomain(): Pedido = Pedido(
         id = id,

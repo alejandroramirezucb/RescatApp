@@ -50,10 +50,6 @@ data class PedidoDto(
         clienteNombre = clienteNombre?.trim()?.takeIf { it.isNotEmpty() },
         clienteTelefono = clienteTelefono?.trim()?.takeIf { it.isNotEmpty() },
         estadoPagoSimulado = estadoPagoSimulado?.let(EstadoPagoSimulado::valueOf)
-            ?: if (estado == EstadoPedido.CANCELADO.name) {
-                EstadoPagoSimulado.ANULADO
-            } else {
-                EstadoPagoSimulado.APROBADO
-            }
+            ?: EstadoPagoSimulado.segun(EstadoPedido.valueOf(estado))
     )
 }

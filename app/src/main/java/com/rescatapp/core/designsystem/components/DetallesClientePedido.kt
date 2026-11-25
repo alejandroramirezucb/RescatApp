@@ -11,8 +11,6 @@ import com.rescatapp.core.model.Pedido
 
 @Composable
 fun DetallesClientePedido(pedido: Pedido, modifier: Modifier = Modifier) {
-    val nombre = pedido.clienteNombre?.trim()?.takeIf { it.isNotEmpty() }
-    val telefono = pedido.clienteTelefono?.trim()?.takeIf { it.isNotEmpty() }
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = "Cliente comprador",
@@ -20,11 +18,11 @@ fun DetallesClientePedido(pedido: Pedido, modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = nombre ?: "Nombre no disponible",
+            text = pedido.clienteNombre ?: "Nombre no disponible",
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
-            text = telefono?.let { "Teléfono: $it" } ?: "Teléfono no disponible",
+            text = pedido.clienteTelefono?.let { "Teléfono: $it" } ?: "Teléfono no disponible",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
